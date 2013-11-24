@@ -1,0 +1,7 @@
+<ul>
+    {% for eid in eids %}
+        <li><a href="{% url 'email_detail' eid %}">{{ eid }}</a></li>
+    {% empty %}
+        It's empty
+    {% endfor %}
+</ul>
