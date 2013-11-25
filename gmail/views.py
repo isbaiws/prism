@@ -15,14 +15,14 @@ class EmailList(ListView):
         email.save()
         return HttpResponse('{ok: true, _id: %s}' % email._id)
 
-    def delete(self, req):
-        Email.remove(self.kwargs['eid'])
-        return HttpResponse('dood')
-
 class EmailDetail(DetailView):
     template_name = 'email_detail.html'
     context_object_name = 'email'
 
     def get_object(self):
         return Email.get(self.kwargs['eid'])
+
+    def delete(self, req, eid):
+        _id = Email.remove(eid)
+        return HttpResponse('{ok: true, _id: %s}' % _id)
 

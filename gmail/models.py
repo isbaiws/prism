@@ -73,6 +73,7 @@ class Email(object):
         charset = msg.get_content_charset('gbk')  # gbk will be the default one
         txt = msg.get_payload(decode=True).decode(charset, 'replace')
 
+        # Actually it's useless, but we need a unified way to express body-structure
         ct = '%s; charset=%s' % (msg.get_content_type(), 'utf-8')
         # All lower case
         return [{'content': txt, 'content-type': ct}]
@@ -99,6 +100,10 @@ class Email(object):
     @classmethod
     def get(cls, _id):
         return email_db.find_one({'_id': ObjectId(_id)})
+
+    @classmethod
+    def remove(cls, _id):
+        return email_db.remove({'_id': ObjectId(_id)})
 
     def save(self):
         self._id = email_db.insert(self.to_dict())
