@@ -47,9 +47,8 @@ class Email(object):
 
     def handle_multipart(self, msg):
         assert msg.is_multipart(), "Who send you here while you ain't multipart?"
-        def pick_one(ct):
-            return next(ifilter(lambda d: d['content-type'].startswith(ct),
-                sub_msg_dicts), None)
+        # Look for text/html first and then text/plain, best comes first
+        options = ['text/html', 'text/plain', 'message/rfc822']
 
         sub_msg_dicts = []
         for sub_msg in msg.get_payload():
@@ -57,11 +56,12 @@ class Email(object):
 
         # Each of the parts is an "alternative" version of the same information.
         if msg.get_content_subtype() == 'alternative':
-            # Look for text/html first and then text/plain
-            best1 = pick_one('text/html')
-            best2 = pick_one('text/plain')
-            if best1 or best2:
-                sub_msg_dicts = [best1 or best2]
+            for ct in options:
+                best = next(ifilter(lambda d: 
+                    d['content-type'].startswith(ct), sub_msg_dicts), None)
+                if best:
+                    sub_msg_dicts = [best]
+                    break
             else:
                 # Choose the first one
                 sub_msg_dicts = sub_msg_dicts[0:1]
@@ -69,7 +69,7 @@ class Email(object):
         return sub_msg_dicts
     
     def handle_text(self, msg):
-        assert msg.get_content_maintype() == 'text'
+        # assert msg.get_content_maintype() == 'text'
         charset = msg.get_content_charset('gbk')  # gbk will be the default one
         txt = msg.get_payload(decode=True).decode(charset, 'replace')
 
@@ -77,6 +77,9 @@ class Email(object):
         ct = '%s; charset=%s' % (msg.get_content_type(), 'utf-8')
         # All lower case
         return [{'content': txt, 'content-type': ct}]
+    # In multipart/digest the default Content-Type value for a body part 
+    # is changed from "text/plain" to "message/rfc822".
+    handle_message = handle_text
 
     def handle_default(self, msg):
         assert not msg.is_multipart()
