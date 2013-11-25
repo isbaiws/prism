@@ -1,11 +1,12 @@
 import re
+from itertools import ifilter
 from email import message_from_file
 from email.iterators import _structure
 from email.header import decode_header
 
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from prism import settings
+from django.conf import settings
 
 client = MongoClient(settings.DB_HOST, settings.DB_PORT)
 db = client.prism
@@ -18,42 +19,69 @@ ecre = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
         re.VERBOSE | re.IGNORECASE | re.MULTILINE)
 
 class Email(object):
+    headers = body = txt_body = None
 
     def __init__(self, fp):
-        self.msg = message_from_file(fp)
-        headers_undec = dict(self.msg.items())
+        msg = message_from_file(fp)
+        headers_undec = dict(msg.items())
         self.headers = self.flatten_header(headers_undec)
-        self.body, self.txt_body = self.get_body()
+        self.body = self.route_handler(msg)
 
     def flatten_header(self, hdr):
+        def decode_match(field):
+            dec_str, charset = decode_header(field.group(0))[0]
+            if charset:
+                dec_str = dec_str.decode(charset, 'replace')
+            return dec_str
+
         for k, v in hdr.items():
-            hdr[k] = ecre.sub(self.decode_match, v)
+            hdr[k] = ecre.sub(decode_match, v)
         return hdr
 
-    def decode_match(self, field):
-        dec_str, charset = decode_header(field.group(0))[0]
-        if charset:
-            dec_str = dec_str.decode(charset, 'replace')
-        return dec_str
+    def route_handler(self, msg):
+        handler = 'handle_' + msg.get_content_maintype()
+        if hasattr(self, handler):
+            return getattr(self, handler)(msg)
+        else:
+            return self.handle_default(msg)
 
-    def get_body(self):
-        parts = []
-        texts = []
-        for part in self.msg.walk():
-            if part.get_content_maintype() == 'multipart':
-                continue
-            if part.get_content_maintype() == 'text':
-                charset = part.get_content_charset('gbk')
-                txt = part.get_payload(decode=True).decode(charset, 'replace')
+    def handle_multipart(self, msg):
+        assert msg.is_multipart(), "Who send you here while you ain't multipart?"
+        def pick_one(ct):
+            return next(ifilter(lambda d: d['content-type'].startswith(ct),
+                sub_msg_dicts), None)
 
-                ct = '%s; charset=%s' % (part.get_content_type(), 'utf-8')
-                parts.append({'content': txt, 'content-type': ct})
-                texts.append(txt)
+        sub_msg_dicts = []
+        for sub_msg in msg.get_payload():
+            sub_msg_dicts.extend(self.route_handler(sub_msg))
+
+        # Each of the parts is an "alternative" version of the same information.
+        if msg.get_content_subtype() == 'alternative':
+            # Look for text/html first and then text/plain
+            best1 = pick_one('text/html')
+            best2 = pick_one('text/plain')
+            if best1 or best2:
+                sub_msg_dicts = [best1 or best2]
             else:
-                part_dict = dict(part.items())
-                part_dict['content'] = part.get_payload()
-                parts.append(part_dict)
-        return parts, texts
+                # Choose the first one
+                sub_msg_dicts = sub_msg_dicts[0:1]
+
+        return sub_msg_dicts
+    
+    def handle_text(self, msg):
+        assert msg.get_content_maintype() == 'text'
+        charset = msg.get_content_charset('gbk')  # gbk will be the default one
+        txt = msg.get_payload(decode=True).decode(charset, 'replace')
+
+        ct = '%s; charset=%s' % (msg.get_content_type(), 'utf-8')
+        # All lower case
+        return [{'content': txt, 'content-type': ct}]
+
+    def handle_default(self, msg):
+        assert not msg.is_multipart()
+        part = dict(msg.items())
+        part['body'] = msg.get_payload()
+        return [part]
 
     def _structure(self):
         '''debugging tool'''
@@ -61,7 +89,7 @@ class Email(object):
 
     def to_dict(self):
         '''can only used once'''
-        self.headers.update({'body': self.body, 'txt_body': self.txt_body})
+        self.headers.update({'body': self.body, '_txt_body': self.txt_body})
         return self.headers
 
     @classmethod

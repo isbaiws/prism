@@ -6,11 +6,16 @@ Replace this with more appropriate tests for your application.
 """
 
 from django.test import TestCase
+from models import Email
 
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.assertEqual(1 + 1, 2)
+# class SimpleTest(TestCase):
+#     def test_basic_addition(self):
+#         """
+#         Tests that 1 + 1 always equals 2.
+#         """
+#         self.assertEqual(1 + 1, 2)
+
+fin = open('gmail/fixtures/multipart_alternative.eml')
+e = Email(fin)
+print e.body
