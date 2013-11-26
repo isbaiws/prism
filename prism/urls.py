@@ -6,8 +6,8 @@ from gmail import views
 # admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^emails$', views.EmailList.as_view(), name='email_list'),
-    url(r'^emails/(?P<eid>\w+)$', views.EmailDetail.as_view(), name='email_detail'),
+    url(r'^email$', views.EmailList.as_view(), name='email_list'),
+    url(r'^email/(?P<eid>\w+)$', views.EmailDetail.as_view(), name='email_detail'),
     # Examples:
     # url(r'^$', 'prism.views.home', name='home'),
     # url(r'^prism/', include('prism.foo.urls')),
