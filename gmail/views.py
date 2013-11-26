@@ -13,7 +13,7 @@ class EmailList(ListView):
     def post(self, req):
         email = Email(req)
         email.save()
-        return HttpResponse('{ok: true, _id: %s}' % email._id)
+        return HttpResponse('{ok: true, _id: %s}' % email._id, status=201)
 
 class EmailDetail(DetailView):
     template_name = 'email_detail.html'
