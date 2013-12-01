@@ -1,28 +1,42 @@
-from django.http import HttpResponse
-from django.views.generic import ListView, DetailView
+from django.http import HttpResponse, Http404
+from django.views.generic import ListView, View
+from django.shortcuts import render_to_response
 
 from models import Email
 
 class EmailList(ListView):
     template_name = 'email_list.html'
-    context_object_name = 'eids'
+    context_object_name = 'emails'
 
     def get_queryset(self):
-        return map(lambda e: str(e['_id']), Email.all())
+        return Email.all()
 
     def post(self, req):
-        email = Email(req)
+        email = Email.from_fp(req)
         email.save()
-        return HttpResponse('{ok: true, _id: %s}' % email._id, status=201)
+        return HttpResponse('{ok: true, id: %s}' % email.id, status=201)
 
-class EmailDetail(DetailView):
+class EmailDetail(View):
     template_name = 'email_detail.html'
-    context_object_name = 'email'
 
-    def get_object(self):
-        return Email.get(self.kwargs['eid'])
+    def get(self, request, eid):
+        e = Email.from_id(eid)
+        context = {'header': e.header, 'body': e.body_html}
+        # Fuck you django DetailView, you bind too much with model
+        return render_to_response(self.template_name, context)
 
-    def delete(self, req, eid):
-        _id = Email.remove(eid)
-        return HttpResponse('{ok: true, _id: %s}' % _id)
+    def delete(self, request, eid):
+        id = Email.remove(eid)
+        return HttpResponse('{ok: true, id: %s}' % id)
+
+class Resource(View):
+
+    def get(self, request, eid, idx):
+        idx = int(idx)  # uninteger won't come here, hehe
+        e = Email.from_id(eid)
+        try:
+            res = e.body[idx]
+        except IndexError:
+            raise Http404()
+        return HttpResponse(res['content'], content_type=res['content-type'])
 

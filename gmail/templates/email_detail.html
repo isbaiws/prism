@@ -1,11 +1,7 @@
 <ul>
-{% for k, v in email.items %}
-    {% if k.lower != 'body' %}
-        <li>{{ k }}: {{ v }}</li>
-    {% endif %}
+{% for k, v in header.items %}
+    <li>{{ k }}: {{ v }}</li>
 {% endfor %}
 </ul>
 <hr />
-{% for body_part in email.body %}
-    {{ body_part.content |safe}}
-{% endfor %}
+{{ body |safe }}

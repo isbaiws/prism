@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import patterns, url
 from gmail import views
 
 # Uncomment the next two lines to enable the admin:
@@ -8,6 +8,7 @@ from gmail import views
 urlpatterns = patterns('',
     url(r'^email$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/(?P<eid>\w+)$', views.EmailDetail.as_view(), name='email_detail'),
+    url(r'^email/(?P<eid>\w+)/(?P<idx>\d+)$', views.Resource.as_view(), name='resource'),
     # Examples:
     # url(r'^$', 'prism.views.home', name='home'),
     # url(r'^prism/', include('prism.foo.urls')),
