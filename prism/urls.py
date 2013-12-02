@@ -7,8 +7,9 @@ from gmail import views
 
 urlpatterns = patterns('',
     url(r'^email$', views.EmailList.as_view(), name='email_list'),
+    url(r'^email/resource/(?P<eid>\w+)$', views.Resource.as_view()),
+    url(r'^email/resource/(?P<eid>\w+)/(?P<idx>\d+)$', views.Resource.as_view(), name='resource'),
     url(r'^email/(?P<eid>\w+)$', views.EmailDetail.as_view(), name='email_detail'),
-    url(r'^email/(?P<eid>\w+)/(?P<idx>\d+)$', views.Resource.as_view(), name='resource'),
     # Examples:
     # url(r'^$', 'prism.views.home', name='home'),
     # url(r'^prism/', include('prism.foo.urls')),
