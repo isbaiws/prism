@@ -1,3 +1,4 @@
+#coding: utf-8
 import re
 from itertools import ifilter
 from email import message_from_file, message_from_string
@@ -139,7 +140,13 @@ class ImageMessage(MessageMixin):
         return self.html_tmpl % reverse('resource', args=(self.id, self.idx))
 
 class DefaultMessage(ImageMessage):
-    html_tmpl = "<a href='%s'>Miscellaneous</a>"
+    html_tmpl = "<a href='%s'>%s</a>"
+
+    def to_html(self):
+        if getattr(self, 'id', None) is None:
+            raise RuntimeError("You havn't set my id yet")
+        return self.html_tmpl % (reverse('resource', args=(self.id, self.idx)),
+            self.header.get('filename', u'未命名文件'))
 
 class MultpartMessage(MessageMixin):
     alternatives = ['text/html', 'text/richtext', 'text/plain', 'message/rfc822']
