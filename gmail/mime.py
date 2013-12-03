@@ -101,7 +101,9 @@ class MessageMixin(object):
             self.body_txt = strip_tags(self.body_html)
         d['body_html'] = self.body_html
         d['body_txt'] = self.body_txt
-        self.id = email_db.insert(d)  # An ObjectId
+        # Returns an ObjectId, we don't care about success write
+        # Passing w=0 disables write acknowledgement to improve performance
+        email_db.insert(d, w=0) 
         return self.id
 
 class TextMessage(MessageMixin):
