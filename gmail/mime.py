@@ -12,6 +12,7 @@ from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
 
 from exceptions import ObjectDoesNotExist
+import attachreader
 
 client = MongoClient(settings.DB_HOST, settings.DB_PORT)
 db = client.prism
@@ -52,7 +53,7 @@ def flatten_header(hdr):
 class MessageMixin(object):
 
     # Some resources may need idx to identify themself
-    def __init__(self, header, body, id=None, idx=0, body_html='', body_txt='', attachment=[]):
+    def __init__(self, header, body, id=None, idx=0, body_html='', body_txt='', attachment=[], attach_txt=''):
         self.header = header
         self.body = body
         # Fetch one if not exist
@@ -68,6 +69,7 @@ class MessageMixin(object):
         #     body_txt = strip_tags(self.body_html)
         self.body_txt = body_txt
         self.attachment = attachment
+        self.attach_txt = attach_txt
 
     def __unicode__(self):
         return unicode(self.header.get('subject', self.id))
@@ -94,7 +96,8 @@ class MessageMixin(object):
         body_html = d.get('body_html', '')
         body_txt = d.get('body_txt', '')
         attachment = d.get('attachment', [])
-        return cls(header, body, id, idx, body_html=body_html, body_txt=body_txt, attachment=attachment)
+        attach_txt = d.get('attach_txt', '')
+        return cls(header, body, id, idx, body_html=body_html, body_txt=body_txt, attachment=attachment, attach_txt=attach_txt)
 
     def get_resource(self, idx=0):
         if idx != 0:
@@ -112,6 +115,7 @@ class MessageMixin(object):
         d['body_html'] = self.body_html
         d['body_txt'] = self.body_txt
         d['attachment'] = self.attachment
+        d['attach_txt'] = self.attach_txt
         # Returns an ObjectId, we don't care about success write
         # Passing w=0 disables write acknowledgement to improve performance
         email_db.insert(d, w=0) 
@@ -155,6 +159,8 @@ class ApplicationMessage(MessageMixin):
         appmsg = super(ApplicationMessage, cls).from_msg(msg, id, idx)
         appmsg.attachment = [{'filename': msg.get_filename(u'未命名文件'),
             'url': reverse('resource', args=(appmsg.id, appmsg.idx))}]
+        appmsg.attach_txt = attachreader.read(msg.get_payload(decode=True),
+            msg.get_filename(u'未命名文件'))
         return appmsg
 
 class DefaultMessage(ImageMessage):
@@ -178,6 +184,7 @@ class MultipartMessage(MessageMixin):
             my_sub_msg = from_msg(sub_msg, id, i+idx)
             multimsg.append(my_sub_msg)  # no hieracy, just flatten them
             attachment.extend(my_sub_msg.attachment)
+        attach_txt = ' '.join(a.attach_txt for a in multimsg)
 
         # Each of the parts is an "alternative" version of the same information.
         if msg.get_content_subtype() == 'alternative':
@@ -198,7 +205,7 @@ class MultipartMessage(MessageMixin):
             return best
         else:
             header = flatten_header(msg)
-            return cls(header, multimsg, id=id, idx=idx, attachment=attachment)
+            return cls(header, multimsg, id=id, idx=idx, attachment=attachment, attach_txt=attach_txt)
     
     @classmethod
     def from_dict(cls, d, idx=0):
@@ -211,8 +218,9 @@ class MultipartMessage(MessageMixin):
         body_html = d.get('body_html', '')
         body_txt = d.get('body_txt', '')
         attachment = d.get('attachment', [])
+        attach_txt = d.get('attach_txt', '')
         return cls(header, children, id, idx=idx, body_html=body_html,
-                body_txt=body_txt, attachment=attachment)
+                body_txt=body_txt, attachment=attachment, attach_txt=attach_txt)
 
     def to_dict(self):
         d = super(MultipartMessage, self).to_dict()
