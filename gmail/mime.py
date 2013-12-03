@@ -23,16 +23,17 @@ email_db = db.email
 ecre = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
         re.VERBOSE | re.IGNORECASE | re.MULTILINE)
 
+def decode_match(field):
+    dec_str, charset = decode_header(field.group(0))[0]
+    if charset:
+        dec_str = dec_str.decode(charset, 'replace')
+    return dec_str
+
 def flatten_header(hdr):
     """Decode strings like =?charset?q?Hello_World?=
     and make keys lower case, 
     hdr must be a email.message type"""
     vanilla_hdr = {}
-    def decode_match(field):
-        dec_str, charset = decode_header(field.group(0))[0]
-        if charset:
-            dec_str = dec_str.decode(charset, 'replace')
-        return dec_str
 
     for k, v in hdr.items():
         vanilla_hdr[k.lower()] = ecre.sub(decode_match, v)
@@ -157,10 +158,11 @@ class ApplicationMessage(MessageMixin):
     @classmethod
     def from_msg(cls, msg, id=None, idx=0):
         appmsg = super(ApplicationMessage, cls).from_msg(msg, id, idx)
-        appmsg.attachment = [{'filename': msg.get_filename(u'未命名文件'),
+        filename = ecre.sub(decode_match, msg.get_filename(u'未命名文件'))
+        appmsg.attachment = [{'filename': filename,
             'url': reverse('resource', args=(appmsg.id, appmsg.idx))}]
         appmsg.attach_txt = attachreader.read(msg.get_payload(decode=True),
-            msg.get_filename(u'未命名文件'))
+            filename)
         return appmsg
 
 class DefaultMessage(ImageMessage):
