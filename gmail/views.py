@@ -1,3 +1,4 @@
+import re
 from django.http import HttpResponse
 from django.views.generic import ListView, View, TemplateView
 from django.shortcuts import render_to_response
@@ -18,7 +19,7 @@ class EmailList(HttpErrorHandler, ListView):
                 if k in self.header_fields:
                     k = 'header.' + k
                 #TODO pretty unsafe to use user's input directly
-                selector[k] = {'$regex': '.*%s.*' % v}
+                selector[k] = {'$regex': '.*%s.*' % re.escape(v)}
         return mime.find(**selector)
 
     def post(self, req):
