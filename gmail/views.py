@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from django.views.generic import ListView, View
+from django.views.generic import ListView, View, TemplateView
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 
@@ -9,9 +9,17 @@ from exceptions import HttpErrorHandler
 class EmailList(HttpErrorHandler, ListView):
     template_name = 'email_list.html'
     context_object_name = 'emails'
+    header_fields = {'subject', 'from', 'to'}
 
     def get_queryset(self):
-        return mime.all()
+        selector = {}
+        for k, v in self.request.GET.items():
+            if v:
+                if k in self.header_fields:
+                    k = 'header.' + k
+                #TODO pretty unsafe to use user's input directly
+                selector[k] = {'$regex': '.*%s.*' % v}
+        return mime.find(**selector)
 
     def post(self, req):
         email = mime.from_fp(req)
@@ -48,4 +56,7 @@ class Resource(HttpErrorHandler, View):
         if 'content-disposition' in hdr:
             response['Content-Disposition'] = hdr['content-disposition']
         return response
+
+class Search(HttpErrorHandler, TemplateView):
+    template_name = 'search.html'
 

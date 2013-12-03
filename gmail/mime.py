@@ -245,3 +245,6 @@ def from_dict(d, idx=0):
 def all():
     return map(from_dict, email_db.find())
 
+def find(**selector):
+    return map(from_dict, email_db.find(selector))
+
