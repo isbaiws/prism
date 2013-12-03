@@ -232,6 +232,8 @@ def from_msg(msg, id=None, idx=0):
     return parser.get(maintype, DefaultMessage).from_msg(msg, id, idx)
 
 def from_id(id_str):
+    if not ObjectId.is_valid(id_str):
+        raise ObjectDoesNotExist()
     msg_dict = email_db.find_one({'_id': ObjectId(id_str)})
     if not msg_dict:
         raise ObjectDoesNotExist()
