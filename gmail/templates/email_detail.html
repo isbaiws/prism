@@ -3,5 +3,15 @@
     <li>{{ k }}: {{ v }}</li>
 {% endfor %}
 </ul>
-<hr />
+
+{% if body %}
+正文<hr />
 {{ body |safe }}
+{% endif %}
+
+{% if attachment %}
+附件<hr />
+{% for attach in attachment %}
+    <p><a href={{ attach.url }}>{{ attach.filename }}</a></p>
+{% endfor %}
+{% endif %}

@@ -34,7 +34,7 @@ class EmailDetail(HttpErrorHandler, View):
 
     def get(self, request, eid):
         e = mime.from_id(eid)
-        context = {'header': e.header, 'body': e.body_html}
+        context = {'header': e.header, 'body': e.body_html, 'attachment': e.attachment}
         # Fuck you django DetailView, you bind too much with model
         return render_to_response(self.template_name, context)
 

@@ -42,6 +42,7 @@ def flatten_header(hdr):
     vanilla_hdr['content-type'] = hdr.get_content_type()
     
     if hdr.get_filename():
+        # for that default message handler
         vanilla_hdr['filename'] = hdr.get_filename()
 
     if 'content-disposition' not in vanilla_hdr and hdr.get_filename():
@@ -51,7 +52,7 @@ def flatten_header(hdr):
 class MessageMixin(object):
 
     # Some resources may need idx to identify themself
-    def __init__(self, header, body, id=None, idx=0, body_html='', body_txt=''):
+    def __init__(self, header, body, id=None, idx=0, body_html='', body_txt='', attachment=[]):
         self.header = header
         self.body = body
         # Fetch one if not exist
@@ -66,6 +67,7 @@ class MessageMixin(object):
         # if not body_txt:
         #     body_txt = strip_tags(self.body_html)
         self.body_txt = body_txt
+        self.attachment = attachment
 
     def __unicode__(self):
         return unicode(self.header.get('subject', self.id))
@@ -78,13 +80,21 @@ class MessageMixin(object):
         return {'header': self.header, 'body': self.body}
     
     @classmethod
+    def from_msg(cls, msg, id=None, idx=0):
+        id = ObjectId(id)
+        header = flatten_header(msg)
+        body = Binary(msg.get_payload(decode=True))
+        return cls(header, body, id, idx=idx)
+
+    @classmethod
     def from_dict(cls, d, idx=0):
         header = d.get('header')
         body = d.get('body', '')
         id = d.get('_id')
         body_html = d.get('body_html', '')
         body_txt = d.get('body_txt', '')
-        return cls(header, body, id, idx, body_html=body_html, body_txt=body_txt)
+        attachment = d.get('attachment', [])
+        return cls(header, body, id, idx, body_html=body_html, body_txt=body_txt, attachment=attachment)
 
     def get_resource(self, idx=0):
         if idx != 0:
@@ -101,6 +111,7 @@ class MessageMixin(object):
             self.body_txt = strip_tags(self.body_html)
         d['body_html'] = self.body_html
         d['body_txt'] = self.body_txt
+        d['attachment'] = self.attachment
         # Returns an ObjectId, we don't care about success write
         # Passing w=0 disables write acknowledgement to improve performance
         email_db.insert(d, w=0) 
@@ -129,17 +140,22 @@ class TextMessage(MessageMixin):
 class ImageMessage(MessageMixin):
     html_tmpl = '<img border="0" hspace="0" align="baseline" src="%s" />'
 
-    @classmethod
-    def from_msg(cls, msg, id=None, idx=0):
-        id = ObjectId(id)
-        header = flatten_header(msg)
-        body = Binary(msg.get_payload(decode=True))
-        return cls(header, body, id, idx=idx)
-
     def to_html(self):
         if getattr(self, 'id', None) is None:
             raise RuntimeError("You havn't set my id yet")
         return self.html_tmpl % reverse('resource', args=(self.id, self.idx))
+
+class ApplicationMessage(MessageMixin):
+
+    def to_html(self):
+        return ''
+
+    @classmethod
+    def from_msg(cls, msg, id=None, idx=0):
+        appmsg = super(ApplicationMessage, cls).from_msg(msg, id, idx)
+        appmsg.attachment = [{'filename': msg.get_filename(u'未命名文件'),
+            'url': reverse('resource', args=(appmsg.id, appmsg.idx))}]
+        return appmsg
 
 class DefaultMessage(ImageMessage):
     html_tmpl = "<a href='%s'>%s</a>"
@@ -150,28 +166,31 @@ class DefaultMessage(ImageMessage):
         return self.html_tmpl % (reverse('resource', args=(self.id, self.idx)),
             self.header.get('filename', u'未命名文件'))
 
-class MultpartMessage(MessageMixin):
+class MultipartMessage(MessageMixin):
     alternatives = ['text/html', 'text/richtext', 'text/plain', 'message/rfc822']
 
     @classmethod
     def from_msg(cls, msg, id=None, idx=0):  # 0 for add operation
         id = ObjectId(id)  # fetch one if not exist
-        children = []
+        multimsg = []
+        attachment = []
         for i, sub_msg in enumerate(msg.get_payload()):
-            children.append(from_msg(sub_msg, id, i+idx))  # no hieracy, just flatten them
+            my_sub_msg = from_msg(sub_msg, id, i+idx)
+            multimsg.append(my_sub_msg)  # no hieracy, just flatten them
+            attachment.extend(my_sub_msg.attachment)
 
         # Each of the parts is an "alternative" version of the same information.
         if msg.get_content_subtype() == 'alternative':
             for ct in cls.alternatives:
                 # There must be a content-type, just in case
                 best = next(ifilter(lambda m: m.header.get \
-                    ('content-type', '').startswith(ct), children), None)
+                    ('content-type', '').startswith(ct), multimsg), None)
                 if best:
                     break
             else:
                 # the last one means the richest, but maybe I donnot know
                 # how to interpret, so just get the first one
-                best = children[0]
+                best = multimsg[0]
             # We still need your header, but donot overwrite headers I already have
             for k, v in flatten_header(msg).items():
                 if k not in best.header:
@@ -179,7 +198,7 @@ class MultpartMessage(MessageMixin):
             return best
         else:
             header = flatten_header(msg)
-            return cls(header, children, id=id, idx=idx)
+            return cls(header, multimsg, id=id, idx=idx, attachment=attachment)
     
     @classmethod
     def from_dict(cls, d, idx=0):
@@ -191,11 +210,12 @@ class MultpartMessage(MessageMixin):
             children.append(from_dict(child, i+idx))
         body_html = d.get('body_html', '')
         body_txt = d.get('body_txt', '')
-        return cls(header, children, id, idx=idx, 
-                body_html=body_html, body_txt=body_txt)
+        attachment = d.get('attachment', [])
+        return cls(header, children, id, idx=idx, body_html=body_html,
+                body_txt=body_txt, attachment=attachment)
 
     def to_dict(self):
-        d = super(MultpartMessage, self).to_dict()
+        d = super(MultipartMessage, self).to_dict()
         d['body'] = [b.to_dict() for b in self.body]
         return d
     
@@ -216,7 +236,8 @@ class MultpartMessage(MessageMixin):
 
 parser = {'text': TextMessage,
         'image': ImageMessage,
-        'multipart': MultpartMessage,}
+        'application': ApplicationMessage,
+        'multipart': MultipartMessage,}
 
 def from_fp(fp):
     msg = message_from_file(fp)
