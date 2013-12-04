@@ -267,6 +267,7 @@ def from_string(fp):
 
 def from_msg(msg, id=None, idx=0):
     id = ObjectId(id)  # fetch one if not exist
+    # May raise MessageParseError, I catch it in the view
     maintype = msg.get_content_maintype()
     return parser.get(maintype, DefaultMessage).from_msg(msg, id, idx)
 

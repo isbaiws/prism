@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 
 import mime
-from exceptions import HttpErrorHandler
+from exceptions import HttpErrorHandler, MessageParseError
 
 class EmailList(HttpErrorHandler, ListView):
     template_name = 'email_list.html'
@@ -23,6 +23,8 @@ class EmailList(HttpErrorHandler, ListView):
         return mime.find(**selector)
 
     def post(self, req):
+        if not req.META['CONTENT_LENGTH']:
+            raise MessageParseError('you cannot post an empty body')
         email = mime.from_fp(req)
         email.save()
         return HttpResponse('{ok: true, location: %s}' %
@@ -41,7 +43,7 @@ class EmailDetail(HttpErrorHandler, View):
 
     def delete(self, request, eid):
         id = mime.remove(eid)
-        return HttpResponse('{ok: true, id: %s}' % id)
+        return HttpResponse('{status: OK, id: %s}' % id)
 
 class Resource(HttpErrorHandler, View):
 
