@@ -55,7 +55,9 @@ def flatten_header(hdr):
     #     print '+'*20, vanilla_hdr['content-disposition'] 
     return vanilla_hdr
 
-class MessageMixin(object):
+class Message(object):
+    """This is a base object which provides basic method needed to parse any
+    any email message, you can override those methods to suite a particular message"""
 
     # Some resources may need idx to identify themself
     def __init__(self, header, body, id=None, idx=0, body_html='', body_txt='', attachment=[], attach_txt=''):
@@ -110,6 +112,8 @@ class MessageMixin(object):
         return self
 
     def save(self):
+        """Any message who runs this method must be a wrapper,
+        we need to put extra info in this wrapper"""
         d = self.to_dict()
         # modify dict here, because we need to put extra info in the outer msg
         d['_id'] = self.id
@@ -126,7 +130,7 @@ class MessageMixin(object):
         email_db.insert(d, w=0) 
         return self.id
 
-class TextMessage(MessageMixin):
+class TextMessage(Message):
 
     @classmethod
     def from_msg(cls, msg, id=None, idx=0):
@@ -146,7 +150,7 @@ class TextMessage(MessageMixin):
                 rsc.header['content-type']
         return rsc
 
-class ImageMessage(MessageMixin):
+class ImageMessage(Message):
     html_tmpl = '<img border="0" hspace="0" align="baseline" src="%s" />'
 
     def to_html(self):
@@ -154,7 +158,7 @@ class ImageMessage(MessageMixin):
             raise RuntimeError("You havn't set my id yet")
         return self.html_tmpl % reverse('resource', args=(self.id, self.idx))
 
-class ApplicationMessage(MessageMixin):
+class ApplicationMessage(Message):
 
     def to_html(self):
         return ''
@@ -178,7 +182,7 @@ class DefaultMessage(ImageMessage):
         return self.html_tmpl % (reverse('resource', args=(self.id, self.idx)),
             self.header.get('filename', u'未命名文件'))
 
-class MultipartMessage(MessageMixin):
+class MultipartMessage(Message):
     alternatives = ['text/html', 'text/richtext', 'text/plain', 'message/rfc822']
 
     @classmethod
