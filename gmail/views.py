@@ -7,6 +7,9 @@ from django.core.urlresolvers import reverse
 import mime
 from exceptions import HttpErrorHandler, MessageParseError
 
+class Index(TemplateView):
+    template_name = 'index.html'
+
 class EmailList(HttpErrorHandler, ListView):
     template_name = 'email_list.html'
     context_object_name = 'emails'

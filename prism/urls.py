@@ -6,6 +6,7 @@ from gmail import views
 # admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'^$', views.Index.as_view(), name='index'),
     url(r'^email$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/resource/(?P<eid>\w+)$', views.Resource.as_view()),
     url(r'^email/resource/(?P<eid>\w+)/(?P<idx>\d+)$', views.Resource.as_view(), name='resource'),
