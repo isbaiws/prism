@@ -290,3 +290,8 @@ def all():
 def find(**selector):
     return map(from_dict, email_db.find(selector))
 
+def remove(id_str):
+    if ObjectId.is_valid(id_str):
+        return email_db.remove(ObjectId(id_str))
+    return None
+

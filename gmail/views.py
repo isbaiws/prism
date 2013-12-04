@@ -1,5 +1,5 @@
 import re
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import ListView, View, TemplateView
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
@@ -44,10 +44,6 @@ class EmailDetail(HttpErrorHandler, View):
         # Fuck you django DetailView, you bind too much with model
         return render_to_response(self.template_name, context)
 
-    def delete(self, request, eid):
-        id = mime.remove(eid)
-        return HttpResponse('{status: OK, id: %s}' % id)
-
 class Resource(HttpErrorHandler, View):
 
     def get(self, request, eid, idx=0):
@@ -65,4 +61,10 @@ class Resource(HttpErrorHandler, View):
 
 class Search(HttpErrorHandler, TemplateView):
     template_name = 'search.html'
+
+class Delete(HttpErrorHandler, View):
+
+    def get(self, request):
+        mime.remove(request.GET.get('id'))
+        return HttpResponseRedirect(reverse('email_list'))
 
