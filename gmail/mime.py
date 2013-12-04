@@ -47,8 +47,12 @@ def flatten_header(hdr):
         # for that default message handler
         vanilla_hdr['filename'] = hdr.get_filename()
 
-    if 'content-disposition' not in vanilla_hdr and hdr.get_filename():
-        vanilla_hdr['content-disposition'] = hdr.get_filename()
+    vanilla_hdr.pop('content-disposition', None)
+    #TODO not everyone need it
+    # if 'content-disposition' not in vanilla_hdr and hdr.get_filename():
+    #     vanilla_hdr['content-disposition'] = hdr.get_filename()
+    # if 'content-disposition' in vanilla_hdr:
+    #     print '+'*20, vanilla_hdr['content-disposition'] 
     return vanilla_hdr
 
 class MessageMixin(object):
