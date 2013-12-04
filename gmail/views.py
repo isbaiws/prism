@@ -64,7 +64,7 @@ class Search(HttpErrorHandler, TemplateView):
 
 class Delete(HttpErrorHandler, View):
 
-    def get(self, request):
-        mime.remove(request.GET.get('id'))
+    def get(self, request, eid):
+        mime.remove(eid)
         return HttpResponseRedirect(reverse('email_list'))
 

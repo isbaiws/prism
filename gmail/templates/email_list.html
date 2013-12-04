@@ -1,6 +1,6 @@
 <ul>
     {% for e in emails %}
-    <li><a href="{% url 'email_detail' e.id %}">{{ e.header.subject |default:e.id }}</a> <a href="{% url 'email_delete' %}?id={{e.id}}">X</a></li>
+    <li><a href="{% url 'email_detail' e.id %}">{{ e.header.subject |default:e.id }}</a> <a href="{% url 'email_delete' e.id %}">X</a></li>
     {% empty %}
         It's empty
     {% endfor %}
