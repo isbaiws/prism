@@ -12,7 +12,9 @@ It's empty
         {% endif %}
 
         <span class="current">
-            Page {{ emails.number }} of {{ emails.paginator.num_pages }}.
+            {% if emails.paginator.num_pages > 1%}
+                Page {{ emails.number }} of {{ emails.paginator.num_pages }}.
+            {% endif %}
         </span>
 
         {% if emails.has_next %}
