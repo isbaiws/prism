@@ -1,10 +1,9 @@
-<ul>
-    {% for e in emails %}
-    <li><a href="{% url 'email_detail' e.id %}">{{ e.header.subject |default:e.id }}</a> <a href="{% url 'email_delete' e.id %}">X</a></li>
-    {% empty %}
-        It's empty
-    {% endfor %}
-</ul>
+{% for e in emails %}
+<h3><a href="{% url 'email_detail' e.id %}">{{ e.header.subject |default:e.id }}</a> <a href="{% url 'email_delete' e.id %}">X</a></h3>
+<div>{{ e.body_txt |truncatewords_html:30 }}</div>
+{% empty %}
+It's empty
+{% endfor %}
 
 <div class="pagination">
     <span class="step-links">
