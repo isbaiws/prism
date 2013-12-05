@@ -40,22 +40,27 @@ class EmailList(HttpErrorHandler, ListView):
             emails = paginator.page(paginator.num_pages)
         return emails
 
-    def post(self, req):
+    def post(self, request):
         # META is standard python dict
         # and content-length will be inside definitely
-        length = req.META['CONTENT_LENGTH']
+        length = request.META['CONTENT_LENGTH']
         if not length:
             return HttpResponse(status=411)
         # Max 50M
         if length.isdigit() and int(length) > 52428800:
             return HttpResponse(status=413)
+        if not self.is_authenticated(request):
+            return HttpResponse(status=403)
 
-        email = mime.from_fp(req)
+        email = mime.from_fp(request)
         email.save()
         return HttpResponse('{ok: true, location: %s}' %
                 # by http host
-               req.build_absolute_uri(reverse('email_detail',
+               request.build_absolute_uri(reverse('email_detail',
                    args=(email.id,))), status=201)
+
+    def is_authenticated(self, request):
+        return True
 
 class EmailDetail(HttpErrorHandler, View):
     template_name = 'email_detail.html'
