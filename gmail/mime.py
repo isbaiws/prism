@@ -12,6 +12,7 @@ from bson import Binary
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
+import HTMLParser
 
 from exceptions import ObjectDoesNotExist
 import attachreader
@@ -24,6 +25,8 @@ email_db = db.email
 # Some will surrend it by " or end by , or by fucking \r
 ecre = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
         re.VERBOSE | re.IGNORECASE | re.MULTILINE)
+
+strip_html_entities = HTMLParser.HTMLParser().unescape
 
 def decode_str(str_enc):
     def decode_match(field):
@@ -90,7 +93,7 @@ class Message(object):
                 self.__class__.__name__)
 
     def to_txt(self):
-        return strip_tags(self.body_html)
+        return strip_html_entities(strip_tags(self.body_html)).strip()
 
     def to_dict(self):
         return {'header': self.header, 'body': self.body}
