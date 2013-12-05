@@ -122,8 +122,8 @@ class Message(object):
         return self
 
     def save(self, **extra):
-        """Any message who runs this method must be a wrapper,
-        we need to put extra info in this wrapper"""
+        """Any message who runs this method must be the root,
+        we will to put meta info in the root"""
         d = self.to_dict()
         # modify dict here, because we need to put extra info in the outer msg
         d['_id'] = self.id
