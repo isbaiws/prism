@@ -1,4 +1,6 @@
 #coding: utf-8
+import monkey
+import pdb
 import re
 from itertools import ifilter
 from email import message_from_file, message_from_string
@@ -23,11 +25,13 @@ email_db = db.email
 ecre = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
         re.VERBOSE | re.IGNORECASE | re.MULTILINE)
 
-def decode_match(field):
-    dec_str, charset = decode_header(field.group(0))[0]
-    if charset:
-        dec_str = dec_str.decode(charset, 'replace')
-    return dec_str
+def decode_str(str_enc):
+    def decode_match(field):
+        str_dec, charset = decode_header(field.group(0))[0]
+        if charset:
+            str_dec = str_dec.decode(charset, 'replace')
+        return str_dec
+    return ecre.sub(decode_match, str_enc)
 
 def flatten_header(hdr):
     """Decode strings like =?charset?q?Hello_World?=
@@ -36,7 +40,7 @@ def flatten_header(hdr):
     vanilla_hdr = {}
 
     for k, v in hdr.items():
-        vanilla_hdr[k.lower()] = ecre.sub(decode_match, v)
+        vanilla_hdr[k.lower()] = decode_str(v)
     
     # Ensure there is a content-type key
     # if 'content-type' not in vanilla_hdr:
@@ -85,6 +89,9 @@ class Message(object):
         raise NotImplementedError('%s doesnot need to_html' %
                 self.__class__.__name__)
 
+    def to_txt(self):
+        return strip_tags(self.body_html)
+
     def to_dict(self):
         return {'header': self.header, 'body': self.body}
     
@@ -111,7 +118,7 @@ class Message(object):
             raise ObjectDoesNotExist()
         return self
 
-    def save(self):
+    def save(self, **extra):
         """Any message who runs this method must be a wrapper,
         we need to put extra info in this wrapper"""
         d = self.to_dict()
@@ -120,11 +127,12 @@ class Message(object):
         if not self.body_html:
             self.body_html = self.to_html()
         if not self.body_txt:
-            self.body_txt = strip_tags(self.body_html)
+            self.body_txt = self.to_txt()
         d['body_html'] = self.body_html
         d['body_txt'] = self.body_txt
         d['attachment'] = self.attachment
         d['attach_txt'] = self.attach_txt
+        d.update(**extra)
         # Returns an ObjectId, we don't care about success write
         # Passing w=0 disables write acknowledgement to improve performance
         email_db.insert(d, w=0) 
@@ -166,7 +174,7 @@ class ApplicationMessage(Message):
     @classmethod
     def from_msg(cls, msg, id=None, idx=0):
         appmsg = super(ApplicationMessage, cls).from_msg(msg, id, idx)
-        filename = ecre.sub(decode_match, msg.get_filename(u'未命名文件'))
+        filename = decode_str(msg.get_filename(u'未命名文件'))
         appmsg.attachment = [{'filename': filename,
             'url': reverse('resource', args=(appmsg.id, appmsg.idx))}]
         appmsg.attach_txt = attachreader.read(msg.get_payload(decode=True),
@@ -288,7 +296,9 @@ def all():
     return map(from_dict, email_db.find())
 
 def find(**selector):
-    return map(from_dict, email_db.find(selector))
+    # return map(from_dict, email_db.find(selector))
+    # Just return raw data, no need to wrap them
+    return email_db.find(selector)
 
 def remove(id_str):
     if ObjectId.is_valid(id_str):

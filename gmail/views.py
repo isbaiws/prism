@@ -1,8 +1,10 @@
 import re
+import pdb
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import ListView, View, TemplateView
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 import mime
 from exceptions import HttpErrorHandler
@@ -18,12 +20,25 @@ class EmailList(HttpErrorHandler, ListView):
     def get_queryset(self):
         selector = {}
         for k, v in self.request.GET.items():
-            if v:
+            if v and k!='page':
                 if k in self.header_fields:
                     k = 'header.' + k
                 #TODO pretty unsafe to use user's input directly
                 selector[k] = {'$regex': '.*%s.*' % re.escape(v)}
-        return mime.find(**selector)
+        cursor = mime.find(**selector)
+
+        paginator = Paginator(cursor, 20) # Show 20 contacts per page
+        # pdb.set_trace()
+        page = self.request.GET.get('page')
+        try:
+            emails = paginator.page(page)
+        except PageNotAnInteger:
+            # If page is not an integer, deliver first page.
+            emails = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range (e.g. 9999), deliver last page of results.
+            emails = paginator.page(paginator.num_pages)
+        return emails
 
     def post(self, req):
         # META is standard python dict
