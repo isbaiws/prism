@@ -43,8 +43,13 @@ class EmailList(HttpErrorHandler, ListView):
     def post(self, req):
         # META is standard python dict
         # and content-length will be inside definitely
-        if not req.META['CONTENT_LENGTH']:
+        length = req.META['CONTENT_LENGTH']
+        if not length:
             return HttpResponse(status=411)
+        # Max 50M
+        if length.isdigit() and int(length) > 52428800:
+            return HttpResponse(status=413)
+
         email = mime.from_fp(req)
         email.save()
         return HttpResponse('{ok: true, location: %s}' %
