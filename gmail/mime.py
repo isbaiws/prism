@@ -96,6 +96,7 @@ class Message(object):
                 self.__class__.__name__)
 
     def to_txt(self):
+        #TODO Unsafe, <script<script>>alert("Hi!")<</script>/script>
         return strip_html_entities(strip_tags(self.body_html)).strip()
 
     def to_dict(self):

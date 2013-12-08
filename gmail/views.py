@@ -25,6 +25,8 @@ class EmailList(HttpErrorHandler, ListView):
                     k = 'header.' + k
                 #TODO pretty unsafe to use user's input directly
                 selector[k] = {'$regex': '.*%s.*' % re.escape(v)}
+                # Try using the python regex objects instead. Pymongo will serialize them properly
+                # selector[k] = {'$regex': '.*%s.*' % re.escape(v), '$options': 'i'}
         cursor = mime.find(**selector)
 
         paginator = Paginator(cursor, 20) # Show 20 contacts per page
