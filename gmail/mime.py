@@ -29,6 +29,7 @@ ecre = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
 strip_html_entities = HTMLParser.HTMLParser().unescape
 
 def decode_str(str_enc):
+    """Decode strings like =?charset?q?Hello_World?="""
     def decode_match(field):
         str_dec, charset = decode_header(field.group(0))[0]
         if charset:
@@ -36,14 +37,16 @@ def decode_str(str_enc):
         return str_dec
     return ecre.sub(decode_match, str_enc)
 
-def flatten_header(hdr):
-    """Decode strings like =?charset?q?Hello_World?=
-    and make keys lower case, 
+def normalize_header(hdr):
+    """Make keys lower case, filter out unneeded, etc.
     hdr must be a email.message type"""
     vanilla_hdr = {}
 
     for k, v in hdr.items():
-        vanilla_hdr[k.lower()] = decode_str(v)
+        k = k.lower()
+        # Filter out those added by other gateways
+        if not k.startswith('x'):
+            vanilla_hdr[k] = decode_str(v)
     
     # Ensure there is a content-type key
     # if 'content-type' not in vanilla_hdr:
@@ -101,7 +104,7 @@ class Message(object):
     @classmethod
     def from_msg(cls, msg, id=None, idx=0):
         id = ObjectId(id)
-        header = flatten_header(msg)
+        header = normalize_header(msg)
         body = Binary(msg.get_payload(decode=True))
         return cls(header, body, id, idx=idx)
 
@@ -149,7 +152,7 @@ class TextMessage(Message):
         # assert msg.get_content_maintype() == 'text'
         charset = msg.get_content_charset('gbk')  # gbk will be the default one
         body = msg.get_payload(decode=True).decode(charset, 'replace')
-        header = flatten_header(msg)
+        header = normalize_header(msg)
         return cls(header, body, id, idx=idx)
 
     def to_html(self):
@@ -220,12 +223,12 @@ class MultipartMessage(Message):
                 # how to interpret, so just get the first one
                 best = multimsg[0]
             # We still need your header, but donot overwrite headers I already have
-            for k, v in flatten_header(msg).items():
+            for k, v in normalize_header(msg).items():
                 if k not in best.header:
                     best.header[k] = v
             return best
         else:
-            header = flatten_header(msg)
+            header = normalize_header(msg)
             return cls(header, multimsg, id=id, idx=idx, attachment=attachment, attach_txt=attach_txt)
     
     @classmethod
