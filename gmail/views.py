@@ -1,5 +1,6 @@
 import re
 import pdb
+import logging
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import ListView, View, TemplateView
 from django.shortcuts import render_to_response
@@ -8,6 +9,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 import mime
 from exceptions import HttpErrorHandler
+
+logger = logging.getLogger(__name__)
 
 class Index(TemplateView):
     template_name = 'index.html'
@@ -27,6 +30,7 @@ class EmailList(HttpErrorHandler, ListView):
                 selector[k] = {'$regex': '.*%s.*' % re.escape(v)}
                 # Try using the python regex objects instead. Pymongo will serialize them properly
                 # selector[k] = {'$regex': '.*%s.*' % re.escape(v), '$options': 'i'}
+        logger.info('Selector is %s', selector)
         cursor = mime.find(**selector)
 
         paginator = Paginator(cursor, 20) # Show 20 contacts per page
@@ -47,11 +51,14 @@ class EmailList(HttpErrorHandler, ListView):
         # and content-length will be inside definitely
         length = request.META['CONTENT_LENGTH']
         if not length:
+            logger.warn('Recved a request without content-length or content-length is 0')
             return HttpResponse(status=411)
         # Max 50M
-        if length.isdigit() and int(length) > 52428800:
+        if length.isdigit() and int(length) > 50*1024*1024:
+            logger.warn('Recved a request larger than 50M')
             return HttpResponse(status=413)
         if not self.is_authenticated(request):
+            logger.warn('Unauthorized request')
             return HttpResponse(status=403)
 
         email = mime.from_fp(request)

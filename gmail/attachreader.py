@@ -1,5 +1,8 @@
+import logging
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from bson import Binary
+
+logger = logging.getLogger(__name__)
 
 def read(fcontent, fname):
     if isinstance(fcontent, unicode):
@@ -7,16 +10,17 @@ def read(fcontent, fname):
     try:
         return _read(fcontent, fname)
     except Exception as e:
-        # need a logger
-        print '+'*20, e
+        logger.info('Cannot read as doc, pdf, %s', e)
         try:
             # if left off, ascii will be the default encoding
             return unicode(fcontent, 'gbk') 
         except UnicodeDecodeError:
+            logger.info('Not encoded in gbk')
             try:
                 return unicode(fcontent, 'utf-8')
-            except Exception as e:
-                print e
+            except UnicodeDecodeError:
+                logger.info('Not encoded in utf-8')
+                logger.info('Return the raw binary')
                 return Binary(fcontent)
 
 #TODO refine your shit

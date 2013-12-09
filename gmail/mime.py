@@ -1,5 +1,6 @@
 #coding: utf-8
 import monkey
+import logging
 import pdb
 import re
 from itertools import ifilter
@@ -21,6 +22,7 @@ client = MongoClient(settings.DB_HOST, settings.DB_PORT)
 db = client.prism
 email_db = db.email
 
+logger = logging.getLogger(__name__)
 # Match encoded-word strings in the form =?charset?q?Hello_World?=
 # Some will surrend it by " or end by , or by fucking \r
 ecre = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
@@ -144,6 +146,7 @@ class Message(object):
         d.update(**extra)
         # Returns an ObjectId, we don't care about success write
         # Passing w=0 disables write acknowledgement to improve performance
+        logger.info('Asynchronously saved to %s', self.id)
         email_db.insert(d, w=0) 
         return self.id
 
