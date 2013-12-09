@@ -47,6 +47,8 @@ def normalize_header(hdr):
         # Filter out those added by other gateways
         if not k.startswith('x'):
             vanilla_hdr[k] = decode_str(v)
+    #TODO
+    # from, to, subject, date
     
     # Ensure there is a content-type key
     # if 'content-type' not in vanilla_hdr:
