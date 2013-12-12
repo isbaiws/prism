@@ -105,6 +105,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'gmail.middlewares.SetRemoteAddrFromForwardedFor',
 )
 
 ROOT_URLCONF = 'prism.urls'
@@ -144,7 +145,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': '%(levelname)s - [%(asctime)s]  %(name)s: "%(message)s"', 
+            'format': '%(levelname)s - [%(asctime)s]  %(name)s: %(message)s', 
             'datefmt': '%d/%b %H:%M:%S',
         },
     }, 

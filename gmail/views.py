@@ -30,7 +30,8 @@ class EmailList(HttpErrorHandler, ListView):
                 selector[k] = {'$regex': '.*%s.*' % re.escape(v)}
                 # Try using the python regex objects instead. Pymongo will serialize them properly
                 # selector[k] = {'$regex': '.*%s.*' % re.escape(v), '$options': 'i'}
-        logger.info('Selector is %s', selector)
+        # We have a middleware to set remote_addr
+        logger.info('%s Selector is %s', self.request.remote_addr, selector)
         cursor = mime.find(**selector)
 
         paginator = Paginator(cursor, 20) # Show 20 contacts per page
@@ -51,14 +52,15 @@ class EmailList(HttpErrorHandler, ListView):
         # and content-length will be inside definitely
         length = request.META['CONTENT_LENGTH']
         if not length:
-            logger.warn('Recved a request without content-length or content-length is 0')
+            logger.warn('%s Recved a request without content-length or content-length is 0'
+                    , request.remote_addr)
             return HttpResponse(status=411)
         # Max 50M
         if length.isdigit() and int(length) > 50*1024*1024:
-            logger.warn('Recved a request larger than 50M')
+            logger.warn('%s Recved a request larger than 50M', request.remote_addr)
             return HttpResponse(status=413)
         if not self.is_authenticated(request):
-            logger.warn('Unauthorized request')
+            logger.warn('%s Unauthorized request', request.remote_addr)
             return HttpResponse(status=403)
 
         email = mime.from_fp(request)
