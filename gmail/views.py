@@ -7,7 +7,8 @@ from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-import mime
+from models import Email
+from shortcuts import get_email_or_404, get_resource_or_404
 from errors import HttpErrorHandler
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ class EmailList(HttpErrorHandler, ListView):
                 # Try using the python regex objects instead. Pymongo will serialize them properly
                 # selector[k] = {'$regex': '.*%s.*' % re.escape(v), '$options': 'i'}
         logger.info('Selector is %s', selector)
-        cursor = mime.find(**selector)
+        cursor = Email.find(**selector)
 
         paginator = Paginator(cursor, 20) # Show 20 contacts per page
         # pdb.set_trace()
@@ -61,7 +62,7 @@ class EmailList(HttpErrorHandler, ListView):
             logger.warn('Unauthorized request')
             return HttpResponse(status=403)
 
-        email = mime.from_fp(request)
+        email = Email.from_fp(request)
         email.save()
         return HttpResponse('{ok: true, location: %s}' %
                 # by http host
@@ -75,22 +76,17 @@ class EmailDetail(HttpErrorHandler, View):
     template_name = 'email_detail.html'
 
     def get(self, request, eid):
-        e = mime.from_id(eid)
-        context = {'header': e.header, 'body': e.body_html, 'attachment': e.attachment}
+        e = get_email_or_404(eid)
+        context = {'header': e.header, 'body': e.body, 'attachments': e.attachments}
         # Fuck you django DetailView, you bind too much with model
         return render_to_response(self.template_name, context)
 
 class Resource(HttpErrorHandler, View):
 
-    def get(self, request, eid, idx=0):
-        # idx can only have two possible values
-        # an integer(in string) or None
-
-        idx = int(idx)  # uninteger won't come here, hehe
-        e = mime.from_id(eid)
-        resource = e.get_resource(idx)
+    def get(self, request, rid):
+        resource = get_resource_or_404(rid)
         hdr = resource.header
-        response = HttpResponse(resource.body, content_type=hdr['content-type'])
+        response = HttpResponse(resource.read(), content_type=hdr['content-type'])
         if 'content-disposition' in hdr:
             response['Content-Disposition'] = hdr['content-disposition']
         return response
@@ -101,6 +97,6 @@ class Search(HttpErrorHandler, TemplateView):
 class Delete(HttpErrorHandler, View):
 
     def get(self, request, eid):
-        mime.remove(eid)
+        Email.remove(eid)
         return HttpResponseRedirect(reverse('email_list'))
 

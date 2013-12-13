@@ -1,4 +1,5 @@
 # Django settings for prism project.
+import os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -168,7 +169,7 @@ LOGGING = {
     'loggers': {
         '': {
             'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
+            'level': 'DEBUG' if 'PRISM_DEBUG' in os.environ else 'INFO',
             'propagate': True,
         },
         'django.request': {
