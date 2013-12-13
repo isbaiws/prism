@@ -37,6 +37,14 @@ lfre = re.compile(r'\s*?[\r\n]+\s*', re.MULTILINE)
 
 strip_html_entities = HTMLParser.HTMLParser().unescape
 
+def to_unicode(s):
+    if isinstance(s, unicode):
+        return s
+    try:
+        return s.decode('gbk')
+    except UnicodeDecodeError:
+        return s.decode('utf-8')
+
 def decode_str(str_enc):
     """Decode strings like =?charset?q?Hello_World?="""
     def decode_match(field):
@@ -58,7 +66,7 @@ def analyze_header(msg):
         k = k.lower()
         # Filter out those added by other gateways
         # if not k.startswith('x'):
-        vanilla_hdr[k] = decode_str(v)
+        vanilla_hdr[k] = to_unicode(decode_str(v))
     #TODO
     # from, to, subject, date
     
