@@ -100,6 +100,9 @@ class MessageParse(object):
     img_tmpl =  '<img border="0" hspace="0" align="baseline" src="%s" />'
 
     def parse(self, msg):
+        if msg.defects:  # when a defect is found
+            raise MessageParseError(' '.join(
+                defect.__doc__ for defect in msg.defects))
         maintype = msg.get_content_maintype()
         logger.debug('Got a %s to parse', msg.get_content_type())
         parser = getattr(self, 'parse_'+maintype, self.parse_other)
@@ -141,8 +144,6 @@ class MessageParse(object):
         assert msg.get_content_maintype() == 'multipart'
         outer_email = self.prepare_email(msg)
         sub_emails = map(self.parse, msg.get_payload())
-        if not sub_emails:
-            raise MessageParseError('Multipart with an empty body?')
 
         # Each of the parts is an "alternative" version of the same information.
         if msg.get_content_subtype() == 'alternative':
