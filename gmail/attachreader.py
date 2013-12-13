@@ -1,6 +1,5 @@
 import logging
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
-from bson import Binary
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ def read(fcontent, fname):
             except UnicodeDecodeError:
                 logger.info('Not encoded in utf-8')
                 logger.info('Return the raw binary')
-                return Binary(fcontent)
+                return ''
 
 #TODO refine your shit
 def _read(fcontent, fname):
@@ -43,7 +42,3 @@ def pread(cmd, input):
             raise CalledProcessError(retcode, cmd, output)
         return output
 
-if __name__ == '__main__':
-    fn = '/tmp/goo.txt'
-    fc = open(fn, 'rb').read()
-    print read(fc, fn)
