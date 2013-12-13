@@ -136,6 +136,8 @@ class MessageParse(object):
         assert msg.get_content_maintype() == 'multipart'
         outer_email = self.prepare_email(msg)
         sub_emails = map(self.parse, msg.get_payload())
+        if not sub_emails:
+            raise MessageParseError('Multipart with an empty body?')
 
         # Each of the parts is an "alternative" version of the same information.
         if msg.get_content_subtype() == 'alternative':
@@ -165,7 +167,7 @@ class MessageParse(object):
                 outer_email.resources.extend(sub_email.resources)
 
             outer_email.body = '<br />'.join(bodies)
-            outer_email.attach_txt = ' '.join(attach_txts)
+            outer_email.attach_txt = '\n'.join(attach_txts)
             return outer_email
 
     def parse_other(self, msg):
@@ -198,11 +200,8 @@ class Email(object):
     def from_fp(cls, fp):
         # id = ObjectId(id)  # fetch one if not exist
         # May raise MessageParseError, I catch it in the view
-        try:
-            msg = message_from_file(fp)
-            return mp.parse(msg)
-        except IndexError:
-            raise MessageParseError
+        msg = message_from_file(fp)
+        return mp.parse(msg)
 
     def to_dict(self):
         # Just return things that is set on this INSTANCE
