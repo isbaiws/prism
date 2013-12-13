@@ -1,6 +1,8 @@
 import logging
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 
+from utils import decode_str
+
 logger = logging.getLogger(__name__)
 
 def read(fcontent, fname):
@@ -11,16 +13,10 @@ def read(fcontent, fname):
     except Exception as e:
         logger.info('Cannot read as doc, pdf, %s', e)
         try:
-            # if left off, ascii will be the default encoding
-            return unicode(fcontent, 'gbk') 
+            return decode_str(fcontent)
         except UnicodeDecodeError:
-            logger.info('Not encoded in gbk')
-            try:
-                return unicode(fcontent, 'utf-8')
-            except UnicodeDecodeError:
-                logger.info('Not encoded in utf-8')
-                logger.info('Return the raw binary')
-                return ''
+            logger.info('Dunno whats inside the attachment')
+            return ''
 
 #TODO refine your shit
 def _read(fcontent, fname):
