@@ -5,6 +5,7 @@ import pdb
 import re
 from itertools import ifilter
 from email import message_from_file, message_from_string
+from email.errors import MessageParseError
 from email.header import decode_header
 
 from pymongo import MongoClient
@@ -197,8 +198,11 @@ class Email(object):
     def from_fp(cls, fp):
         # id = ObjectId(id)  # fetch one if not exist
         # May raise MessageParseError, I catch it in the view
-        msg = message_from_file(fp)
-        return mp.parse(msg)
+        try:
+            msg = message_from_file(fp)
+            return mp.parse(msg)
+        except IndexError:
+            raise MessageParseError
 
     def to_dict(self):
         # Just return things that is set on this INSTANCE
