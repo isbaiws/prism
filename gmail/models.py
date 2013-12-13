@@ -4,8 +4,7 @@ import logging
 import pdb
 import re
 from itertools import ifilter
-from email import message_from_file, message_from_string
-from email.errors import MessageParseError
+from email import message_from_file
 from email.header import decode_header
 
 from pymongo import MongoClient
@@ -17,6 +16,8 @@ from django.utils.html import strip_tags
 import HTMLParser
 
 from structures import AttrDict
+from errors import MessageParseError
+from utils import decode_str
 import attachreader
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ def to_unicode(s):
     except UnicodeDecodeError:
         return s.decode('utf-8')
 
-def decode_str(str_enc):
+def decode_rfc2047(str_enc):
     """Decode strings like =?charset?q?Hello_World?="""
     def decode_match(field):
         str_dec, charset = decode_header(field.group(0))[0]
@@ -55,7 +56,7 @@ def decode_str(str_enc):
         return str_dec
     # if '\n' in str_enc:
     #     pdb.set_trace()
-    return lfre.sub(' ', ecre.sub(decode_match, str_enc))
+    return ecre.sub(decode_match, str_enc)
 
 def analyze_header(msg):
     """Make keys lower case, filter out unneeded, etc.
@@ -65,9 +66,13 @@ def analyze_header(msg):
 
     for k, v in msg.items():
         k = k.lower()
+        v = decode_rfc2047(v)
         # Filter out those added by other gateways
         # if not k.startswith('x'):
-        vanilla_hdr[k] = to_unicode(decode_str(v))
+
+        # Make sure to be unicode, or die with MessageParseError
+        # some agents send header with non-ascii chars
+        vanilla_hdr[k] = decode_str(lfre.sub(' ', v), E=MessageParseError)
     #TODO
     # from, to, subject, date
     
