@@ -15,7 +15,8 @@ from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
 import HTMLParser
 
-from exceptions import ObjectDoesNotExist
+from errors import ObjectDoesNotExist
+from structures import AttrDict
 import attachreader
 
 client = MongoClient(settings.DB_HOST, settings.DB_PORT)

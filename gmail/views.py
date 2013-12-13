@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 import mime
-from exceptions import HttpErrorHandler
+from errors import HttpErrorHandler
 
 logger = logging.getLogger(__name__)
 
