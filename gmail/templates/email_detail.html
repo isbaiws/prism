@@ -9,9 +9,9 @@
 {{ body |safe }}
 {% endif %}
 
-{% if attachment %}
+{% if attachments %}
 附件<hr />
-{% for attach in attachment %}
+{% for attach in attachments %}
     <p><a href={{ attach.url }}>{{ attach.filename }}</a></p>
 {% endfor %}
 {% endif %}
