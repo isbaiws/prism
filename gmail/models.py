@@ -227,8 +227,9 @@ class Email(object):
     def remove(cls, id_str):
         if ObjectId.is_valid(id_str):
             e_dict = cls.find_one({'_id': ObjectId(id_str)})
-            for rid_str in e_dict.get('resources', []):
-                gfs.delete(ObjectId(rid_str))
+            if e_dict:  # in case user deletes a nonexist id
+                for rid_str in e_dict.get('resources', []):
+                    gfs.delete(ObjectId(rid_str))
             return emails.remove(ObjectId(id_str))
         return None
 
