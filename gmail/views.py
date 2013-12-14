@@ -31,7 +31,7 @@ class EmailList(ListView):
                 # Try using the python regex objects instead. Pymongo will serialize them properly
                 # selector[k] = {'$regex': '.*%s.*' % re.escape(v), '$options': 'i'}
         # We have a middleware to set remote_addr
-        logger.info('%s Selector is %s', self.request.remote_addr, selector)
+        logger.info('Selector is %s', selector, extra=self.request.__dict__)
         cursor = Email.find(**selector)
 
         paginator = Paginator(cursor, 20) # Show 20 contacts per page
@@ -52,15 +52,15 @@ class EmailList(ListView):
         # and content-length will be inside definitely
         length = request.META['CONTENT_LENGTH']
         if not length:
-            logger.warn('%s Recved a request without content-length or content-length is 0'
-                    , request.remote_addr)
+            logger.warn('Recved a request without content-length or content-length is 0'
+                    , extra=request.__dict__)
             return HttpResponse(status=411)
         # Max 50M
         if length.isdigit() and int(length) > 50*1024*1024:
-            logger.warn('%s Recved a request larger than 50M', request.remote_addr)
+            logger.warn('Recved a request larger than 50M', extra=request.__dict__)
             return HttpResponse(status=413)
         if not self.is_authenticated(request):
-            logger.warn('%s Unauthorized request', request.remote_addr)
+            logger.warn('Unauthorized request', extra=request.__dict__)
             return HttpResponse(status=403)
 
         email = Email.from_fp(request)

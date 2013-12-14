@@ -150,6 +150,10 @@ LOGGING = {
             'format': '%(levelname)s - [%(asctime)s]  %(name)s: %(message)s', 
             'datefmt': '%d/%b %H:%M:%S',
         },
+        'address': {
+            'format': '%(levelname)s - [%(asctime)s]  %(remote_addr)s: %(message)s', 
+            'datefmt': '%d/%b %H:%M:%S',
+        },
     }, 
     'filters': {
         'require_debug_false': {
@@ -161,6 +165,11 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'standard'
+        },
+        'address':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'address'
         },
         'mail_admins': {
             'level': 'ERROR',
@@ -178,6 +187,10 @@ LOGGING = {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
+        },
+        'gmail.views': {
+            'handlers': ['address'],
+            'propagate': False,
         },
     }
 }
