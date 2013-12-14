@@ -99,6 +99,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'gmail.middlewares.TimeRequest',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
@@ -147,11 +148,11 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': '%(levelname)s - [%(asctime)s]  %(name)s: %(message)s', 
+            'format': '%(levelname)s - [%(asctime)s] %(message)s', 
             'datefmt': '%d/%b %H:%M:%S',
         },
         'address': {
-            'format': '%(levelname)s - [%(asctime)s]  %(remote_addr)s: %(message)s', 
+            'format': '%(levelname)s - [%(asctime)s]  %(remote_addr)s %(message)s', 
             'datefmt': '%d/%b %H:%M:%S',
         },
     }, 

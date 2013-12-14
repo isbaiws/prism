@@ -1,5 +1,10 @@
+import time
+import logging
+
 from errors import MessageParseError, ObjectDoesNotExist
 from django.http import Http404, HttpResponseBadRequest
+
+logger = logging.getLogger(__name__)
 
 class SetRemoteAddrFromForwardedFor(object):
 
@@ -25,3 +30,17 @@ class HttpErrorHandler(object):
         elif isinstance(exception, ObjectDoesNotExist):
             raise Http404()
 
+class TimeRequest(object):
+
+    def process_request(self, request):
+        request._start_time = time.time()
+
+    def process_response(self, request, response):
+        if hasattr(request, '_start_time'):
+            d = {
+                'method': request.method,
+                'url': request.path_info,
+                'time': time.time() - request._start_time,
+            }
+            logger.info('%(method)s %(url)s costs %(time).2fs' % d)
+        return response
