@@ -9,14 +9,13 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from models import Email
 from shortcuts import get_email_or_404, get_resource_or_404
-from errors import HttpErrorHandler
 
 logger = logging.getLogger(__name__)
 
 class Index(TemplateView):
     template_name = 'index.html'
 
-class EmailList(HttpErrorHandler, ListView):
+class EmailList(ListView):
     template_name = 'email_list.html'
     context_object_name = 'emails'
     header_fields = {'subject', 'from', 'to'}
@@ -74,7 +73,7 @@ class EmailList(HttpErrorHandler, ListView):
     def is_authenticated(self, request):
         return True
 
-class EmailDetail(HttpErrorHandler, View):
+class EmailDetail(View):
     template_name = 'email_detail.html'
 
     def get(self, request, eid):
@@ -83,7 +82,7 @@ class EmailDetail(HttpErrorHandler, View):
         # Fuck you django DetailView, you bind too much with model
         return render_to_response(self.template_name, context)
 
-class Resource(HttpErrorHandler, View):
+class Resource(View):
 
     def get(self, request, rid):
         resource = get_resource_or_404(rid)
@@ -93,10 +92,10 @@ class Resource(HttpErrorHandler, View):
             response['Content-Disposition'] = hdr['content-disposition']
         return response
 
-class Search(HttpErrorHandler, TemplateView):
+class Search(TemplateView):
     template_name = 'search.html'
 
-class Delete(HttpErrorHandler, View):
+class Delete(View):
 
     def get(self, request, eid):
         Email.remove(eid)
