@@ -10,7 +10,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         execute_from_command_line(sys.argv+['runserver', '0.0.0.0:8000'])
     elif sys.argv[1] == 'flush':
-        from gmail.mime import client
+        from gmail.models import client
         client.drop_database('prism')
     else:
         execute_from_command_line(sys.argv)

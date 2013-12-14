@@ -1,3 +1,4 @@
+#coding: utf-8
 import re
 import pdb
 import logging
@@ -51,9 +52,8 @@ class EmailList(ListView):
         # META is standard python dict
         # and content-length will be inside definitely
         length = request.META['CONTENT_LENGTH']
-        if not length:
-            logger.warn('Recved a request without content-length or content-length is 0'
-                    , extra=request.__dict__)
+        if not length or int(length)==0:  # in post there must be a content-length
+            logger.warn('Recved a request of length %s', length, extra=request.__dict__)
             return HttpResponse(status=411)
         # Max 50M
         if length.isdigit() and int(length) > 50*1024*1024:
@@ -86,10 +86,15 @@ class Resource(View):
 
     def get(self, request, rid):
         resource = get_resource_or_404(rid)
-        hdr = resource.header
-        response = HttpResponse(resource.read(), content_type=hdr['content-type'])
-        if 'content-disposition' in hdr:
-            response['Content-Disposition'] = hdr['content-disposition']
+        ct = u'application/pdf; name="一种基于 LCS 的相似网页检测算法.pdf"'
+        # pdb.set_trace()
+        # response = HttpResponse(resource.read(), content_type=hdr['content-type'])
+        # if 'content-disposition' in hdr:
+        #     response['Content-Disposition'] = hdr['content-disposition']
+        response = HttpResponse(resource.read())
+        for hdr in ('content-type', 'content-disposition'):
+            if hdr in resource.header:
+                response[hdr.title()] = resource.header[hdr]
         return response
 
 class Search(TemplateView):

@@ -39,14 +39,6 @@ lfre = re.compile(r'\s*?[\r\n]+\s*', re.MULTILINE)
 
 strip_html_entities = HTMLParser.HTMLParser().unescape
 
-def to_unicode(s):
-    if isinstance(s, unicode):
-        return s
-    try:
-        return s.decode('gbk')
-    except UnicodeDecodeError:
-        return s.decode('utf-8')
-
 def decode_rfc2047(str_enc):
     """Decode strings like =?charset?q?Hello_World?="""
     def decode_match(field):
@@ -56,7 +48,8 @@ def decode_rfc2047(str_enc):
         return str_dec
     # if '\n' in str_enc:
     #     pdb.set_trace()
-    return ecre.sub(decode_match, str_enc)
+    ret_str = lfre.sub(' ', ecre.sub(decode_match, str_enc))
+    return decode_str(ret_str, E=MessageParseError)  # ensure unicode
 
 def analyze_header(msg):
     """Make keys lower case, filter out unneeded, etc.
@@ -66,13 +59,12 @@ def analyze_header(msg):
 
     for k, v in msg.items():
         k = k.lower()
-        v = decode_rfc2047(v)
         # Filter out those added by other gateways
         # if not k.startswith('x'):
 
         # Make sure to be unicode, or die with MessageParseError
         # some agents send header with non-ascii chars
-        vanilla_hdr[k] = decode_str(lfre.sub(' ', v), E=MessageParseError)
+        vanilla_hdr[k] = decode_rfc2047(v)
     #TODO
     # from, to, subject, date
     
@@ -82,17 +74,9 @@ def analyze_header(msg):
     # used in multipart to choose the best alternative
     meta['content-type'] = msg.get_content_type()
     
-    # if msg.get_filename():
-    #     # for that default message handler
-        # vanilla_hdr['filename'] = msg.get_filename()
-    meta['filename'] = msg.get_filename(u'未命名.'+msg.get_content_subtype())
+    if msg.get_filename():
+        meta['filename'] = decode_rfc2047(msg.get_filename())
 
-    vanilla_hdr.pop('content-disposition', None)
-    #TODO not everyone need it
-    # if 'content-disposition' not in vanilla_hdr and msg.get_filename():
-    #     vanilla_hdr['content-disposition'] = msg.get_filename()
-    # if 'content-disposition' in vanilla_hdr:
-    #     print '+'*20, vanilla_hdr['content-disposition'] 
     return vanilla_hdr, meta
 
 class MessageParse(object):
@@ -124,7 +108,7 @@ class MessageParse(object):
         assert msg.get_content_maintype() == 'image'
         e = self.prepare_email(msg)
         img_id = gfs.put(msg.get_payload(decode=True), header=e.header)
-        e.resources.append(img_id)
+        e.resources = [img_id]
         e.body = self.img_tmpl % reverse('resource', args=(img_id, ))
         return e
 
@@ -133,7 +117,7 @@ class MessageParse(object):
         e = self.prepare_email(msg)
         content = msg.get_payload(decode=True)
         app_id = gfs.put(content, header=e.header)
-        e.resources.append(app_id)
+        e.resources = [app_id]
         # e.body = ''
         e.attachments = [{'filename':e.meta['filename'],
             'url': reverse('resource', args=(app_id,))}]
@@ -181,7 +165,7 @@ class MessageParse(object):
         e = self.prepare_email(msg)
         content = msg.get_payload(decode=True)
         app_id = gfs.put(content, header=e.header)
-        e.resources.append(app_id)
+        e.resources = [app_id]
         # e.body = ''
         e.attachments = [{'filename':e.meta['filename'],
             'url': reverse('resource', args=(app_id,))}]

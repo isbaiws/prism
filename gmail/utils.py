@@ -2,6 +2,8 @@ def decode_str(s, encodings=('gbk', 'utf-8'), E=UnicodeDecodeError):
     """Try to decode a string in different ways(encodings), 
     raise a specific error(E) when decoding fails
     """
+    if s is None:
+        return u''
     if isinstance(s, unicode):
         return s
     if isinstance(encodings, tuple):
