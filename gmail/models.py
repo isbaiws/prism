@@ -30,10 +30,12 @@ gfs = gridfs.GridFS(db)
 logger = logging.getLogger(__name__)
 # Match encoded-word strings in the form =?charset?q?Hello_World?=
 # Some will surrend it by " or end by , or by fucking \r
-ecre = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
+ecpatt = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
         re.VERBOSE | re.IGNORECASE | re.MULTILINE)
 # To remove line feeds in header
-lfre = re.compile(r'\s*?[\r\n]+\s*', re.MULTILINE)
+lfpatt = re.compile(r';\s*?[\r\n]+\s*')
+# There are some bad guys who just split headers
+lfpatt_bad = re.compile(r'\s*?[\r\n]+\s*')
 
 def decode_rfc2047(str_enc):
     """Decode strings like =?charset?q?Hello_World?="""
@@ -42,9 +44,8 @@ def decode_rfc2047(str_enc):
         if charset:
             str_dec = str_dec.decode(charset, 'replace')
         return str_dec
-    # if '\n' in str_enc:
-    #     pdb.set_trace()
-    ret_str = lfre.sub(' ', ecre.sub(decode_match, str_enc))
+    one_line = lfpatt_bad.sub('', lfpatt.sub('; ', str_enc))
+    ret_str = ecpatt.sub(decode_match, one_line)
     return decode_str(ret_str, E=MessageParseError)  # ensure unicode
 
 def analyze_header(msg):

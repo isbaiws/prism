@@ -5,10 +5,10 @@ from models import Email, gfs
 def get_email_or_404(id_str):
     if not ObjectId.is_valid(id_str):
         raise ObjectDoesNotExist()
-    obj_dict = Email.find_one({'_id': ObjectId(id_str)})
-    if not obj_dict:
+    email = Email.find_one({'_id': ObjectId(id_str)})
+    if not email:
         raise ObjectDoesNotExist()
-    return obj_dict
+    return email
 
 def get_resource_or_404(id_str):
     if not ObjectId.is_valid(id_str):
