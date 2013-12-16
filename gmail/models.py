@@ -202,6 +202,11 @@ class Email(object):
                 return getattr(d, attr)
             raise AttributeError(excn)
 
+    def __str__(self):
+        if self.header.subject:
+            return self.header.subject
+        return str(self.id)
+
     @property
     def id(self):
         return self._id
