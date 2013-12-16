@@ -12,10 +12,9 @@ from bson.objectid import ObjectId
 import gridfs
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.utils.html import strip_tags
-import HTMLParser
 
 from errors import MessageParseError
+from HTMLtoText import html2text
 from utils import decode_str
 import attachreader
 
@@ -35,8 +34,6 @@ ecre = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
         re.VERBOSE | re.IGNORECASE | re.MULTILINE)
 # To remove line feeds in header
 lfre = re.compile(r'\s*?[\r\n]+\s*', re.MULTILINE)
-
-strip_html_entities = HTMLParser.HTMLParser().unescape
 
 def decode_rfc2047(str_enc):
     """Decode strings like =?charset?q?Hello_World?="""
@@ -224,6 +221,7 @@ class Email(object):
         return {k: v for k, v in d.items() if v}
 
     def save(self):
+        self.body_txt = html2text(self.body)
         self._id = emails.insert(self.to_dict(), w=0)
         return self._id
 
