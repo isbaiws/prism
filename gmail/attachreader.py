@@ -46,12 +46,14 @@ def read_xls(fcontent):
     # encoding_override
     # Used to overcome missing or bad codepage information in older-version files.
     # From Excel 97 onwards, unicode is default, no worries
+    # Doc: http://www.lexicon.net/sjmachin/xlrd.html
     wb = open_workbook(file_contents=fcontent, encoding_override='gbk')
     for sheet in wb.sheets():
         for irow in range(sheet.nrows):
             for icol in range(sheet.ncols):
                 cell = sheet.cell(irow, icol)
-                if cell.ctype:
+                # 0 means XL_CELL_EMPTY
+                if cell.ctype and unicode(cell.value).strip():
                     values.append(unicode(cell.value))
     return '\t'.join(values)
 
