@@ -86,13 +86,12 @@ class Resource(View):
 
     def get(self, request, rid):
         resource = get_resource_or_404(rid)
-        ct = u'application/pdf; name="一种基于 LCS 的相似网页检测算法.pdf"'
         # pdb.set_trace()
         # response = HttpResponse(resource.read(), content_type=hdr['content-type'])
         # if 'content-disposition' in hdr:
         #     response['Content-Disposition'] = hdr['content-disposition']
         response = HttpResponse(resource.read())
-        for hdr in ('content-type', 'content-disposition'):
+        for hdr in ('content-type', 'content-disposition',):
             if hdr in resource.header:
                 response[hdr.title()] = resource.header[hdr]
         return response

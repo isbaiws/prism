@@ -4,15 +4,15 @@ from pymongo.cursor import Cursor
 # used in pagination
 # Cursor.__len__ = lambda self: self.count(with_limit_and_skip=True)
 
-_next = Cursor.next
-def normalize_id(self):
-    doc = _next(self)
-    # Sometimes it may query otherthings such as db info
-    if '_id' in doc:
-        doc['id'] = doc['_id']
-    return doc
-
-Cursor.next = normalize_id
+# _next = Cursor.next
+# def normalize_id(self):
+#     doc = _next(self)
+#     # Sometimes it may query otherthings such as db info
+#     if '_id' in doc:
+#         doc['id'] = doc['_id']
+#     return doc
+# 
+# Cursor.next = normalize_id
 
 _get_item = Cursor.__getitem__
 def get_item(self, index):

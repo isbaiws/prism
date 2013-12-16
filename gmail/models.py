@@ -15,7 +15,6 @@ from django.core.urlresolvers import reverse
 from django.utils.html import strip_tags
 import HTMLParser
 
-from structures import AttrDict
 from errors import MessageParseError
 from utils import decode_str
 import attachreader
@@ -23,7 +22,7 @@ import attachreader
 logger = logging.getLogger(__name__)
 
 # document_class is default class to use for documents returned from this client.
-client = MongoClient(settings.DB_HOST, settings.DB_PORT, document_class=AttrDict)
+client = MongoClient(settings.DB_HOST, settings.DB_PORT)
 db = client.prism
 #TODO
 db.fs.chunks.ensure_index('files_id')
@@ -108,7 +107,7 @@ class MessageParse(object):
         assert msg.get_content_maintype() == 'image'
         e = self.prepare_email(msg)
         img_id = gfs.put(msg.get_payload(decode=True), header=e.header)
-        e.resources = [img_id]
+        e.resources.append(img_id)
         e.body = self.img_tmpl % reverse('resource', args=(img_id, ))
         return e
 
@@ -117,10 +116,10 @@ class MessageParse(object):
         e = self.prepare_email(msg)
         content = msg.get_payload(decode=True)
         app_id = gfs.put(content, header=e.header)
-        e.resources = [app_id]
+        e.resources.append(app_id)
         # e.body = ''
-        e.attachments = [{'filename':e.meta['filename'],
-            'url': reverse('resource', args=(app_id,))}]
+        e.attachments.append({'filename':e.meta['filename'],
+            'url': reverse('resource', args=(app_id,))})
         e.attach_txt = attachreader.read(content, e.meta['filename'])
         return e
 
@@ -165,10 +164,10 @@ class MessageParse(object):
         e = self.prepare_email(msg)
         content = msg.get_payload(decode=True)
         app_id = gfs.put(content, header=e.header)
-        e.resources = [app_id]
+        e.resources.append(app_id)
         # e.body = ''
-        e.attachments = [{'filename':e.meta['filename'],
-            'url': reverse('resource', args=(app_id,))}]
+        e.attachments.append({'filename':e.meta['filename'],
+            'url': reverse('resource', args=(app_id,))})
         e.attach_txt = attachreader.read(content, e.meta['filename'])
         return e
 
@@ -177,14 +176,35 @@ mp = MessageParse()
 
 emails = db.email
 class Email(object):
-    id = None
-    header = {}
-    meta = {}
-    body = ''
-    body_txt = ''
-    attachments = []
-    attach_txt = ''
-    resources = []  # to find resources when deleting this doc
+
+    def __init__(self):
+        """An empty constructor means use default value"""
+        self._id = None
+        self.header = {}
+        self.meta = {}
+        self.body = ''
+        self.body_txt = ''
+        self.attachments = []
+        self.attach_txt = ''
+        self.resources = []  # to find resources when deleting this doc
+
+    def __setitem__(self, k, v):
+        """This will be called for each key/value pair in the BSON being decoded."""
+        self.__dict__[k] = v
+
+    def __getattr__(self, attr):
+        """Delegate everything to my inner data"""
+        d = self.to_dict()
+        try:
+            return d[attr]
+        except KeyError as excn:
+            if hasattr(d, attr):
+                return getattr(d, attr)
+            raise AttributeError(excn)
+
+    @property
+    def id(self):
+        return self._id
 
     @classmethod
     def from_fp(cls, fp):
@@ -194,35 +214,30 @@ class Email(object):
         return mp.parse(msg)
 
     def to_dict(self):
-        # Just return things that is set on this INSTANCE
         d = self.__dict__
-        # return {k: v for k, v in d.items() if v}
-        return {'header': self.header, 'meta': self.meta,
-                'body': self.body, 'body_txt': self.body_txt,
-                'attachments': self.attachments, 'attach_txt': self.attach_txt,
-                'resources': self.resources}
+        # Just return things that is set on this INSTANCE
+        return {k: v for k, v in d.items() if v}
 
     def save(self):
-        self.id = emails.insert(self.to_dict())
-        return self.id
+        self._id = emails.insert(self.to_dict(), w=0)
+        return self._id
 
     @classmethod
     def find(cls, **selector):
-        # return map(from_dict, emails.find(selector))
-        # Just return raw data, no need to wrap them
-        return emails.find(selector)
+        # Return the wrapped one in case some attr is missing
+        return emails.find(selector, as_class=cls)
 
     @classmethod
     def remove(cls, id_str):
         if ObjectId.is_valid(id_str):
             e_dict = cls.find_one({'_id': ObjectId(id_str)})
             if e_dict:  # in case user deletes a nonexist id
-                for rid_str in e_dict.get('resources', []):
+                for rid_str in e_dict.resources:
                     gfs.delete(ObjectId(rid_str))
             return emails.remove(ObjectId(id_str))
         return None
 
     @classmethod
     def find_one(cls, selector):
-        return emails.find_one(selector)
+        return emails.find_one(selector, as_class=cls)
 
