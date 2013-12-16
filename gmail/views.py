@@ -28,6 +28,7 @@ class EmailList(ListView):
                 if k in self.header_fields:
                     k = 'header.' + k
                 #TODO pretty unsafe to use user's input directly
+                # TOO DANGEROUS OF NOSQL INJECTION
                 selector[k] = {'$regex': '.*%s.*' % re.escape(v)}
                 # Try using the python regex objects instead. Pymongo will serialize them properly
                 # selector[k] = {'$regex': '.*%s.*' % re.escape(v), '$options': 'i'}
