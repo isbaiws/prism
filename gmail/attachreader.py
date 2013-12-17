@@ -1,33 +1,43 @@
 import logging
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
+from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 from xlrd import open_workbook
 from utils import decode_str
 
 logger = logging.getLogger(__name__)
 
+class Guesser(SimpleHTTPRequestHandler):
+    def __init__(self):
+        pass # We only need the instance, never care about others
+
+    def __call__(self, fname):
+        return self.guess_type(fname)
+
+guess_type = Guesser()
+
 def read(fcontent, fname):
     if isinstance(fcontent, unicode):
         return fcontent
-    try:
-        return _read(fcontent, fname)
-    except Exception as e:
-        logger.info('Cannot read as doc, pdf, %s', e)
+
+    elif guess_type(fname).startswith('text'):  # is text
         try:
             return decode_str(fcontent)
         except UnicodeDecodeError:
-            logger.info('Dunno whats inside the attachment')
-            return ''
+            logger.info('This attachment "%s" claims to be a text, but I cannot decode it', fname)
 
-#TODO refine your shit
-def _read(fcontent, fname):
-    if fname.endswith(('doc', 'docx')):
-        return pread('catdoc', fcontent)
-    elif fname.endswith('pdf'):
-        return pread(['pdftotext', '-', '-'], fcontent)
-    elif fname.endswith(('xls', 'xlsx')):
-        return read_xls(fcontent)
-    raise Exception('Not any of them')
+    else:
+        try:
+            if fname.endswith(('doc', 'docx')):
+                return pread('catdoc', fcontent)
+            elif fname.endswith('pdf'):
+                return pread(['pdftotext', '-', '-'], fcontent)
+            elif fname.endswith(('xls', 'xlsx')):
+                return read_xls(fcontent)
+            logger.info('Have no idea whats inside %s', fname)
+        except Exception as e:
+            logger.info(e)
+    return ''
 
 def pread(cmd, input):
         # Don't redirect stderr to a PIPE when you're not reading it.
