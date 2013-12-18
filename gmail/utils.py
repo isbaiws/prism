@@ -17,6 +17,5 @@ def decode_str(s, encodings=('gbk', 'utf-8'), E=UnicodeDecodeError):
         try:
             return s.decode(encodings)
         except UnicodeDecodeError:
-            pass
-        raise E("'%s' cannot be decoded by %s" % (s, encodings))
+            raise E("'%s' cannot be decoded by %s" % (s, encodings))
 

@@ -1,3 +1,4 @@
+import pdb
 import logging
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from SimpleHTTPServer import SimpleHTTPRequestHandler
@@ -25,15 +26,20 @@ def read(fcontent, fname):
         try:
             return decode_str(fcontent)
         except UnicodeDecodeError:
-            logger.info('This attachment "%s" claims to be a text, but I cannot decode it', fname)
+            logger.info(
+                'This attachment "%s" claims to be a text, but I dunno it\'s encoding', fname)
 
     else:
         try:
             if fname.endswith(('doc', 'docx')):
-                return pread('catdoc', fcontent)
+                logger.info('Use catdoc to read %s', fname)
+                return pread(['catdoc', '-awxdutf-8'], fcontent)
             elif fname.endswith('pdf'):
+                logger.info('Use pdftotext to read %s', fname)
+                # Default output encoding is utf-8
                 return pread(['pdftotext', '-', '-'], fcontent)
             elif fname.endswith(('xls', 'xlsx')):
+                logger.info('Use python xlrd-lib to read %s', fname)
                 return read_xls(fcontent)
             logger.info('Have no idea whats inside %s', fname)
         except Exception as e:
@@ -41,16 +47,17 @@ def read(fcontent, fname):
     return ''
 
 def pread(cmd, input):
-        # Don't redirect stderr to a PIPE when you're not reading it.
-        proc = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-        # proc.stdin.write(fcontent)
-        # proc.stdin.close()
-        # return proc.stdout.read()
-        output, unused_err = proc.communicate(input)
-        retcode = proc.returncode
-        if retcode:
-            raise CalledProcessError(retcode, cmd, output)
-        return output
+    # Don't redirect stderr to a PIPE when you're not reading it.
+    proc = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+    # proc.stdin.write(fcontent)
+    # proc.stdin.close()
+    # return proc.stdout.read()
+    output, unused_err = proc.communicate(input)
+    retcode = proc.returncode
+    if retcode:
+        raise CalledProcessError(retcode, cmd, output)
+    # Leave out unknown characters
+    return output.decode('utf-8', errors='ignore')
 
 def read_xls(fcontent):
     values = []
