@@ -20,7 +20,8 @@ def read(fcontent, fname):
     if isinstance(fcontent, unicode):
         return fcontent
 
-    elif guess_type(fname).startswith('text'):  # is text
+    fname = fname.lower()
+    if guess_type(fname).startswith('text'):  # is text
         try:
             return decode_str(fcontent)
         except UnicodeDecodeError:
