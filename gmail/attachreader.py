@@ -32,8 +32,8 @@ def read(fcontent, fname):
     else:
         try:
             if fname.endswith(('doc', 'docx')):
-                logger.info('Use catdoc to read %s', fname)
-                return pread(['catdoc', '-awxdutf-8'], fcontent)
+                logger.info('Use antiword to read %s', fname)
+                return pread(['antiword', '-w0', '-i1', '-'], fcontent)
             elif fname.endswith('pdf'):
                 logger.info('Use pdftotext to read %s', fname)
                 # Default output encoding is utf-8
@@ -57,7 +57,7 @@ def pread(cmd, input):
     if retcode:
         raise CalledProcessError(retcode, cmd, output)
     # Leave out unknown characters
-    return output.decode('utf-8', errors='ignore')
+    return output.decode('utf-8', errors='ignore').strip()
 
 def read_xls(fcontent):
     values = []
