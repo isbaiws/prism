@@ -10,10 +10,10 @@ if __name__ == '__main__':
     sys.path.append(project_folder)
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "prism.settings")
 
-test_files = filter(lambda fn: fn.lower().endswith('py') and fn != '__init__.py',
+test_files = filter(lambda fn: fn.lower().endswith('py') and not fn.startswith('_'),
         os.listdir(test_folder))
 module_names = map(lambda fn: os.path.splitext(fn)[0], test_files)
-modules = map(__import__, module_names)
+modules = map(lambda mn: __import__(mn, globals()), module_names)
 
 module_vars = globals()
 for m in modules:
