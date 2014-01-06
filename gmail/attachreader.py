@@ -33,6 +33,8 @@ def read(fcontent, fname):
         try:
             if fname.endswith(('doc', 'docx')):
                 logger.info('Use antiword to read %s', fname)
+                #FIXME Small files produced by Microsoft Word on a Mac, or by OpenOffice will trigger 
+                # this error "I'm afraid the text stream of this file is too small to handle."
                 return pread(['antiword', '-w0', '-i1', '-'], fcontent)
             elif fname.endswith('pdf'):
                 logger.info('Use pdftotext to read %s', fname)
@@ -43,7 +45,7 @@ def read(fcontent, fname):
                 return read_xls(fcontent)
             logger.info('Have no idea whats inside %s', fname)
         except Exception as e:
-            logger.info(e)
+            logger.warning('%s, output: %s', e, e.output)
     return ''
 
 def pread(cmd, input):
