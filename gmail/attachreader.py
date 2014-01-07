@@ -27,7 +27,7 @@ def read(fcontent, fname):
             return decode_str(fcontent)
         except UnicodeDecodeError:
             logger.info(
-                'This attachment "%s" claims to be a text, but I dunno it\'s encoding', fname)
+                'This attachment "%s" claims to be a text, but I dunno its encoding', fname)
 
     else:
         try:
@@ -44,8 +44,10 @@ def read(fcontent, fname):
                 logger.info('Use python xlrd-lib to read %s', fname)
                 return read_xls(fcontent)
             logger.info('Have no idea whats inside %s', fname)
-        except Exception as e:
+        except CalledProcessError as e:
             logger.warning('%s, output: %s', e, e.output)
+        except Exception as e:
+            logger.info(e)
     return ''
 
 def pread(cmd, input):
