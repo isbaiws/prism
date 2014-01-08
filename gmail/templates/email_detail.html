@@ -1,18 +1,17 @@
-<title>{{ header.subject }}</title>
+<title>{{ email.subject }}</title>
 <ul>
-{% for k, v in header.items %}
-    <li>{{ k }}: {{ v }}</li>
-{% endfor %}
+    <li>subject: {{ email.subject }}</li>
+    <li>from: {{ email.from_ }}</li>
 </ul>
 
-{% if body %}
+{% if email.body %}
 正文<hr />
-{{ body |safe }}
+{{ email.body |safe }}
 {% endif %}
 
-{% if attachments %}
+{% if email.attachments %}
 附件<hr />
-{% for attach in attachments %}
+{% for attach in email.attachments %}
     <p><a href={{ attach.url }}>{{ attach.filename }}</a></p>
 {% endfor %}
 {% endif %}

@@ -138,6 +138,10 @@ INSTALLED_APPS = (
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
+AUTHENTICATION_BACKENDS = (
+    'mongoengine.django.auth.MongoEngineBackend',
+)
+
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
@@ -195,5 +199,10 @@ LOGGING = {
         },
     }
 }
-DB_HOST = 'localhost'
+
+import mongoengine
+DB_NAME = 'prism'
+DB_HOST = '127.0.0.1'
 DB_PORT = 27017
+mongoengine.connect(DB_NAME, host=DB_HOST, port=DB_PORT)
+

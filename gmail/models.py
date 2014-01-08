@@ -1,10 +1,11 @@
 #coding: utf-8
-import monkey
+# import monkey
 import logging
 import pdb
 import re
+import datetime
 from itertools import ifilter
-from email import message_from_file
+from email import message_from_file, message
 from email.header import decode_header
 
 from pymongo import MongoClient
@@ -12,6 +13,10 @@ from bson.objectid import ObjectId
 import gridfs
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from mongoengine import (
+        Document, StringField, ListField, FileField,
+        DateTimeField, GridFSProxy
+    )
 
 from errors import MessageParseError
 from HTMLtoText import html2text
@@ -28,6 +33,8 @@ db.fs.chunks.ensure_index('files_id')
 gfs = gridfs.GridFS(db)
 
 logger = logging.getLogger(__name__)
+
+
 # Match encoded-word strings in the form =?charset?q?Hello_World?=
 # Some will surrend it by " or end by , or by fucking \r
 ecpatt = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
@@ -48,11 +55,13 @@ def decode_rfc2047(str_enc):
     ret_str = ecpatt.sub(decode_match, one_line)
     return decode_str(ret_str, E=MessageParseError)  # ensure unicode
 
-def analyze_header(msg):
+def get_email_info(msg):
     """Make keys lower case, filter out unneeded, etc.
     msg must be a email.message type"""
-    vanilla_hdr = {}
-    meta = {}
+    info = {}
+    if not isinstance(msg, message.Message):
+        raise TypeError('How dare you to pass me a %s, I want a message instance!'
+                % msg.__class__.__name__)
 
     for k, v in msg.items():
         k = k.lower()
@@ -61,20 +70,21 @@ def analyze_header(msg):
 
         # Make sure to be unicode, or die with MessageParseError
         # some agents send header with non-ascii chars
-        vanilla_hdr[k] = decode_rfc2047(v)
-    #TODO
-    # from, to, subject, date
+        info[k] = decode_rfc2047(v)
+    # from is a keyword in python, escape it to from_
+    if 'from' in info:
+        info['from_'] = info['from']
     
     # Ensure there is a content-type key
     # if 'content-type' not in vanilla_hdr:
     # get_content_type() will return a default one, all in lower-case
     # used in multipart to choose the best alternative
-    meta['content-type'] = msg.get_content_type()
+    info['content_type'] = msg.get_content_type()
     
     if msg.get_filename():
-        meta['filename'] = decode_rfc2047(msg.get_filename())
+        info['filename'] = decode_rfc2047(msg.get_filename())
 
-    return vanilla_hdr, meta
+    return info
 
 class MessageParse(object):
     multipart_alternatives = ['text/html', 'text/richtext', 'text/plain', 'message/rfc822']
@@ -91,8 +101,15 @@ class MessageParse(object):
 
     def prepare_email(self, msg):
         e = Email()
-        e.header, e.meta = analyze_header(msg)
+        info = get_email_info(msg)
+        e.update(info)
         return e
+
+    def store_resource(self, content, ct, fn):
+        resc = GridFSProxy()
+        resc.put(content, content_type=ct, filename=fn)
+        resc.id = resc.grid_id
+        return resc
 
     def parse_text(self, msg):
         # assert msg.get_content_maintype() == 'text'
@@ -104,21 +121,22 @@ class MessageParse(object):
     def parse_image(self, msg):
         assert msg.get_content_maintype() == 'image'
         e = self.prepare_email(msg)
-        img_id = gfs.put(msg.get_payload(decode=True), header=e.header)
-        e.resources.append(img_id)
-        e.body = self.img_tmpl % reverse('resource', args=(img_id, ))
+        img = self.store_resource(msg.get_payload(decode=True),
+                e.content_type, e.filename)
+        e.resources.append(img)
+        e.body = self.img_tmpl % reverse('resource', args=(img.id, ))
         return e
 
     def parse_application(self, msg):
         assert msg.get_content_maintype() == 'application'
         e = self.prepare_email(msg)
         content = msg.get_payload(decode=True)
-        app_id = gfs.put(content, header=e.header)
-        e.resources.append(app_id)
+        app = self.store_resource(content, e.content_type, e.filename)
+        e.resources.append(app)
         # e.body = ''
-        e.attachments.append({'filename':e.meta['filename'],
-            'url': reverse('resource', args=(app_id,))})
-        e.attach_txt = attachreader.read(content, e.meta['filename'])
+        e.attachments.append({'filename':e.filename,
+            'url': reverse('resource', args=(app.id,))})
+        e.attach_txt = attachreader.read(content, e.filename)
         return e
 
     def parse_multipart(self, msg):
@@ -130,8 +148,8 @@ class MessageParse(object):
         if msg.get_content_subtype() == 'alternative':
             for ct in self.multipart_alternatives:
                 # There must be a content-type, just in case
-                best = next(ifilter(lambda e: e.meta.get \
-                    ('content-type', '').startswith(ct), sub_emails), None)
+                best = next(ifilter(lambda e: e.content_type and
+                    e.content_type.startswith(ct), sub_emails), None)
                 if best:
                     break
             else:
@@ -139,10 +157,8 @@ class MessageParse(object):
                 # how to interpret, so just get the first one
                 best = sub_emails[0]
             # We still need your header, but donot overwrite headers I already have
-            best.header.update({k: v for k, v in outer_email.header.items()
-                if k not in best.header})
-            best.meta.update({k: v for k, v in outer_email.meta.items()
-                if k not in best.meta})
+            best.update({k: v for k, v in outer_email.to_dict().items()
+                if v and not best[k]})
             return best
         else:
             bodies = []
@@ -158,56 +174,42 @@ class MessageParse(object):
             return outer_email
 
     def parse_other(self, msg):
-        # assert msg.get_content_maintype() == 'application'
-        e = self.prepare_email(msg)
-        content = msg.get_payload(decode=True)
-        app_id = gfs.put(content, header=e.header)
-        e.resources.append(app_id)
-        # e.body = ''
-        e.attachments.append({'filename':e.meta['filename'],
-            'url': reverse('resource', args=(app_id,))})
-        e.attach_txt = attachreader.read(content, e.meta['filename'])
-        return e
+        return self.parse_application(msg)
 
 mp = MessageParse()
 
+class Email(Document):
+    # Every attr is present
+    subject = StringField(default='')
+    from_ = StringField(default='')
+    to = StringField(default='')
+    content_type = StringField(default='')
+    ip = StringField(default='')
+    filename = StringField(default='')
+    # date = DateTimeField(default=datetime.datetime.now)
+    date = StringField(default='')
 
-emails = db.email
-class Email(object):
+    body = StringField(default='')
+    body_txt = StringField(default='')
+    # Pitty I cannot customize FileField
+    attachments = ListField(FileField(), default=[])
+    attach_txt = StringField(default='')
+    # to find resources when deleting this doc
+    resources = ListField(FileField(), default=[])
 
-    def __init__(self):
-        """An empty constructor means use default value"""
-        self._id = None
-        self.header = {}
-        self.meta = {}
-        self.body = ''
-        self.body_txt = ''
-        self.attachments = []
-        self.attach_txt = ''
-        self.resources = []  # to find resources when deleting this doc
+    meta = {
+        # 'indexes': [],
+        'ordering': ['-date'],
+    }
 
-    def __setitem__(self, k, v):
-        """This will be called for each key/value pair in the BSON being decoded."""
-        self.__dict__[k] = v
+    def update(self, d):
+        # self._data.update(d)
+        for k, v in d.items():
+            setattr(self, k, v)
 
-    def __getattr__(self, attr):
-        """Delegate everything to my inner data"""
-        d = self.to_dict()
-        try:
-            return d[attr]
-        except KeyError as excn:
-            if hasattr(d, attr):
-                return getattr(d, attr)
-            raise AttributeError(excn)
-
-    def __str__(self):
-        if self.header.subject:
-            return self.header.subject
-        return str(self.id)
-
-    @property
-    def id(self):
-        return self._id
+    def to_dict(self):
+        # I donot wanna store empty fields
+        return {k: v for k, v in self._data.items() if v}
 
     @classmethod
     def from_fp(cls, fp):
@@ -216,32 +218,21 @@ class Email(object):
         msg = message_from_file(fp)
         return mp.parse(msg)
 
-    def to_dict(self):
-        d = self.__dict__
-        # Just return things that is set on this INSTANCE
-        return {k: v for k, v in d.items() if v}
+    def clean(self):
+        self._data = self.to_dict()
+        self.body_txt = html2text(self.body)
 
     def save(self):
-        self.body_txt = html2text(self.body)
-        self._id = emails.insert(self.to_dict(), w=0)
-        return self._id
+        super(Email, self).save(write_concern={'w': 0})
 
     @classmethod
     def find(cls, **selector):
-        # Return the wrapped one in case some attr is missing
-        return emails.find(selector, as_class=cls)
+        return cls.objects()
 
-    @classmethod
-    def remove(cls, id_str):
-        if ObjectId.is_valid(id_str):
-            e_dict = cls.find_one({'_id': ObjectId(id_str)})
-            if e_dict:  # in case user deletes a nonexist id
-                for rid_str in e_dict.resources:
-                    gfs.delete(ObjectId(rid_str))
-            return emails.remove(ObjectId(id_str))
-        return None
-
-    @classmethod
-    def find_one(cls, selector):
-        return emails.find_one(selector, as_class=cls)
-
+    def delete(self):
+        # Won't raise anything if not found?
+        super(Email, self).delete()
+        for atta in self.attachments:
+            atta.delete()
+        for resc in self.resources:
+            resc.delete()

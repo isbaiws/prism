@@ -1,10 +1,9 @@
 # coding: utf-8
 from unittest import TestCase
-from cStringIO import StringIO
 
 from gmail import models
 
-class ModelTestCase(TestCase):
+class EmailParseTestCase(TestCase):
     def test_decode_rfc2047(self):
         res = models.decode_rfc2047('=?GBK?B?16q8xKO616q8xKO6MTE5z/u3wMjVu+62r82o1qo=?=')
         self.assertIsInstance(res, unicode)
@@ -19,3 +18,5 @@ class ModelTestCase(TestCase):
         pass
         # models.Email.from_fp(StringIO(defective_email))
 
+    def test_pass_invalid_msg_to_parse(self):
+        self.assertRaises(TypeError, models.get_email_info, '')

@@ -11,7 +11,7 @@ urlpatterns = patterns('',
     url(r'^email/resource/(?P<rid>\w{24})$', views.Resource.as_view(), name='resource'),
     url(r'^email/search$', views.Search.as_view(), name='email_search'),
     url(r'^email/(?P<eid>\w{24})$', views.EmailDetail.as_view(), name='email_detail'),
-    url(r'^email/(?P<eid>\w{24})/delete$', views.Delete.as_view(), name='email_delete'),
+    url(r'^email/(?P<eid>\w{24})/delete$', views.Delete.as_view(), name='delete_email'),
     # Examples:
     # url(r'^$', 'prism.views.home', name='home'),
     # url(r'^prism/', include('prism.foo.urls')),

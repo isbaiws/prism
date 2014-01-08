@@ -2,14 +2,16 @@
 import re
 import pdb
 import logging
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.generic import ListView, View, TemplateView
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from models import Email
-from shortcuts import get_email_or_404, get_resource_or_404
+from mongoengine import GridFSProxy
+from mongoengine.django.shortcuts import get_document_or_404
+from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +54,10 @@ class EmailList(ListView):
     def post(self, request):
         # META is standard python dict
         # and content-length will be inside definitely
-        length = request.META['CONTENT_LENGTH']
-        if not length or int(length)==0:  # in post there must be a content-length
-            logger.warn('Recved a request of length %s', length, extra=request.__dict__)
-            return HttpResponse(status=411)
-        # Max 50M
+        # 2014/1/8 CONTENT_LENGTH will be an int
+        # when fired by django.test.client
+        length = str(request.META['CONTENT_LENGTH'])
+        # Max 50M, maybe should check it in nginx
         if length.isdigit() and int(length) > 50*1024*1024:
             logger.warn('Recved a request larger than 50M', extra=request.__dict__)
             return HttpResponse(status=413)
@@ -78,24 +79,29 @@ class EmailDetail(View):
     template_name = 'email_detail.html'
 
     def get(self, request, eid):
-        e = get_email_or_404(eid)
-        context = {'header': e.header, 'body': e.body, 'attachments': e.attachments}
+        e = get_document_or_404(Email.objects.exclude(
+            'attachments', 'resources', 'attach_txt'), id=eid)
         # Fuck you django DetailView, you bind too much with model
-        return render_to_response(self.template_name, context)
+        return render_to_response(self.template_name, {'email': e})
 
 class Resource(View):
 
     def get(self, request, rid):
-        resource = get_resource_or_404(rid)
-        # pdb.set_trace()
-        # response = HttpResponse(resource.read(), content_type=hdr['content-type'])
-        # if 'content-disposition' in hdr:
-        #     response['Content-Disposition'] = hdr['content-disposition']
+        resource = self.get_resource_or_404(rid)
         response = HttpResponse(resource.read())
-        for hdr in ('content-type', 'content-disposition',):
-            if hdr in resource.header:
-                response[hdr.title()] = resource.header[hdr]
+        for hdr in ('content_type', 'content_disposition',):
+            if hasattr(resource, hdr):
+                response[hdr.title()] = getattr(resource, hdr)
         return response
+
+    def get_resource_or_404(self, id_str):
+        if not ObjectId.is_valid(id_str):
+            raise Http404()
+        resc = GridFSProxy().get(ObjectId(id_str))
+        if not resc:
+            raise Http404()
+        return resc
+
 
 class Search(TemplateView):
     template_name = 'search.html'
@@ -103,6 +109,9 @@ class Search(TemplateView):
 class Delete(View):
 
     def get(self, request, eid):
-        Email.remove(eid)
+        # NOTE, need first() to call customized delete method
+        e = Email.objects(id=eid).first()
+        if e:
+            e.delete()
         return HttpResponseRedirect(reverse('email_list'))
 
