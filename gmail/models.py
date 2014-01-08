@@ -25,16 +25,6 @@ import attachreader
 
 logger = logging.getLogger(__name__)
 
-# document_class is default class to use for documents returned from this client.
-client = MongoClient(settings.DB_HOST, settings.DB_PORT)
-db = client.prism
-#TODO
-db.fs.chunks.ensure_index('files_id')
-gfs = gridfs.GridFS(db)
-
-logger = logging.getLogger(__name__)
-
-
 # Match encoded-word strings in the form =?charset?q?Hello_World?=
 # Some will surrend it by " or end by , or by fucking \r
 ecpatt = re.compile(r"""=\?([^?]*?)\?([qb])\?(.*?)\?=(?=\W|$)""",
