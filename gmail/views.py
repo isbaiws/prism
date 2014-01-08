@@ -91,7 +91,7 @@ class Resource(View):
         response = HttpResponse(resource.read())
         for hdr in ('content_type', 'content_disposition',):
             if hasattr(resource, hdr):
-                response[hdr.title()] = getattr(resource, hdr)
+                response[hdr.replace('_', '-').title()] = getattr(resource, hdr)
         return response
 
     def get_resource_or_404(self, id_str):
