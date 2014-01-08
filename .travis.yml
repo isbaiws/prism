@@ -5,6 +5,7 @@ services:
   - mongodb
 install:
   - pip install -r requirements.txt
+  - sudo apt-get install antiword
 script:  python manage.py test
 # notifications:
 #   email: false
