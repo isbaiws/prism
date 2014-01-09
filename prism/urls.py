@@ -1,4 +1,6 @@
 from django.conf.urls import patterns, url
+from django.contrib.auth.views import login
+from django.contrib.auth.views import logout
 from gmail import views
 
 # Uncomment the next two lines to enable the admin:
@@ -7,6 +9,12 @@ from gmail import views
 
 urlpatterns = patterns('',
     url(r'^$', views.Index.as_view(), name='index'),
+
+    url(r'^login/$', login, {'template_name': 'login.html'}, name='login'),
+    url(r'^logout/$', logout, name='logout'),
+
+    url(r'^user/add$', views.AddUser.as_view(), name='adduser'),
+
     url(r'^email$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/resource/(?P<rid>\w{24})$', views.Resource.as_view(), name='resource'),
     url(r'^email/search$', views.Search.as_view(), name='email_search'),

@@ -2,6 +2,8 @@ import unittest
 import os
 import sys
 
+from django.test.simple import DjangoTestSuiteRunner
+
 fdn = os.path.dirname
 test_folder = fdn(os.path.abspath(__file__))
 app_folder = fdn(test_folder)
@@ -24,6 +26,12 @@ for m in modules:
 # from model_test import *
 # from attachreader_test import *
 # from HTMLtoText_test import *
+
+class NoSQLTestRunner(DjangoTestSuiteRunner):
+    def setup_databases(self):
+        pass
+    def teardown_databases(self, *args):
+        pass
 
 if __name__ == '__main__':
     unittest.main()

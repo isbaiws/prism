@@ -123,8 +123,9 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
-    # 'django.contrib.auth',
-    # 'django.contrib.contenttypes',
+    'django.contrib.auth',
+    'mongoengine.django.mongo_auth',
+    'django.contrib.contenttypes',
     # 'django.contrib.sessions',
     # 'django.contrib.sites',
     # 'django.contrib.messages',
@@ -137,6 +138,8 @@ INSTALLED_APPS = (
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+SESSION_ENGINE = 'mongoengine.django.sessions'
 
 AUTHENTICATION_BACKENDS = (
     'mongoengine.django.auth.MongoEngineBackend',
@@ -205,4 +208,3 @@ DB_NAME = 'prism'
 DB_HOST = '127.0.0.1'
 DB_PORT = 27017
 mongoengine.connect(DB_NAME, host=DB_HOST, port=DB_PORT)
-
