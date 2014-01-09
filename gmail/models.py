@@ -217,7 +217,9 @@ class Email(Document):
     def delete(self):
         # Won't raise anything if not found?
         super(Email, self).delete()
-        for atta in self.attachments:
+        # attachments will be converted to None not []
+        for atta in self.attachments or []:
             atta.delete()
-        for resc in self.resources:
+        # if self.resources:
+        for resc in self.resources or []:
             resc.delete()
