@@ -8,11 +8,8 @@ from itertools import ifilter
 from email import message_from_file, message
 from email.header import decode_header
 
-from pymongo import MongoClient
-from bson.objectid import ObjectId
-import gridfs
-from django.conf import settings
 from django.core.urlresolvers import reverse
+from bson.objectid import ObjectId
 from mongoengine import (
         Document, StringField, ListField, FileField,
         DateTimeField, GridFSProxy
@@ -54,10 +51,7 @@ def get_email_info(msg):
                 % msg.__class__.__name__)
 
     for k, v in msg.items():
-        k = k.lower()
-        # Filter out those added by other gateways
-        # if not k.startswith('x'):
-
+        k = k.lower().replace('-', '_')  # to be a valid identifier
         # Make sure to be unicode, or die with MessageParseError
         # some agents send header with non-ascii chars
         info[k] = decode_rfc2047(v)
@@ -65,8 +59,7 @@ def get_email_info(msg):
     if 'from' in info:
         info['from_'] = info['from']
     
-    # Ensure there is a content-type key
-    # if 'content-type' not in vanilla_hdr:
+    # Ensure there is a content-type key, if 'content-type' not in vanilla_hdr
     # get_content_type() will return a default one, all in lower-case
     # used in multipart to choose the best alternative
     info['content_type'] = msg.get_content_type()
@@ -79,6 +72,7 @@ def get_email_info(msg):
 class MessageParse(object):
     multipart_alternatives = ['text/html', 'text/richtext', 'text/plain', 'message/rfc822']
     img_tmpl =  '<img border="0" hspace="0" align="baseline" src="%s" />'
+    resource_meta = ('content_type', 'content_disposition', 'filename')
 
     def parse(self, msg):
         if msg.defects:  # when a defect is found
@@ -95,10 +89,12 @@ class MessageParse(object):
         e.update(info)
         return e
 
-    def store_resource(self, content, ct, fn):
+    def store_resource(self, content, meta):
+        id = ObjectId()  # Generate one so I can use it to assemble the url
         resc = GridFSProxy()
-        resc.put(content, content_type=ct, filename=fn)
-        resc.id = resc.grid_id
+        kwargs = {k: meta[k] for k in self.resource_meta if meta.get(k)}
+        kwargs.update({'url': reverse('resource', args=(id,)), '_id': id})
+        resc.put(content, **kwargs)
         return resc
 
     def parse_text(self, msg):
@@ -111,21 +107,19 @@ class MessageParse(object):
     def parse_image(self, msg):
         assert msg.get_content_maintype() == 'image'
         e = self.prepare_email(msg)
-        img = self.store_resource(msg.get_payload(decode=True),
-                e.content_type, e.filename)
+        img = self.store_resource(msg.get_payload(decode=True), e.to_dict())
         e.resources.append(img)
-        e.body = self.img_tmpl % reverse('resource', args=(img.id, ))
+        e.body = self.img_tmpl % img.url
         return e
 
     def parse_application(self, msg):
         assert msg.get_content_maintype() == 'application'
         e = self.prepare_email(msg)
         content = msg.get_payload(decode=True)
-        app = self.store_resource(content, e.content_type, e.filename)
+        app = self.store_resource(content, e.to_dict())
         e.resources.append(app)
         # e.body = ''
-        e.attachments.append({'filename':e.filename,
-            'url': reverse('resource', args=(app.id,))})
+        e.attachments.append(app)
         e.attach_txt = attachreader.read(content, e.filename)
         return e
 
@@ -173,9 +167,10 @@ class Email(Document):
     subject = StringField(default='')
     from_ = StringField(default='')
     to = StringField(default='')
-    content_type = StringField(default='')
     ip = StringField(default='')
+    content_type = StringField(default='')
     filename = StringField(default='')
+    content_disposition = StringField(default='')
     # date = DateTimeField(default=datetime.datetime.now)
     date = StringField(default='')
 

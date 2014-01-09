@@ -80,7 +80,7 @@ class EmailDetail(View):
 
     def get(self, request, eid):
         e = get_document_or_404(Email.objects.exclude(
-            'attachments', 'resources', 'attach_txt'), id=eid)
+            'resources', 'attach_txt'), id=eid)
         # Fuck you django DetailView, you bind too much with model
         return render_to_response(self.template_name, {'email': e})
 
