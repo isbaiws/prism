@@ -30,23 +30,3 @@ class ViewTestCase(NoDBTestCase):
     def test_post_more_than_50m_data(self):
         self.client.post(reverse('email_list'), {'a':1}, CONTENT_LENGTH=str(50*1024*1024))
 
-    def test_deletion(self):
-        # Add one
-        resp = self.client.post(reverse('email_list'), 'placeholder', content_type='text/plain')
-
-        id_matt = re.search(r'\w{24}', resp.content)
-        self.assertIsNotNone(id_matt)
-        id_str = id_matt.group()
-        # Delete one
-        resp = self.client.get(reverse('delete_email', args=(id_str,)))
-        self.assertEqual(resp.status_code, 302)
-
-        # Not found
-        resp = self.client.get(reverse('email_detail', args=(id_str,)))
-        self.assertEqual(resp.status_code, 404)
-        # Maybe should test whether resources get deleted or not
-
-        # What about delete again?
-        resp = self.client.get(reverse('delete_email', args=(id_str,)))
-        self.assertEqual(resp.status_code, 302)
-
