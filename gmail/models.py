@@ -177,10 +177,10 @@ class Email(Document):
     body = StringField(default='')
     body_txt = StringField(default='')
     # Pitty I cannot customize FileField
-    attachments = ListField(FileField(), default=[])
+    attachments = ListField(FileField(), default=list)
     attach_txt = StringField(default='')
     # to find resources when deleting this doc
-    resources = ListField(FileField(), default=[])
+    resources = ListField(FileField(), default=list)
 
     meta = {
         # 'indexes': [],
