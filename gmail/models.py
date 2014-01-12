@@ -35,7 +35,7 @@ lfpatt = re.compile(r';\s*?[\r\n]+\s*')
 lfpatt_bad = re.compile(r'\s*?[\r\n]+\s*')
 
 ip_patt = re.compile(r'\b(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b')
-datetime_patt = re.compile(r'(:?%s), \d{2} (?:%s) \d{4} \d{2}:\d{2}:\d{2} (?:\+|-)\d{4}' % 
+datetime_patt = re.compile(r'\b(:?%s), \d{2} (?:%s) \d{4} \d{2}:\d{2}:\d{2} (?:\+|-)\d{4}\b' % 
         ('|'.join(_parseaddr._daynames), '|'.join(_parseaddr._monthnames)), re.I)
 
 def decode_rfc2047(str_enc):
@@ -77,7 +77,8 @@ def get_email_info(msg):
     # from is a keyword in python, escape it to from_
     info['ip'] = ip
     if 'date' not in info:
-        info['date'] = min(map(parse_datetime, possible_date) or [None])
+        if possible_date:
+            info['date'] = min(map(parse_datetime, possible_date))
     else:
         info['date'] = parse_datetime(info['date'])
 
@@ -192,7 +193,7 @@ class Email(Document):
     subject = StringField(default='')
     from_ = StringField(default='')
     to = StringField(default='')
-    ip = ListField(default=list)
+    ip = ListField(StringField(), default=list)
     content_type = StringField(default='')
     filename = StringField(default='')
     content_disposition = StringField(default='')
@@ -228,6 +229,10 @@ class Email(Document):
         return mp.parse(msg)
 
     def clean(self):
+        # I cannot set as a default in field definition,
+        # because it ONLY exist in the outer email
+        if not self.date:
+            self.date = datetime.utcnow()
         self._data = self.to_dict()
         self.body_txt = html2text(self.body)
 
