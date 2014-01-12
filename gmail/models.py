@@ -1,18 +1,21 @@
 #coding: utf-8
 # import monkey
 import logging
-import pdb
+import ipdb
 import re
-import datetime
+from datetime import datetime
 from itertools import ifilter
 from email import message_from_file, message
 from email.header import decode_header
+from email.utils import mktime_tz, parsedate_tz
+from email import _parseaddr
 
 from django.core.urlresolvers import reverse
+from django.contrib.auth import hashers
 from bson.objectid import ObjectId
 from mongoengine import (
         Document, StringField, ListField, FileField,
-        DateTimeField, GridFSProxy
+        DateTimeField, GridFSProxy, BooleanField
     )
 
 from errors import MessageParseError
@@ -31,6 +34,10 @@ lfpatt = re.compile(r';\s*?[\r\n]+\s*')
 # There are some bad guys who just split headers
 lfpatt_bad = re.compile(r'\s*?[\r\n]+\s*')
 
+ip_patt = re.compile(r'\b(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b')
+datetime_patt = re.compile(r'(:?%s), \d{2} (?:%s) \d{4} \d{2}:\d{2}:\d{2} (?:\+|-)\d{4}' % 
+        ('|'.join(_parseaddr._daynames), '|'.join(_parseaddr._monthnames)), re.I)
+
 def decode_rfc2047(str_enc):
     """Decode strings like =?charset?q?Hello_World?="""
     def decode_match(field):
@@ -45,7 +52,12 @@ def decode_rfc2047(str_enc):
 def get_email_info(msg):
     """Make keys lower case, filter out unneeded, etc.
     msg must be a email.message type"""
+    ip = []
+    possible_date = []
     info = {}
+    find_all_ips = lambda s: map(lambda m: m.group(), ip_patt.finditer(s))
+    parse_datetime = lambda s: datetime.utcfromtimestamp(mktime_tz(parsedate_tz(s)))
+
     if not isinstance(msg, message.Message):
         raise TypeError('How dare you to pass me a %s, I want a message instance!'
                 % msg.__class__.__name__)
@@ -54,8 +66,21 @@ def get_email_info(msg):
         k = k.lower().replace('-', '_')  # to be a valid identifier
         # Make sure to be unicode, or die with MessageParseError
         # some agents send header with non-ascii chars
-        info[k] = decode_rfc2047(v)
+        v = decode_rfc2047(v)
+
+        ip.extend(find_all_ips(v))
+        datetime_mat = datetime_patt.search(v)
+        if datetime_mat:
+            possible_date.append(datetime_mat.group())
+
+        info[k] = v
     # from is a keyword in python, escape it to from_
+    info['ip'] = ip
+    if 'date' not in info:
+        info['date'] = min(map(parse_datetime, possible_date) or [None])
+    else:
+        info['date'] = parse_datetime(info['date'])
+
     if 'from' in info:
         info['from_'] = info['from']
     
@@ -167,12 +192,11 @@ class Email(Document):
     subject = StringField(default='')
     from_ = StringField(default='')
     to = StringField(default='')
-    ip = StringField(default='')
+    ip = ListField(default=list)
     content_type = StringField(default='')
     filename = StringField(default='')
     content_disposition = StringField(default='')
-    # date = DateTimeField(default=datetime.datetime.now)
-    date = StringField(default='')
+    date = DateTimeField()
 
     body = StringField(default='')
     body_txt = StringField(default='')
