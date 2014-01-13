@@ -1,6 +1,5 @@
 #coding: utf-8
 from __future__ import absolute_import
-import re
 import ipdb
 import logging
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -15,9 +14,11 @@ from mongoengine import GridFSProxy
 from mongoengine.django.shortcuts import get_document_or_404
 from bson.objectid import ObjectId
 
+from gmail.utils import LoginRequiredMixin
+
 logger = logging.getLogger(__name__)
 
-class EmailList(ListView):
+class EmailList(LoginRequiredMixin, ListView):
     template_name = 'email_list.html'
     context_object_name = 'emails'
     header_fields = {'subject', 'from', 'to'}
@@ -47,21 +48,16 @@ class EmailList(ListView):
         if length.isdigit() and int(length) > 50*1024*1024:
             logger.warn('Recved a request larger than 50M', extra=request.__dict__)
             return HttpResponse(status=413)
-        if not self.is_authenticated(request):
-            logger.warn('Unauthorized request', extra=request.__dict__)
-            return HttpResponse(status=403)
 
         email = Email.from_fp(request)
+        email.user = self.request.user
         email.save()
         return HttpResponse('{ok: true, location: %s}' %
                 # by http host
                request.build_absolute_uri(reverse('email_detail',
                    args=(email.id,))), status=201)
 
-    def is_authenticated(self, request):
-        return True
-
-class EmailDetail(View):
+class EmailDetail(LoginRequiredMixin, View):
     template_name = 'email_detail.html'
 
     def get(self, request, eid):
@@ -70,7 +66,7 @@ class EmailDetail(View):
         # Fuck you django DetailView, you bind too much with model
         return render_to_response(self.template_name, {'email': e})
 
-class Resource(View):
+class Resource(LoginRequiredMixin, View):
 
     def get(self, request, rid):
         resource = self.get_resource_or_404(rid)
@@ -88,11 +84,11 @@ class Resource(View):
             raise Http404()
         return resc
 
-class Search(edit.FormView):
+class Search(LoginRequiredMixin, edit.FormView):
     template_name = 'search.html'
     form_class = EmailQueryForm
 
-class Delete(View):
+class Delete(LoginRequiredMixin, View):
 
     def get(self, request, eid):
         # NOTE, need first() to call customized delete method

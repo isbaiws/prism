@@ -1,5 +1,6 @@
 # Django settings for prism project.
 import os
+# from django.core.urlresolvers import reverse
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -144,6 +145,12 @@ SESSION_ENGINE = 'mongoengine.django.sessions'
 AUTHENTICATION_BACKENDS = (
     'mongoengine.django.auth.MongoEngineBackend',
 )
+
+LOGIN_URL = '/login'
+
+APPEND_SLASH=False
+
+MONGOENGINE_USER_DOCUMENT = 'gmail.models.User'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

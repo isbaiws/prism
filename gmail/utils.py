@@ -1,4 +1,7 @@
 from datetime import datetime
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
 from django.utils.formats import ISO_INPUT_FORMATS
 
 def decode_str(s, encodings=('utf-8', 'gbk'), E=UnicodeDecodeError):
@@ -31,3 +34,11 @@ def parse_input_datetime(value):
         except (ValueError, TypeError):
             continue
     return None
+
+class LoginRequiredMixin(object):
+    """ from http://stackoverflow.com/a/6455140 """
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
+

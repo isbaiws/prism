@@ -1,5 +1,4 @@
 from django.conf.urls import patterns, url
-from django.contrib.auth.views import login
 from django.contrib.auth.views import logout
 from gmail import views
 
@@ -10,22 +9,17 @@ from gmail import views
 urlpatterns = patterns('',
     url(r'^$', views.Index.as_view(), name='index'),
 
-    url(r'^login/$', login, {'template_name': 'login.html'}, name='login'),
-    url(r'^logout/$', logout, name='logout'),
+    url(r'^login$', views.Login.as_view(), name='login'),
+    url(r'^logout$', views.Logout.as_view(), name='logout'),
 
-    url(r'^user/add$', views.AddUser.as_view(), name='adduser'),
+    url(r'^user/add$', views.AddUser.as_view(), name='add_user'),
+    url(r'^user$', views.UserDetail.as_view(), name='user_detail'),
 
     url(r'^email$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/resource/(?P<rid>\w{24})$', views.Resource.as_view(), name='resource'),
     url(r'^email/search$', views.Search.as_view(), name='email_search'),
     url(r'^email/(?P<eid>\w{24})$', views.EmailDetail.as_view(), name='email_detail'),
     url(r'^email/(?P<eid>\w{24})/delete$', views.Delete.as_view(), name='delete_email'),
-    # Examples:
-    # url(r'^$', 'prism.views.home', name='home'),
-    # url(r'^prism/', include('prism.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
