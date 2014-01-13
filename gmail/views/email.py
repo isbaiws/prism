@@ -1,33 +1,20 @@
 #coding: utf-8
+from __future__ import absolute_import
 import re
 import ipdb
 import logging
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.views.generic import ListView, View, TemplateView, edit
+from django.views.generic import ListView, View
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from forms import UserForm
-from models import Email
+from gmail.models import Email
 from mongoengine import GridFSProxy
 from mongoengine.django.shortcuts import get_document_or_404
-# from mongoengine.django.auth import User
 from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
-
-class Index(TemplateView):
-    template_name = 'index.html'
-
-class AddUser(edit.FormView):
-    template_name = 'add_user.html'
-    form_class = UserForm
-    success_url = '/'
-
-    def form_valid(self, form):
-        print form.cleaned_data
-        return super(AddUser, self).form_valid(form)
 
 class EmailList(ListView):
     template_name = 'email_list.html'
@@ -112,10 +99,6 @@ class Resource(View):
         if not resc:
             raise Http404()
         return resc
-
-
-class Search(TemplateView):
-    template_name = 'search.html'
 
 class Delete(View):
 
