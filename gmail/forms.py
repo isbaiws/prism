@@ -1,10 +1,17 @@
 # coding: utf-8
 from django import forms
+from gmail.models import User
 
 class UserForm(forms.Form):
     username = forms.CharField()
     password1 = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(widget=forms.PasswordInput)
+    is_superuser = forms.BooleanField(initial=False, required=False)
+
+    def clean_username(self):
+        if User.objects(username=self.cleaned_data['username']).first():
+            raise forms.ValidationError("Username already exists")
+        return self.cleaned_data['username']
 
     def clean_password2(self):
         if self.cleaned_data['password1'] != self.cleaned_data['password2']:

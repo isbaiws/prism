@@ -7,6 +7,7 @@ from mongoengine import (
         Document, StringField, BooleanField
     )
 
+
 logger = logging.getLogger(__name__)
 
 class User(Document):
@@ -77,4 +78,7 @@ class User(Document):
         user.save()
         return user
 
-    
+    def my_emails(self):
+        from .email import Email
+        return Email.objects(id=self.id)
+

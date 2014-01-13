@@ -15,7 +15,7 @@ from django.core.urlresolvers import reverse
 from bson.objectid import ObjectId
 from mongoengine import (
         Document, StringField, ListField, FileField,
-        DateTimeField, GridFSProxy, Q
+        DateTimeField, GridFSProxy, Q, ReferenceField, NULLIFY
     )
 from jieba import cut_for_search
 
@@ -23,6 +23,7 @@ from gmail.errors import MessageParseError
 from gmail.HTMLtoText import html2text
 from gmail.utils import decode_str, parse_input_datetime
 from gmail import attachreader
+from .user import User
 
 logger = logging.getLogger(__name__)
 
@@ -207,6 +208,8 @@ class Email(Document):
     attach_txt = StringField(default='')
     # to find resources when deleting this doc
     resources = ListField(FileField(), default=list)
+
+    user = ReferenceField(User, reverse_delete_rule=NULLIFY)
 
     meta = {
         # 'indexes': [],
