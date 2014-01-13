@@ -11,11 +11,10 @@ from email.utils import mktime_tz, parsedate_tz
 from email import _parseaddr
 
 from django.core.urlresolvers import reverse
-from django.contrib.auth import hashers
 from bson.objectid import ObjectId
 from mongoengine import (
         Document, StringField, ListField, FileField,
-        DateTimeField, GridFSProxy, BooleanField
+        DateTimeField, GridFSProxy,
     )
 
 from errors import MessageParseError
