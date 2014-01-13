@@ -1,5 +1,6 @@
 #coding: utf-8
 # import monkey
+from __future__ import absolute_import
 import logging
 import ipdb
 import re
@@ -17,10 +18,10 @@ from mongoengine import (
         DateTimeField, GridFSProxy,
     )
 
-from errors import MessageParseError
-from HTMLtoText import html2text
-from utils import decode_str
-import attachreader
+from gmail.errors import MessageParseError
+from gmail.HTMLtoText import html2text
+from gmail.utils import decode_str
+from gmail import attachreader
 
 logger = logging.getLogger(__name__)
 
