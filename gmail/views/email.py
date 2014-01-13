@@ -5,6 +5,7 @@ import logging
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.generic import ListView, View, edit
 from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -21,7 +22,6 @@ logger = logging.getLogger(__name__)
 class EmailList(LoginRequiredMixin, ListView):
     template_name = 'email_list.html'
     context_object_name = 'emails'
-    header_fields = {'subject', 'from', 'to'}
 
     def get_queryset(self):
         cursor = Email.find(dict(self.request.GET.iterlists()))
@@ -52,7 +52,7 @@ class EmailList(LoginRequiredMixin, ListView):
         email = Email.from_fp(request)
         email.user = self.request.user
         email.save()
-        return HttpResponse('{ok: true, location: %s}' %
+        return HttpResponse('{"ok": true, "location": "%s"}' %
                 # by http host
                request.build_absolute_uri(reverse('email_detail',
                    args=(email.id,))), status=201)
@@ -64,7 +64,8 @@ class EmailDetail(LoginRequiredMixin, View):
         e = get_document_or_404(Email.objects.exclude(
             'resources', 'attach_txt'), id=eid)
         # Fuck you django DetailView, you bind too much with model
-        return render_to_response(self.template_name, {'email': e})
+        return render_to_response(self.template_name, {'email': e}, 
+                context_instance = RequestContext(request))
 
 class Resource(LoginRequiredMixin, View):
 
