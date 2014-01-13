@@ -6,6 +6,3 @@ from .user import *
 class Index(TemplateView):
     template_name = 'index.html'
 
-class Search(TemplateView):
-    template_name = 'search.html'
-

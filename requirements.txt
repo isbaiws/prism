@@ -5,3 +5,4 @@ pymongo==2.6.3
 mongoengine
 xlrd
 ipdb
+jieba

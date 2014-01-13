@@ -1,3 +1,6 @@
+from datetime import datetime
+from django.utils.formats import ISO_INPUT_FORMATS
+
 def decode_str(s, encodings=('utf-8', 'gbk'), E=UnicodeDecodeError):
     """Try to decode a string in different ways(encodings), 
     raise a specific error(E) when decoding fails
@@ -21,3 +24,10 @@ def decode_str(s, encodings=('utf-8', 'gbk'), E=UnicodeDecodeError):
         except UnicodeDecodeError:
             raise E("'%s' cannot be decoded by %s" % (s, encodings))
 
+def parse_input_datetime(value):
+    for format in ISO_INPUT_FORMATS['DATETIME_INPUT_FORMATS']:
+        try:
+            return datetime.strptime(value, format)
+        except (ValueError, TypeError):
+            continue
+    return None

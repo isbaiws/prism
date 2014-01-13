@@ -1,20 +1,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 <form action="{% url 'email_list' %}" method="GET">
-  <label for="from">发件人</label>
-  <input type="text" name="from" />
-  <br />
-  <label for="to">收件人</label>
-  <input type="text" name="to" />
-  <br />
-  <label for="subject">主题</label>
-  <input type="text" name="subject" />
-  <br />
-  <label for="body_txt">正文</label>
-  <input type="text" name="body_txt" />
-  <br />
-  <label for="attach_txt">附件</label>
-  <input type="text" name="attach_txt" />
-  <br />
-  <input type="submit" />
+    {{ form.as_p }}
+    <input type="SUBMIT" />
 </form>

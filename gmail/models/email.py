@@ -15,12 +15,13 @@ from django.core.urlresolvers import reverse
 from bson.objectid import ObjectId
 from mongoengine import (
         Document, StringField, ListField, FileField,
-        DateTimeField, GridFSProxy,
+        DateTimeField, GridFSProxy, Q
     )
+from jieba import cut_for_search
 
 from gmail.errors import MessageParseError
 from gmail.HTMLtoText import html2text
-from gmail.utils import decode_str
+from gmail.utils import decode_str, parse_input_datetime
 from gmail import attachreader
 
 logger = logging.getLogger(__name__)
@@ -240,8 +241,30 @@ class Email(Document):
         super(Email, self).save(write_concern={'w': 0})
 
     @classmethod
-    def find(cls, **selector):
-        return cls.objects()
+    def find(cls, query_dict):
+        query_set = Q()
+        for key, values in query_dict.items():
+            if key in cls._fields and values != [u'']:
+                if isinstance(cls._fields[key], StringField):
+                    seg = reduce(lambda a, b: a+b, map(lambda v: list(cut_for_search(v)), values))
+                    seg = filter(lambda s: s.strip(), seg)  # strip out white-spaces
+                    queries = map(lambda v: Q(**{'%s__icontains' % key: v}), seg)
+                    query_set = reduce(lambda p, q: p & q, queries, query_set)
+
+                elif isinstance(cls._fields[key], ListField):
+                    queries = map(lambda v: Q(**{key: v}), values)
+                    query_set = reduce(lambda p, q: p & q, queries, query_set)
+
+            elif key == 'start' and values != [u'']:
+                start_point = parse_input_datetime(values[-1])  # only last one
+                if start_point:
+                    query_set &= Q(date__gte=start_point)
+            elif key == 'end' and values != [u'']:
+                end_point = parse_input_datetime(values[-1])
+                if end_point:
+                    query_set &= Q(date_lte=end_point)
+
+        return cls.objects(query_set)
 
     def delete(self):
         # Won't raise anything if not found?
@@ -252,3 +275,4 @@ class Email(Document):
         # if self.resources:
         for resc in self.resources or []:
             resc.delete()
+

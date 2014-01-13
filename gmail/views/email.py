@@ -4,12 +4,13 @@ import re
 import ipdb
 import logging
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.views.generic import ListView, View
+from django.views.generic import ListView, View, edit
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from gmail.models import Email
+from gmail.forms import EmailQueryForm
 from mongoengine import GridFSProxy
 from mongoengine.django.shortcuts import get_document_or_404
 from bson.objectid import ObjectId
@@ -22,22 +23,9 @@ class EmailList(ListView):
     header_fields = {'subject', 'from', 'to'}
 
     def get_queryset(self):
-        selector = {}
-        for k, v in self.request.GET.items():
-            if v and k!='page':
-                if k in self.header_fields:
-                    k = 'header.' + k
-                #TODO pretty unsafe to use user's input directly
-                # TOO DANGEROUS OF NOSQL INJECTION
-                selector[k] = {'$regex': '.*%s.*' % re.escape(v)}
-                # Try using the python regex objects instead. Pymongo will serialize them properly
-                # selector[k] = {'$regex': '.*%s.*' % re.escape(v), '$options': 'i'}
-        # We have a middleware to set remote_addr
-        logger.info('Selector is %s', selector, extra=self.request.__dict__)
-        cursor = Email.find(**selector)
+        cursor = Email.find(dict(self.request.GET.iterlists()))
 
         paginator = Paginator(cursor, 20) # Show 20 contacts per page
-        # pdb.set_trace()
         page = self.request.GET.get('page')
         try:
             emails = paginator.page(page)
@@ -99,6 +87,10 @@ class Resource(View):
         if not resc:
             raise Http404()
         return resc
+
+class Search(edit.FormView):
+    template_name = 'search.html'
+    form_class = EmailQueryForm
 
 class Delete(View):
 
