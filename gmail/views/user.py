@@ -1,8 +1,6 @@
 import ipdb
 
 from django.views.generic import ListView, TemplateView, edit
-from django.contrib.auth import login, logout
-from django.contrib.auth.views import login
 from django.core.urlresolvers import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
@@ -38,7 +36,7 @@ class Login(edit.FormView):
 
     def form_valid(self, form):
         login(self.request, form.get_user())
-        return super(Login, self).form_valid()
+        return super(Login, self).form_valid(form)
 
     def get_success_url(self):
         return reverse('email_list')
