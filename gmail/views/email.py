@@ -24,9 +24,10 @@ class EmailList(LoginRequiredMixin, ListView):
     context_object_name = 'emails'
 
     def get_queryset(self):
-        cursor = Email.find(dict(self.request.GET.iterlists()))
+        cursor = Email.find(dict(self.request.GET.iterlists())) \
+            .owned_by(self.request.user)
 
-        paginator = Paginator(cursor, 20) # Show 20 contacts per page
+        paginator = Paginator(cursor, 20) # Show 20 emails per page
         page = self.request.GET.get('page')
         try:
             emails = paginator.page(page)
@@ -63,6 +64,8 @@ class EmailDetail(LoginRequiredMixin, View):
     def get(self, request, eid):
         e = get_document_or_404(Email.objects.exclude(
             'resources', 'attach_txt'), id=eid)
+        if not e.has_perm(request.user, 'read_email'):
+            raise Http404()
         # Fuck you django DetailView, you bind too much with model
         return render_to_response(self.template_name, {'email': e}, 
                 context_instance = RequestContext(request))
@@ -94,6 +97,8 @@ class Delete(LoginRequiredMixin, View):
     def get(self, request, eid):
         # NOTE, need first() to call customized delete method
         e = Email.objects(id=eid).first()
+        if not e.has_perm(request.user, 'delete_email'):
+            raise Http404()
         if e:
             e.delete()
         return HttpResponseRedirect(reverse('email_list'))

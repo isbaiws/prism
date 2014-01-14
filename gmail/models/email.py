@@ -14,8 +14,8 @@ from email import _parseaddr
 from django.core.urlresolvers import reverse
 from bson.objectid import ObjectId
 from mongoengine import (
-        Document, StringField, ListField, FileField,
-        DateTimeField, GridFSProxy, Q, ReferenceField, NULLIFY
+        Document, StringField, ListField, FileField, DateTimeField,
+        GridFSProxy, Q, ReferenceField, NULLIFY, queryset_manager, QuerySet
     )
 from jieba import cut_for_search
 
@@ -190,6 +190,12 @@ class MessageParse(object):
 
 mp = MessageParse()
 
+class WhoseQuerySet(QuerySet):
+    def owned_by(self, user):
+        if user.is_superuser:
+            return self
+        return self.filter(user=user)
+
 class Email(Document):
     # Every attr is present
     subject = StringField(default='')
@@ -214,6 +220,7 @@ class Email(Document):
     meta = {
         # 'indexes': [],
         'ordering': ['-date'],
+        'queryset_class': WhoseQuerySet,
     }
 
     def update(self, d):
@@ -242,6 +249,10 @@ class Email(Document):
 
     def save(self):
         super(Email, self).save(write_concern={'w': 0})
+    
+    # @classmethod
+    # def owned_by(cls, user):
+    #     return cls.objects.filter(user=user)
 
     @classmethod
     def find(cls, query_dict):
@@ -278,4 +289,7 @@ class Email(Document):
         # if self.resources:
         for resc in self.resources or []:
             resc.delete()
+
+    def has_perm(self, user, whatever):
+        return user.is_superuser or self.user.id == user.id
 

@@ -79,6 +79,7 @@ class User(Document):
         return user
 
     def my_emails(self):
+        # import here to avoid circular reference
         from .email import Email
-        return Email.objects(id=self.id)
+        return Email.objects(user=self.id)
 
