@@ -13,6 +13,7 @@ class NoDBTestCase(TestCase):
     def _fixture_teardown(self):
         pass
 
+@skip('Hold on baby')
 class ViewTestCase(NoDBTestCase):
     def _test_404(self, view_name):
         with self.assertRaises(NoReverseMatch):
