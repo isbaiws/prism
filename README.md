@@ -6,4 +6,4 @@
 
 ### Run `manage.py flush` to empty database
 
-### Run `curl -X POST 218.193.154.30:8000/email --data-binary @/path/to/your/email.eml` to add email to db
+### Run `manage.py sendmail /path/to/your/email.eml` to add email to db
