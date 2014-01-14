@@ -218,7 +218,7 @@ class Email(Document):
     user = ReferenceField(User, reverse_delete_rule=NULLIFY)
 
     meta = {
-        # 'indexes': [],
+        'indexes': ['user'],
         'ordering': ['-date'],
         'queryset_class': WhoseQuerySet,
     }

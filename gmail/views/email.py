@@ -24,8 +24,9 @@ class EmailList(LoginRequiredMixin, ListView):
     context_object_name = 'emails'
 
     def get_queryset(self):
-        cursor = Email.find(dict(self.request.GET.iterlists())) \
-            .owned_by(self.request.user)
+        # The order doesn't matter, since we have user indexed,
+        # it will be used first
+        cursor = Email.find(self.request.GET.dict()).owned_by(self.request.user)
 
         paginator = Paginator(cursor, 20) # Show 20 emails per page
         page = self.request.GET.get('page')
