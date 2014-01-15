@@ -74,6 +74,8 @@ class EmailDetail(LoginRequiredMixin, View):
 class Resource(LoginRequiredMixin, View):
 
     def get(self, request, rid):
+        # Cao ni ma
+        referer = request.META.get('HTTP_REFERER')
         resource = self.get_resource_or_404(rid)
         response = HttpResponse(resource.read())
         for hdr in ('content_type', 'content_disposition',):
