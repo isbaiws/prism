@@ -6,3 +6,4 @@ mongoengine
 xlrd
 ipdb
 jieba
+requests
