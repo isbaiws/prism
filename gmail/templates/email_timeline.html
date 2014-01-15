@@ -1,0 +1,27 @@
+<head>
+    <script type="text/javascript" src="/static/js/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="/static/js/timeline.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/timeline.css">
+    <script>
+        $(document).ready(function() {
+            var timeline = new links.Timeline(document.getElementById('my-timeline'));
+            var options = {
+                  "width":  "100%",
+                  "height": "50%",
+                  "style": "box" // optional
+            };
+
+            var data = [];
+            {% for e in emails %}
+                data.push({'start': new Date({{ e.date |date:'Y, m, d, G, i, s' }}),
+                    'content': '<a href="{% url 'email_detail' e.id %}">{{ e.subject }}</a>'
+                })
+            {% endfor %}
+
+            timeline.draw(data, options);
+        });
+    </script>
+</head>
+<body>  
+    <div id="my-timeline"></div>
+</body>

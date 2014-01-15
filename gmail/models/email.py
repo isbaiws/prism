@@ -25,6 +25,7 @@ from gmail.HTMLtoText import html2text
 from gmail.utils import decode_str, parse_input_datetime
 from gmail import attachreader
 from .user import User
+from .map2json import map2json
 
 logger = logging.getLogger(__name__)
 
@@ -108,31 +109,37 @@ def sterilize_query(query_dict):
     queries = sorted(filter(lambda t: t[1], query_dict.items()))
     processed = set()
     for key, value in queries:
-        if key.count('-') != 2:
-            continue
-        row, col, field = key.split('-')
+        if key.count('-') == 2:
+            row, col, field = key.split('-')
 
-        if row in processed:
-            continue
-        processed.add(row)
+            if row in processed:
+                continue
+            processed.add(row)
 
-        if not (row.isdigit() and col.isdigit()):
-            continue
-        skey = sibling(row, col, field)
-        svalue = query_dict.get(skey, '')
-        if skey < key:
-            value, svalue = svalue, value
+            if not (row.isdigit() and col.isdigit()):
+                continue
+            skey = sibling(row, col, field)
+            svalue = query_dict.get(skey, '')
+            if skey < key:
+                value, svalue = svalue, value
 
-        relation = query_dict.get('%s-relation' % row)
-        logical = query_dict.get('%s-logical' % row)
-        if relation is None or logical is None:
-            continue
+            relation = query_dict.get('%s-relation' % row, 'and')
+            logical = query_dict.get('%s-logical' % row, 'and')
 
-        sterilized.append({'relation': relation,
-            'logical': logical,
-            'key': field,
-            'leftvalue': value,
-            'rightvalue': svalue})
+            sterilized.append({'relation': relation.lower(),
+                'logical': logical.lower(),
+                'key': field.lower(),
+                'leftvalue': value.lower(),
+                'rightvalue': svalue.lower()})
+        elif key in ('start', 'end'):
+            time_point = parse_input_datetime(value)
+            if time_point:
+                sterilized.append({'relation': 'and',
+                    'logical': 'and',
+                    'key': key,
+                    'leftvalue': time_point,
+                    'rightvalue': ''})
+
     return sterilized
 
 class MessageParse(object):
@@ -296,7 +303,9 @@ class Email(Document):
     def find(cls, query_dict):
         """query_dict is in the form of
         {ip_1: '127.0.0.1,' relation_1='and', subject_1: 'what', ip_2: '192.168.0.1'}"""
-        print sterilize_query(query_dict)
+        sterilized = sterilize_query(query_dict)
+        print sterilized
+        return cls.objects(__raw__=map2json(sterilized))
 
         def integrate(q1, q2, relation):
             if relation == 'or':

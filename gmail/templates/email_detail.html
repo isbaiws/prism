@@ -11,11 +11,11 @@
 	<div class="shell">
 		<!-- Logo + Top Nav -->
 		<div id="top">
-			<h1>后台邮件管理</a></h1>
+			<h1>后台邮件管理</h1>
 			<div id="top-navigation">
-				欢迎 <a href="{% url "user_detail" %}"><strong>{{ user.username }}</strong></a>
+				欢迎 <a href="{% url 'user_detail' %}"><strong>{{ user.username }}</strong></a>
 				<span>|</span>
-				<a href="login.html">退出</a>
+				<a href="{% url 'logout' %}">退出</a>
 			</div>
 		</div>
 		<!-- End Logo + Top Nav -->
@@ -25,7 +25,7 @@
 			<ul>
 			    <li><a href="email_list.html"><span>邮件管理</span></a></li>
 			    <li><a href="user_manage.html"><span>用户管理</span></a></li>
-                <li><a href="time_liner.html"><span>事件时间轴</span></a></li>
+                <li><a href="{% url "email_timeline" %}"><span>事件时间轴</span></a></li>
                 <li><a href="email_chart.html"><span>邮件统计图</span></a></li>
                 <li><a href="email_connection.html"><span>邮件关系图</span></a></li>
 			</ul>
@@ -82,8 +82,8 @@
 								</p>
                                 
                                 <p>
-                                	<label>附件</label>
                                 	{% if email.attachments %}
+                                    <label>附件</label>
                                 	{% for attach in email.attachments %}
     								<td><a href={{ attach.url }}>{{ attach.filename }}</a></td>
 									{% endfor %}

@@ -1,5 +1,4 @@
 from django.conf.urls import patterns, url
-from django.contrib.auth.views import logout
 from gmail import views
 
 # Uncomment the next two lines to enable the admin:
@@ -18,6 +17,8 @@ urlpatterns = patterns('',
     url(r'^email$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/resource/(?P<rid>\w{24})$', views.Resource.as_view(), name='resource'),
     url(r'^email/search$', views.Search.as_view(), name='email_search'),
+    url(r'^email/timeline$', views.TimeLine.as_view(), name='email_timeline'),
+    # url(r'^email/timeline\.json$', views.TimeLine.as_view(), {'is_ajax': True}, name='email_timeline_ajax'),
     url(r'^email/(?P<eid>\w{24})$', views.EmailDetail.as_view(), name='email_detail'),
     url(r'^email/(?P<eid>\w{24})/delete$', views.Delete.as_view(), name='delete_email'),
 

@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<title>邮件后台管理</title>
+	<link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all" />
+    <script type="text/javascript" src="/static/js/advance_search.js"></script>
+</head>
+<body>
+<!-- Header -->
+<div id="header">
+	<div class="shell">
+		<!-- Logo + Top Nav -->
+		<div id="top">
+			<h1>后台邮件管理</h1>
+			<div id="top-navigation">
+				欢迎 <a href="{% url 'user_detail' %}"><strong>{{ user.username }}</strong></a>
+				<span>|</span>
+				<a href="{% url 'logout' %}">退出</a>
+			</div>
+		</div>
+		<!-- End Logo + Top Nav -->
+		
+		<!-- Main Nav -->
+		<div id="navigation">
+			<ul>
+			    <li><a href="email_list.html"><span>邮件管理</span></a></li>
+			    <li><a href="user_manage.html"><span>用户管理</span></a></li>
+                <li><a href="{% url "email_timeline" %}"><span>事件时间轴</span></a></li>
+                <li><a href="email_chart.html"><span>邮件统计图</span></a></li>
+                <li><a href="email_connection.html"><span>邮件关系图</span></a></li>
+			</ul>
+		</div>
+		<!-- End Main Nav -->
+	</div>
+</div>
+<!-- End Header -->
+
+<!-- Container -->
+<div id="container">
+	<div class="shell">
+    
+    	<!-- Small Nav -->
+		<div class="small-nav">
+			<a href="#">邮件管理</a>
+			<span>&gt;</span>
+			高级查询
+		</div>
+		<!-- End Small Nav -->
+
+		
+		<br />
+		<!-- Main -->
+		<div id="main">
+			<div class="cl">&nbsp;</div>
+			
+			<!-- Content -->
+			<div id="content">
+				
+				<!-- Box -->
+				<div class="box">
+					<!-- Box Head -->
+					<div class="box-head">
+						<h2>查询列表</h2>
+					</div>
+					<!-- End Box Head -->
+                    
+                    
+<!-- Advance Search Form -->					
+<form name="form1" method="get" action="{% url 'email_list' %}">
+ <center>   
+  <table id="tab1" align="center" border="1" cellPadding="4" cellSpacing="0" borderColorLight="#999999" borderColorDark="#ffffff" style="width:95%;word-break: break-all">
+      <thead>
+    <tr>
+     <th align="center" width="10%">选择</th>
+     <th align="center" width="10%">关系</th>
+     <th align="center" width="10%">查询关键词</th>
+     <th align="center" width="15%">查询内容</th>
+     <th align="center" width="10%">逻辑</th>
+     <th align="center" width="15%">查询内容</th>
+    </tr>
+   </thead>
+               <tr >
+     <td><input type=checkbox id="box1" onClick="GetRow()" />
+         <input type="hidden" name="add" id="add1" />
+     </td> 
+     <td>
+     <input type="hidden"/>
+     </td>
+     <td> 
+     <select name="keyword" id="1-1" onChange="Change(this.options[this.selectedIndex].value,this.id)">
+	 <option value="subject">主题</option>
+	 <option value="from_">发件人</option>
+	 <option value="to">收件人</option>
+	 <option value="ip">ip地址</option>
+     <option value="boby_txt">内容</option>
+     <option value="attach_txt">附件</option>
+     <option value="start">开始时间</option>
+     <option value="end">结束时间</option>
+	 </select>
+     </td>
+     <td> <input type="text" name="1-1-subject" id="1-1-content"></td>
+     
+     <td> <select name="1-logical">
+     <option value="and">并含</option>
+     <option value="or">或含</option>
+     <option value="not">不含</option>
+     </td>
+     </select>
+     <td> <input type="text" name="1-2-subject" id="1-2-content"></td>
+            </tr>
+  
+       </table>
+       <table  align="center" border="0" cellPadding="4" cellSpacing="0" borderColorLight="#999999" borderColorDark="#ffffff" style="width:95%;word-break: break-all">
+       <tr>
+         <td align="center">
+       <input type="button" name="addrow" value="增加一行" onClick="javascript:AddRow();" />
+          <input type="button" name="delrow" value="删除选中行" onClick="javascript:DelRow();" />
+          <input type="submit" name="search" value="查询"/>
+         </td>
+      </tr>
+   </table>
+</form>
+<!-- End Form -->
+
+
+				</div>
+				<!-- End Box -->
+
+			</div>
+			<!-- End Content -->
+			
+			
+			<div class="cl">&nbsp;</div>			
+		</div>
+		<!-- Main -->
+	</div>
+</div>
+<!-- End Container -->
+
+<!-- Footer -->
+<div id="footer">
+	<div class="shell">
+	</div>
+</div>
+<!-- End Footer -->
+	
+</body>
+</html>

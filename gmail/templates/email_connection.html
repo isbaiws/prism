@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>邮件关系图</title>
+	<link rel="stylesheet" href="../static/style/halfviz.css" type="text/css" charset="utf-8">
+</head>
+<body>
+  <div id="halfviz">
+    <canvas id="viewport" width="800" height="600"></canvas>
+    <div id="editor">
+      <div class="io">
+        <div class="ctrl"><a href="#" class="new">显示全部</a>
+        <!--<a class="examples" href="#">examples <span></span></a>-->
+        </div>
+        <ul class="dialog"></ul>
+      </div>
+      <textarea id="code"></textarea>  
+    </div>
+    <div id="grabber"></div>
+  </div>  
+
+  <div id="dashboard">
+    
+    <ul class="controls">
+      <li><span class="frob">邮件关系展示页面</span></li>
+      <li><a href="email_list.html">返回邮件列表页面</a>
+    </ul>
+  </div>
+
+
+  <script src="../static/src/jquery-1.6.1.min.js"></script>
+  <script src="../static/src/jquery.address-1.4.min.js"></script>
+  <script src="../static/src/arbor.js"></script>
+  <script src="../static/src/graphics.js"></script>
+
+  <!-- the halfviz source, broken out one ‘class’ per file -->
+  <script src="../static/src/dashboard.js"></script>
+  <script src="../static/src/help.js"></script>
+  <script src="../static/src/io.js"></script>
+  <script src="../static/src/parseur.js"></script>
+  <script src="../static/src/renderer.js"></script>
+  
+  <!-- the main driver code: start here -->
+  <script src="../static/src/halfviz.js"></script> 
+
+  
+</body>
+</html>

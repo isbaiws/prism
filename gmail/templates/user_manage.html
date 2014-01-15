@@ -23,8 +23,8 @@
 		<!-- Main Nav -->
 		<div id="navigation">
 			<ul>
-			    <li><a href="email_list.html" class="active"><span>邮件管理</span></a></li>
-			    <li><a href="user_manage.html"><span>用户管理</span></a></li>
+			    <li><a href="email_list.html"><span>邮件管理</span></a></li>
+			    <li><a href="user_manage.html"  class="active"><span>用户管理</span></a></li>
                 <li><a href="{% url "email_timeline" %}"><span>事件时间轴</span></a></li>
                 <li><a href="email_chart.html"><span>邮件统计图</span></a></li>
                 <li><a href="email_connection.html"><span>邮件关系图</span></a></li>
@@ -41,9 +41,9 @@
 		
 		<!-- Small Nav -->
 		<div class="small-nav">
-			<a href="#">邮件管理</a>
+			<a href="#">用户管理</a>
 			<span>&gt;</span>
-			当前邮件
+			当前用户
 		</div>
 		<!-- End Small Nav -->
 		
@@ -59,9 +59,9 @@
 				<div class="box">
 					<!-- Box Head -->
 					<div class="box-head">
-						<h2 class="left">当前邮件</h2>
+						<h2 class="left">当前用户</h2>
 						<div class="right">
-							<label>查询邮件</label>
+							<label>查询用户</label>
 							<input type="text" class="field small-field" />
 							<input type="submit" class="button" value="搜索" />
 						</div>
@@ -73,28 +73,25 @@
 						<table width="100%" border="0" cellspacing="0" cellpadding="0">
 							<tr>
 								<th width="13"><input type="checkbox" class="checkbox" /></th>
-								<th>邮件主题</th>
-                                <th>IP地址</th>
-								<th>发送日期</th>
-                                {% if user.is_superuser %}
-								<th>邮件管理人</th>
-                                {% endif %}
-								<th width="110" class="ac">邮件操作</th>
+								<th>用户名</th>
+                                <th>用户密码</th>
+								<th>用户权限</th>
+								<th width="110" class="ac">用户操作</th>
 							</tr>
-                            {% for e in emails %}
+                            {% for e in users %}
                             <tr>
 								<td><input type="checkbox" class="checkbox" /></td>
-								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
-                                <td>{% if e.ip %}{{e.ip}}{% else %}&nbsp;&nbsp;{% endif %}</td>
-								<td>{% if e.date %}{{ e.date | date:"d/m/Y G:i"  }}{% else %}&nbsp;&nbsp;{% endif %}</td>
-                                <td>{{ e.user.username }}</td>
-								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
+								<td>{{ e.user }}</a></td>
+                                <td>{{ e.password }}</td>
+                                <td>{{ e.is_superuser }}</td>
+								<td><a href="{% url 'delete_user' e.user %}" class="ico del">Delete</a><a href="user_edit.html" class="ico edit">Edit</a></td>
 							</tr>
-                            {% endfor %}
-						</table>					
+                            {% endfor %}						
+						</table>
+						
 						
 						<!-- Pagging -->
-                        <div class="pagination">
+					    <div class="pagination">
     					<span class="step-links">
         				{% if emails.has_previous %}
             			<a href="?page={{ emails.previous_page_number }}">previous</a>
@@ -120,7 +117,7 @@
 
 			</div>
 			<!-- End Content -->
-		
+			
 			<!-- Sidebar -->
 			<div id="sidebar">
 				
@@ -129,26 +126,25 @@
 					
 					<!-- Box Head -->
 					<div class="box-head">
-						<h2>分类查询</h2>
+						<h2>管理操作</h2>
 					</div>
 					<!-- End Box Head-->
-                    
-                    <div class="box-content">
+					
+					<div class="box-content">
+						<a href="user_add.html" class="add-button"><span>添加用户</span></a>
+						<div class="cl">&nbsp;</div>
 						
 						<!-- Sort -->
-                        <div class="sort" align="left">
-                            <a href="email_search.html"><span>精确查询</span></a>
-						<div class="cl">&nbsp;</div>
-						<div class="sort" align="left">
-                              邮件主题
-							<input type="text" class="field" name="subject" />
-                              IP地址
-                            <input type="text" class="field" name="ip" />
-                              发送日期
-                            <input type="text" class="field" name="date" />
-                              邮件管理人
-                            <input type="text" class="field" name="manager" />
-                            <a href="#" class="search-button"><span>多关键字查询</span></a>
+						<div class="sort">
+							<label>用户查询</label>
+                            用户名
+                            <input type="text" class="field" />
+							管理权限
+                            <select class="field">
+                               <option value="normaluser">普通用户</option>
+                               <option value="superuser">管理员</option>
+                            </select>                                                       
+                            <a href="#" class="search-button"><span>查询</span></a>
 						<div class="cl">&nbsp;</div>
 						</div>
 						<!-- End Sort -->
