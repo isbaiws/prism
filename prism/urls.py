@@ -11,8 +11,8 @@ urlpatterns = patterns('',
     url(r'^login$', views.Login.as_view(), name='login'),
     url(r'^logout$', views.Logout.as_view(), name='logout'),
 
-    url(r'^user/add$', views.AddUser.as_view(), name='add_user'),
     url(r'^user$', views.UserDetail.as_view(), name='user_detail'),
+    url(r'^user/add$', views.AddUser.as_view(), name='add_user'),
 
     url(r'^email$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/resource/(?P<rid>\w{24})$', views.Resource.as_view(), name='resource'),
@@ -24,4 +24,5 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
+    url(r'^not-implemented$', views.not_implemented, name='not_implemented'),
 )
