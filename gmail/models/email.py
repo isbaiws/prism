@@ -5,10 +5,11 @@ import logging
 import ipdb
 import re
 from datetime import datetime
+from time import mktime
 from itertools import ifilter
 from email import message_from_file, message
 from email.header import decode_header
-from email.utils import mktime_tz, parsedate_tz
+from email.utils import mktime_tz, parsedate
 from email import _parseaddr
 
 from django.core.urlresolvers import reverse
@@ -58,7 +59,9 @@ def get_email_info(msg):
     possible_date = []
     info = {}
     find_all_ips = lambda s: map(lambda m: m.group(), ip_patt.finditer(s))
-    parse_datetime = lambda s: datetime.utcfromtimestamp(mktime_tz(parsedate_tz(s)))
+    # Not now
+    # parse_datetime = lambda s: datetime.utcfromtimestamp(mktime_tz(parsedate_tz(s)))
+    parse_datetime = lambda s: datetime.utcfromtimestamp(mktime(parsedate(s)))
 
     if not isinstance(msg, message.Message):
         raise TypeError('How dare you to pass me a %s, I want a message instance!'
@@ -96,6 +99,41 @@ def get_email_info(msg):
         info['filename'] = decode_rfc2047(msg.get_filename())
 
     return info
+
+def sterilize_query(query_dict):
+    def sibling(row, col, field):
+        return '%s-%s-%s' % (row, 1-int(col), field)
+    sterilized = []
+
+    queries = sorted(filter(lambda t: t[1], query_dict.items()))
+    processed = set()
+    for key, value in queries:
+        if key.count('-') != 2:
+            continue
+        row, col, field = key.split('-')
+
+        if row in processed:
+            continue
+        processed.add(row)
+
+        if not (row.isdigit() and col.isdigit()):
+            continue
+        skey = sibling(row, col, field)
+        svalue = query_dict.get(skey, '')
+        if skey < key:
+            value, svalue = svalue, value
+
+        relation = query_dict.get('%s-relation' % row)
+        logical = query_dict.get('%s-logical' % row)
+        if relation is None or logical is None:
+            continue
+
+        sterilized.append({'relation': relation,
+            'logical': logical,
+            'key': field,
+            'leftvalue': value,
+            'rightvalue': svalue})
+    return sterilized
 
 class MessageParse(object):
     multipart_alternatives = ['text/html', 'text/richtext', 'text/plain', 'message/rfc822']
@@ -256,28 +294,47 @@ class Email(Document):
 
     @classmethod
     def find(cls, query_dict):
+        """query_dict is in the form of
+        {ip_1: '127.0.0.1,' relation_1='and', subject_1: 'what', ip_2: '192.168.0.1'}"""
+        print sterilize_query(query_dict)
+
+        def integrate(q1, q2, relation):
+            if relation == 'or':
+                return q1 | q2
+            return q1 & q2
+
         query_set = Q()
-        for key, values in query_dict.items():
-            if key in cls._fields and values != [u'']:
+        # Only iterate those who has value
+        sterilized = filter(lambda t: t[1] and t[0].partition('_')[0].isdigit(),
+                query_dict.items())
+        # ipdb.set_trace()
+        # sterilized.sort(key=lambda )
+        for name, value in sterilized:
+            key , _, id = name.rpartition('_')
+            relation = query_dict.get('relation_%s' % id, 'and').lower()
+            # logical = query_dict.get('logical_%s' % id, 'and').lower()
+            if key in cls._fields:
                 if isinstance(cls._fields[key], StringField):
-                    seg = reduce(lambda a, b: a+b, map(lambda v: list(cut_for_search(v)), values))
-                    seg = filter(lambda s: s.strip(), seg)  # strip out white-spaces
-                    queries = map(lambda v: Q(**{'%s__icontains' % key: v}), seg)
-                    query_set = reduce(lambda p, q: p & q, queries, query_set)
+                    contain_opr = 'not__icontains' if relation == 'not' else 'icontains'
+                    # strip out white-spaces
+                    seg = filter(lambda s: s.strip(), cut_for_search(value))
+                    queries = map(lambda v: Q(**{'%s__%s' % (key, contain_opr): v}), seg)
+                    query_set = integrate(query_set, reduce(lambda p, q: p & q, queries), relation)
 
                 elif isinstance(cls._fields[key], ListField):
-                    queries = map(lambda v: Q(**{key: v}), values)
-                    query_set = reduce(lambda p, q: p & q, queries, query_set)
+                    if relation == 'not':
+                        query_set = integrate(query_set, Q(**{'%s__ne' % key: value}), 'and')
+                    else:
+                        query_set = integrate(query_set, Q(**{key: value}), relation)
 
-            elif key == 'start' and values != [u'']:
-                start_point = parse_input_datetime(values[-1])  # only last one
+            elif key == 'start':
+                start_point = parse_input_datetime(value)  # only last one
                 if start_point:
-                    query_set &= Q(date__gte=start_point)
-            elif key == 'end' and values != [u'']:
-                end_point = parse_input_datetime(values[-1])
+                    query_set &= Q(date__gte=start_point) 
+            elif key == 'end':
+                end_point = parse_input_datetime(value)
                 if end_point:
                     query_set &= Q(date_lte=end_point)
-
         return cls.objects(query_set)
 
     def delete(self):
