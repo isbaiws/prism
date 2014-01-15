@@ -1,4 +1,7 @@
 import re
+""" 2014/01/15 construct a query dict from a query matrix
+By Song Anliang
+"""
 
 notflag = False
 
