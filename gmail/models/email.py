@@ -103,43 +103,52 @@ def get_email_info(msg):
 
 def sterilize_query(query_dict):
     def sibling(row, col, field):
-        return '%s-%s-%s' % (row, 1-int(col), field)
+        return '%s-%s-%s' % (row, 3-int(col), field)
     sterilized = []
 
     queries = sorted(filter(lambda t: t[1], query_dict.items()))
     processed = set()
     for key, value in queries:
-        if key.count('-') == 2:
-            row, col, field = key.split('-')
+        if not key.count('-') == 2:
+            continue
+        row, col, field = key.split('-')
 
-            if row in processed:
-                continue
-            processed.add(row)
+        if row in processed:
+            continue
+        processed.add(row)
 
-            if not (row.isdigit() and col.isdigit()):
-                continue
-            skey = sibling(row, col, field)
-            svalue = query_dict.get(skey, '')
-            if skey < key:
-                value, svalue = svalue, value
+        if not (row.isdigit() and col.isdigit()):
+            continue
+        skey = sibling(row, col, field)
+        svalue = query_dict.get(skey, '')
+        if skey < key:
+            value, svalue = svalue, value
 
-            relation = query_dict.get('%s-relation' % row, 'and')
-            logical = query_dict.get('%s-logical' % row, 'and')
+        if field in ('start', 'end'):
+            time_point = parse_input_datetime(value)
+            value = time_point if time_point else ''
 
+            time_point = parse_input_datetime(svalue)
+            svalue = time_point if time_point else ''
+
+        relation = query_dict.get('%s-relation' % row, 'and')
+        logical = query_dict.get('%s-logical' % row, 'and')
+
+        if value or svalue:
             sterilized.append({'relation': relation.lower(),
                 'logical': logical.lower(),
                 'key': field.lower(),
-                'leftvalue': value.lower(),
-                'rightvalue': svalue.lower()})
+                'leftvalue': value,
+                'rightvalue': svalue})
 
-        elif key in ('start', 'end'):
-            time_point = parse_input_datetime(value)
-            if time_point:
-                sterilized.append({'relation': 'and',
-                    'logical': 'and',
-                    'key': key,
-                    'leftvalue': time_point,
-                    'rightvalue': ''})
+        # elif key in ('start', 'end'):
+        #     time_point = parse_input_datetime(value)
+        #     if time_point:
+        #         sterilized.append({'relation': 'and',
+        #             'logical': 'and',
+        #             'key': key,
+        #             'leftvalue': time_point,
+        #             'rightvalue': ''})
 
     return sterilized
 
@@ -305,8 +314,10 @@ class Email(Document):
         """query_dict is in the form of
         {1-1-ip: '127.0.0.1,' 1-relation='and', 1-1-subject: 'what', 2-1-ip: '192.168.0.1'}"""
         sterilized = sterilize_query(query_dict)
-        logger.info('Query matrix is %s' % sterilized)
-        return cls.objects(__raw__=map2json(sterilized))
+        logger.debug('Query matrix is %s' % sterilized)
+        qd = map2json(sterilized)
+        logger.debug('Query dict is %s' % qd)
+        return cls.objects(__raw__=qd)
 
         def integrate(q1, q2, relation):
             if relation == 'or':

@@ -15,9 +15,9 @@ def map2json(mp):
                 if key in ['subject','from_','to','attach_txt','body_txt']:
                         return {key:re.compile(value)}
                 elif key=='start':
-                        return {key:{'$gte':value}}
+                        return {'date':{'$gte':value}}
                 elif key=='end':
-                        return {key:{'$lte':value}}
+                        return {'date':{'$lte':value}}
                 elif key in ['timezone','ip']:
                         return {key:value}
                 else:
