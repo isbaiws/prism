@@ -6,6 +6,8 @@ services:
 install:
   - pip install -r requirements.txt
   - sudo apt-get install antiword xpdf -y
+env:
+  - PRISM_DEBUG=1
 script:  python manage.py test gmail
 # notifications:
 #   email: false
