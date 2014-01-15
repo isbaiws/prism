@@ -131,6 +131,7 @@ def sterilize_query(query_dict):
                 'key': field.lower(),
                 'leftvalue': value.lower(),
                 'rightvalue': svalue.lower()})
+
         elif key in ('start', 'end'):
             time_point = parse_input_datetime(value)
             if time_point:
@@ -302,9 +303,9 @@ class Email(Document):
     @classmethod
     def find(cls, query_dict):
         """query_dict is in the form of
-        {ip_1: '127.0.0.1,' relation_1='and', subject_1: 'what', ip_2: '192.168.0.1'}"""
+        {1-1-ip: '127.0.0.1,' 1-relation='and', 1-1-subject: 'what', 2-1-ip: '192.168.0.1'}"""
         sterilized = sterilize_query(query_dict)
-        print sterilized
+        logger.info('Query matrix is %s' % sterilized)
         return cls.objects(__raw__=map2json(sterilized))
 
         def integrate(q1, q2, relation):

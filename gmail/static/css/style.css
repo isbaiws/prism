@@ -81,7 +81,7 @@ h3 a{ text-decoration: none; }
 
 .table {}
 .table th{ background:#fffdfa url(images/th.gif) repeat-x 0 0; color:#818181; text-align: left; padding:7px 10px; border-bottom:solid 1px #d2d1cb;}
-.table td{ background:#fbfcfc;  border-bottom:solid 1px #e0e0e0; padding:8px 10px; }
+.table td{ background:#fbfcfc;  border-bottom:solid 1px #e0e0e0; padding:8px 5px; }
 .table tr.odd td{ background:#f8f8f8; }
 .table tr:hover td{ background:#fff9e1; }
 .table a.ico{ }
@@ -115,7 +115,7 @@ a.edit { background-image:url(images/edit.gif); margin-left:14px;}
 .form p{ padding-bottom:15px; }
 
 .size1 { width:716px; }
-.size2 { width:80px; }
+.size2 { width:280px; }
 .size3 { width:120px; }
 textarea.size1 { height:180px; }
 

@@ -1,4 +1,5 @@
 import ipdb
+import logging
 
 from django.views.generic import ListView, TemplateView, edit, View
 from django.core.urlresolvers import reverse
@@ -9,6 +10,8 @@ from django.http import HttpResponseRedirect
 from gmail.forms import UserForm
 from gmail.models import User
 from gmail.utils import LoginRequiredMixin
+
+logger = logging.getLogger(__name__)
 
 class AddUser(LoginRequiredMixin, edit.FormView):
     template_name = 'user_add.html'
@@ -37,7 +40,9 @@ class Login(edit.FormView):
     form_class = AuthenticationForm
 
     def form_valid(self, form):
+        # NOTE form is an instance of AuthenticationForm
         login(self.request, form.get_user())
+        logger.info('%s logged in', form.get_user().username, extra=self.request.__dict__)
         return super(Login, self).form_valid(form)
 
     def get_success_url(self):

@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import ipdb
 import logging
+from json import dumps
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.generic import ListView, View, edit
 from django.shortcuts import render_to_response
@@ -92,7 +93,7 @@ class Resource(LoginRequiredMixin, View):
         return resc
 
 class Search(LoginRequiredMixin, edit.FormView):
-    template_name = 'search.html'
+    template_name = 'email_search.html'
     form_class = EmailQueryForm
 
 class Delete(LoginRequiredMixin, View):
@@ -106,3 +107,9 @@ class Delete(LoginRequiredMixin, View):
             e.delete()
         return HttpResponseRedirect(reverse('email_list'))
 
+class TimeLine(LoginRequiredMixin, ListView):
+    template_name = 'email_timeline.html'
+    context_object_name = 'emails'
+
+    def get_queryset(self):
+        return Email.objects.owned_by(self.request.user)

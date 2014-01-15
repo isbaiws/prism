@@ -1,6 +1,9 @@
 from datetime import datetime
+from json import dumps
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.views.generic import View
+from django.http.response import HttpResponse
 
 from django.utils.formats import ISO_INPUT_FORMATS
 
@@ -42,3 +45,7 @@ class LoginRequiredMixin(object):
     def dispatch(self, request, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
+class JsonView(View):
+    def dispatch(self, request, *args, **kwargs):
+        d = super(JsonView, self).dispatch(request, *args, **kwargs)
+        return HttpResponse(dumps(d))

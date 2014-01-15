@@ -3,8 +3,8 @@
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<title>邮件后台管理</title>
-	<link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all" />
-    <script type="text/javascript" src="/static/js/advance_search.js"></script>
+	<link rel="stylesheet" href="../static/css/style.css" type="text/css" media="all" />
+    <script type="text/javascript" src="../static/js/advance_search.js"></script>
 </head>
 <body>
 <!-- Header -->
@@ -26,7 +26,7 @@
 			<ul>
 			    <li><a href="email_list.html"><span>邮件管理</span></a></li>
 			    <li><a href="user_manage.html"><span>用户管理</span></a></li>
-                <li><a href="{% url "email_timeline" %}"><span>事件时间轴</span></a></li>
+                <li><a href="time_liner.html"><span>事件时间轴</span></a></li>
                 <li><a href="email_chart.html"><span>邮件统计图</span></a></li>
                 <li><a href="email_connection.html"><span>邮件关系图</span></a></li>
 			</ul>
@@ -88,7 +88,7 @@
      <input type="hidden"/>
      </td>
      <td> 
-     <select name="keyword" id="1-1" onChange="Change(this.options[this.selectedIndex].value,this.id)">
+     <select name="keyword" id="1" onChange="Change(this.options[this.selectedIndex].value,this.id)">
 	 <option value="subject">主题</option>
 	 <option value="from_">发件人</option>
 	 <option value="to">收件人</option>
@@ -108,8 +108,7 @@
      </td>
      </select>
      <td> <input type="text" name="1-2-subject" id="1-2-content"></td>
-            </tr>
-  
+     </tr>
        </table>
        <table  align="center" border="0" cellPadding="4" cellSpacing="0" borderColorLight="#999999" borderColorDark="#ffffff" style="width:95%;word-break: break-all">
        <tr>
