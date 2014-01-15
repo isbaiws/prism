@@ -7,3 +7,5 @@
 ### Run `manage.py flush` to empty database
 
 ### Run `manage.py sendmail /path/to/your/email.eml` to add email to db
+
+### Run `manage.py createsuperuser username password` to create a superuser

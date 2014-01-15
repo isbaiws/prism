@@ -45,5 +45,17 @@ if __name__ == "__main__":
         # pretty_header(r)
         # print r.json()
         print r.text
+    elif sys.argv[1] == 'createsuperuser':
+        if len(sys.argv) < 4:
+            print 'Usage: ./manage.py createsuperuser username password'
+            sys.exit(1)
+        from gmail.models import User
+        username = sys.argv[2]
+        password = sys.argv[3]
+        if User.exist(username=username):
+            print 'Username %s already exists' % username
+            sys.exit(1)
+        u = User.create_user(username, password, is_superuser=True)
+        print 'Created', u.username
     else:
         execute_from_command_line(sys.argv)

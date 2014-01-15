@@ -9,7 +9,7 @@ class UserForm(forms.Form):
     is_superuser = forms.BooleanField(initial=False, required=False)
 
     def clean_username(self):
-        if User.objects(username=self.cleaned_data['username']).first():
+        if User.exist(username=self.cleaned_data['username']):
             raise forms.ValidationError("Username already exists")
         return self.cleaned_data['username']
 
@@ -19,11 +19,11 @@ class UserForm(forms.Form):
         return self.cleaned_data['password1']
 
 class EmailQueryForm(forms.Form):
-    from_ = forms.CharField(required=False, label='发件人')
-    to = forms.CharField(required=False, label='收件人')
-    subject = forms.CharField(required=False, label='主题')
-    body_txt = forms.CharField(required=False, )
-    attach_txt = forms.CharField(required=False, )
-    ip = forms.IPAddressField(required=False, )
-    start = forms.DateTimeField(required=False, )
-    end = forms.DateTimeField(required=False, )
+    from__1 = forms.CharField(required=False, label='发件人')
+    to_1 = forms.CharField(required=False, label='收件人')
+    subject_1 = forms.CharField(required=False, label='主题')
+    body_txt_1 = forms.CharField(required=False, label='内容')
+    attach_txt_1 = forms.CharField(required=False, label='附件')
+    ip_1 = forms.IPAddressField(required=False, label='IP地址')
+    start_1 = forms.DateTimeField(required=False, label='从')
+    end_1 = forms.DateTimeField(required=False, label='至')

@@ -83,3 +83,6 @@ class User(Document):
         from .email import Email
         return Email.objects(user=self.id)
 
+    @classmethod
+    def exist(cls, **kwargs):
+        return cls.objects(**kwargs).first()
