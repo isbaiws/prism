@@ -16,7 +16,7 @@ from django.core.urlresolvers import reverse
 from bson.objectid import ObjectId
 from mongoengine import (
         Document, StringField, ListField, FileField, DateTimeField,
-        GridFSProxy, Q, ReferenceField, NULLIFY, queryset_manager, QuerySet
+        GridFSProxy, ReferenceField, NULLIFY, QuerySet
     )
 from jieba import cut_for_search
 
@@ -318,45 +318,6 @@ class Email(Document):
         qd = map2json(sterilized)
         logger.debug('Query dict is %s' % qd)
         return cls.objects(__raw__=qd)
-
-        def integrate(q1, q2, relation):
-            if relation == 'or':
-                return q1 | q2
-            return q1 & q2
-
-        query_set = Q()
-        # Only iterate those who has value
-        sterilized = filter(lambda t: t[1] and t[0].partition('_')[0].isdigit(),
-                query_dict.items())
-        # ipdb.set_trace()
-        # sterilized.sort(key=lambda )
-        for name, value in sterilized:
-            key , _, id = name.rpartition('_')
-            relation = query_dict.get('relation_%s' % id, 'and').lower()
-            # logical = query_dict.get('logical_%s' % id, 'and').lower()
-            if key in cls._fields:
-                if isinstance(cls._fields[key], StringField):
-                    contain_opr = 'not__icontains' if relation == 'not' else 'icontains'
-                    # strip out white-spaces
-                    seg = filter(lambda s: s.strip(), cut_for_search(value))
-                    queries = map(lambda v: Q(**{'%s__%s' % (key, contain_opr): v}), seg)
-                    query_set = integrate(query_set, reduce(lambda p, q: p & q, queries), relation)
-
-                elif isinstance(cls._fields[key], ListField):
-                    if relation == 'not':
-                        query_set = integrate(query_set, Q(**{'%s__ne' % key: value}), 'and')
-                    else:
-                        query_set = integrate(query_set, Q(**{key: value}), relation)
-
-            elif key == 'start':
-                start_point = parse_input_datetime(value)  # only last one
-                if start_point:
-                    query_set &= Q(date__gte=start_point) 
-            elif key == 'end':
-                end_point = parse_input_datetime(value)
-                if end_point:
-                    query_set &= Q(date_lte=end_point)
-        return cls.objects(query_set)
 
     def delete(self):
         # Won't raise anything if not found?
