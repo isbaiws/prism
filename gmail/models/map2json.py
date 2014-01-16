@@ -14,20 +14,32 @@ def map2json(mp):
         relationstack = []
         expressionstack = []
 
+        def realgetexpr(key,value):
+                if key in ['subject','from_','to','attach_txt','body_txt']:
+                        return re.compile(re.escape(value))
+                elif key=='start':
+                        return '$gte':value
+                elif key=='end':
+                        return '$lte':value
+                elif key in ['timezone','ip']:
+                        return value
+                else:
+                        return 'error'		
+
         def getexpr(key,value):
                 if key in ['subject','from_','to','attach_txt','body_txt']:
-                        return {key:re.compile(re.escape(value))}
+                        return {key:realgetexpr(key,value)}
                 elif key=='start':
-                        return {'date':{'$gte':value}}
+                        return {'date':realgetexpr(key,value)}
                 elif key=='end':
-                        return {'date':{'$lte':value}}
+                        return {'date':realgetexpr(key,value)}
                 elif key in ['timezone','ip']:
-                        return {key:value}
+                        return {key:realgetexpr(key,value)}
                 else:
                         return 'error'
 
         def getnotexpr(key,value):
-                return {key:{'$not':getexpr(key,value)}}
+                return {key:{'$not':realgetexpr(key,value)}}
 
         def readexpression(line):
                 if line['leftvalue'] and line['rightvalue']:
