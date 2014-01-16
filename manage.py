@@ -36,12 +36,12 @@ if __name__ == "__main__":
             print 'Login failed!!'
             sys.exit(1)
 
-        if len(sys.argv) < 3:
-            print 'Specify a file path!!'
+        if len(sys.argv) < 4:
+            print 'Usage ./manage.py sendmail /path/to/email.eml account'
             sys.exit(1)
         fn = sys.argv[2]
         # files = {'file': open(fn, 'rb')}
-        r = s.post(post_email_url, data=open(fn, 'rb'))
+        r = s.post(post_email_url, data=open(fn, 'rb'), headers={'x-path': sys.argv[3]})
         # pretty_header(r)
         # print r.json()
         print r.text

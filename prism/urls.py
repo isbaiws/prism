@@ -15,6 +15,7 @@ urlpatterns = patterns('',
     url(r'^user/add$', views.AddUser.as_view(), name='add_user'),
 
     url(r'^email$', views.EmailList.as_view(), name='email_list'),
+    # url(r'^email/path/(?P<path>.+)$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/resource/(?P<rid>\w{24})$', views.Resource.as_view(), name='resource'),
     url(r'^email/search$', views.Search.as_view(), name='email_search'),
     url(r'^email/timeline$', views.TimeLine.as_view(), name='email_timeline'),

@@ -16,7 +16,7 @@ def map2json(mp):
 
         def getexpr(key,value):
                 if key in ['subject','from_','to','attach_txt','body_txt']:
-                        return {key:re.compile(value)}
+                        return {key:re.compile(re.escape(value))}
                 elif key=='start':
                         return {'date':{'$gte':value}}
                 elif key=='end':
@@ -55,7 +55,7 @@ def map2json(mp):
                 elif op=='or':
                         string = '$or'
                 else:
-                        string = error
+                        string = 'error'
                 return {string:[e1,e2]}
 
         def solvetop():

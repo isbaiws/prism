@@ -4,7 +4,7 @@ import ipdb
 
 from django.contrib.auth import hashers
 from mongoengine import (
-        Document, StringField, BooleanField
+        Document, StringField, BooleanField, DictField
     )
 
 
@@ -14,6 +14,7 @@ class User(Document):
     username = StringField(required=True)
     password = StringField(required=True)
     is_superuser = BooleanField(default=False)
+    folders = DictField()
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['username', 'password']

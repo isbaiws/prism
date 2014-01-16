@@ -107,39 +107,34 @@ def sterilize_query(query_dict):
     sterilized = []
 
     queries = sorted(filter(lambda t: t[1], query_dict.items()))
-    processed = set()
     for key, value in queries:
-        if not key.count('-') == 2:
+        if key.count('-') != 1:
             continue
-        row, col, field = key.split('-')
+        row, field = key.split('-')
+        if field != 'field':
+            continue
 
-        if row in processed:
-            continue
-        processed.add(row)
-
-        if not (row.isdigit() and col.isdigit()):
-            continue
-        skey = sibling(row, col, field)
-        svalue = query_dict.get(skey, '')
-        if skey < key:
-            value, svalue = svalue, value
+        leftvalue = query_dict.get('%s-1' % row, '')
+        rightvalue = query_dict.get('%s-2' % row, '')
 
         if field in ('start', 'end'):
-            time_point = parse_input_datetime(value)
-            value = time_point if time_point else ''
+            time_point = parse_input_datetime(leftvalue)
+            leftvalue = time_point if time_point else ''
 
-            time_point = parse_input_datetime(svalue)
-            svalue = time_point if time_point else ''
+            time_point = parse_input_datetime(rightvalue)
+            rightvalue = time_point if time_point else ''
+
+        if not leftvalue and not rightvalue:
+            continue
 
         relation = query_dict.get('%s-relation' % row, 'and')
         logical = query_dict.get('%s-logical' % row, 'and')
 
-        if value or svalue:
-            sterilized.append({'relation': relation.lower(),
-                'logical': logical.lower(),
-                'key': field.lower(),
-                'leftvalue': value,
-                'rightvalue': svalue})
+        sterilized.append({'relation': relation.lower(),
+            'logical': logical.lower(),
+            'key': value.lower(),
+            'leftvalue': leftvalue,
+            'rightvalue': rightvalue})
 
         # elif key in ('start', 'end'):
         #     time_point = parse_input_datetime(value)

@@ -27,6 +27,8 @@ class EmailList(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # The order doesn't matter, since we have user indexed,
         # it will be used first
+        # path = self.kwargs.path
+        # self.request.user.filesystem
         cursor = Email.find(self.request.GET.dict()).owned_by(self.request.user)
 
         paginator = Paginator(cursor, 20) # Show 20 emails per page
@@ -44,6 +46,9 @@ class EmailList(LoginRequiredMixin, ListView):
     def post(self, request):
         # META is standard python dict
         # and content-length will be inside definitely
+        if 'HTTP_X_PATH' not in request.META:
+            logger.warn('Recved a email without path', extra=request.__dict__)
+            return HttpResponse(status=400)
         # 2014/1/8 CONTENT_LENGTH will be an int
         # when fired by django.test.client
         length = str(request.META['CONTENT_LENGTH'])
@@ -55,6 +60,12 @@ class EmailList(LoginRequiredMixin, ListView):
         email = Email.from_fp(request)
         email.user = self.request.user
         email.save()
+
+        path = request.META['HTTP_X_PATH']
+        folders = self.request.user.folders
+        folders.setdefault(path, []).append(email.id)
+        # NOTE thread-unsafe
+        self.request.user.update(set__folders=folders)
         return HttpResponse('{"ok": true, "location": "%s"}' %
                 # by http host
                request.build_absolute_uri(reverse('email_detail',
