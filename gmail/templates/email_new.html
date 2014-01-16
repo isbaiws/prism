@@ -19,7 +19,7 @@
 				<span>|</span>
 				<a href="#">设置</a>
 				<span>|</span>
-				<a href="login.html">退出</a>
+				<a href="{% url 'login' %}">退出</a>
 			</div>
 		</div>
 		<!-- End Logo + Top Nav -->
@@ -27,12 +27,12 @@
 		<!-- Main Nav -->
 		<div id="navigation">
 			<ul>
-			    <li><a href="email_list.html"><span>邮件管理</span></a></li>
-			    <li><a href="email_new.html" class="active"><span>新邮件</span></a></li>
-			    <li><a href="user_manage.html"><span>用户管理</span></a></li>
-                <li><a href="{% url "email_timeline" %}"><span>事件时间轴</span></a></li>
-                <li><a href="email_chart.html"><span>邮件统计图</span></a></li>
-			</ul>
+			    <li><a href="{% url 'email_list' %}"><span>邮件管理</span></a></li>
+			    <li><a href="{% url 'not_implemented' %}" class="active"><span>新邮件</span></a></li>
+			    <li><a href="{% url 'not_implemented' %}"><span>用户管理</span></a></li>
+                <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
+                <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
+			</li>
 		</div>
 		<!-- End Main Nav -->
 	</div>
