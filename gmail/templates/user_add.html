@@ -24,7 +24,7 @@
 		<div id="navigation">
 			<ul>
 			    <li><a href="{% url 'email_list' %}"><span>邮件管理</span></a></li>
-			    <li><a href="{% url 'not_implemented' %}"  class="active"><span>用户管理</span></a></li>
+			    <li><a href="{% url 'add_user' %}"  class="active"><span>用户管理</span></a></li>
                 <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
                 <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
                 <li><a href="{% url 'not_implemented' %}"><span>邮件关系图</span></a></li>
@@ -41,7 +41,7 @@
 		
 		<!-- Small Nav -->
 		<div class="small-nav">
-			<a href="#">用户管理</a>
+			<a href="{% url 'add_user' %}">用户管理</a>
 			<span>&gt;</span>
 			添加用户
 		</div>
@@ -70,7 +70,7 @@
 						<div class="form">
 								<p>
 									<label>新用户名</label>
-									{{ form.user }}
+									{{ form.username }}
 								</p>	
 								<p>
 									<label>初始密码</label>
