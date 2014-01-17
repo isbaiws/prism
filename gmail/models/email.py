@@ -246,6 +246,9 @@ class WhoseQuerySet(QuerySet):
             return self
         return self.filter(user=user)
 
+    def under(self, path):
+        return self.filter(path=path)
+
 class Email(Document):
     # Every attr is present
     subject = StringField(default='')
@@ -266,9 +269,11 @@ class Email(Document):
     resources = ListField(FileField(), default=list)
 
     user = ReferenceField(User, reverse_delete_rule=NULLIFY)
+    path = StringField(required=True)
+    source = FileField()
 
     meta = {
-        'indexes': ['user'],
+        'indexes': ['user', 'path'],
         'ordering': ['-date'],
         'queryset_class': WhoseQuerySet,
     }

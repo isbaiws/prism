@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<title>邮件后台管理</title>
-	<link rel="stylesheet" href="../static/css/style.css" type="text/css" media="all" />
+	<link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all" />
 </head>
 <body>
 <!-- Header -->
@@ -38,7 +38,6 @@
 <!-- Container -->
 <div id="container">
 	<div class="shell">
-		
 		<!-- Small Nav -->
 		<div class="small-nav">
 			<a href="#">邮件管理</a>
@@ -55,7 +54,11 @@
 			<!-- LeftSideBar -->
 			
 			<div id="leftbar">
-				shit
+                <ul>
+                    {% for folder in folders%}
+                    <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>
+                    {% endfor %}
+                </ul>
 			</div>
 			
 

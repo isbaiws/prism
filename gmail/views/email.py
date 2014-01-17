@@ -25,7 +25,13 @@ class EmailList(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        # The order doesn't matter, since we have user indexed,
+        u = self.request.user
+        path = self.kwargs.get('path', None)
+        if path and path not in u.folders:
+            raise Http404('No path found')
+        if not path:
+            path = u.folders[0] if len(u.folders)>1 else None
+        # The order doesn't matter, since we have user & path indexed,
         # it will be used first
         return Email.find(self.request.GET.dict()).owned_by(u).under(path)
 
@@ -37,7 +43,7 @@ class EmailList(LoginRequiredMixin, ListView):
     def post(self, request, path=None):
         # META is standard python dict
         # and content-length will be inside definitely
-        if 'HTTP_X_PATH' not in request.META:
+        if path is None:
             logger.warn('Recved a email without path', extra=request.__dict__)
             return HttpResponse(status=400)
         # 2014/1/8 CONTENT_LENGTH will be an int
@@ -49,14 +55,13 @@ class EmailList(LoginRequiredMixin, ListView):
             return HttpResponse(status=413)
 
         email = Email.from_fp(request)
-        email.user = self.request.user
+        email.user = request.user
+        email.path = path
         email.save()
+        request.user.update(push__folders=path) 
+        # If you wanna use user later, reload it
+        # request.user.reload()
 
-        path = request.META['HTTP_X_PATH']
-        folders = self.request.user.folders
-        folders.setdefault(path, []).append(email.id)
-        # NOTE thread-unsafe
-        self.request.user.update(set__folders=folders)
         return HttpResponse('{"ok": true, "location": "%s"}' %
                 # by http host
                request.build_absolute_uri(reverse('email_detail',
@@ -107,6 +112,7 @@ class Delete(LoginRequiredMixin, View):
             raise Http404()
         if e:
             e.delete()
+            #TODO delete email path in user
         return HttpResponseRedirect(reverse('email_list'))
 
 class TimeLine(LoginRequiredMixin, ListView):

@@ -41,7 +41,7 @@ if __name__ == "__main__":
             sys.exit(1)
         fn = sys.argv[2]
         # files = {'file': open(fn, 'rb')}
-        r = s.post(post_email_url, data=open(fn, 'rb'), headers={'x-path': sys.argv[3]})
+        r = s.post('%s/path/%s' % (post_email_url, sys.argv[3]), data=open(fn, 'rb'))
         # pretty_header(r)
         # print r.json()
         print r.text
