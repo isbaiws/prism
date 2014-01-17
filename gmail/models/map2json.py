@@ -3,7 +3,8 @@ import re
 By Song Anliang
 """
 
-notflag = False
+# Thread-unsafe, move back to local
+# notflag = False
 
 def map2json(mp):
         if not mp:
@@ -13,14 +14,15 @@ def map2json(mp):
         json = {}
         relationstack = []
         expressionstack = []
+        notflag = [False]
 
         def realgetexpr(key,value):
                 if key in ['subject','from_','to','attach_txt','body_txt']:
                         return re.compile(re.escape(value))
                 elif key=='start':
-                        return '$gte':value
+                        return {'$gte':value}
                 elif key=='end':
-                        return '$lte':value
+                        return {'$lte':value}
                 elif key in ['timezone','ip']:
                         return value
                 else:
@@ -77,16 +79,15 @@ def map2json(mp):
                 expressionstack.append(solveit(expr1,expr2,operator))
 
         def readrelation(line):
-                global notflag
                 thislinerelation = ''
                 if line['relation']=='not':
-                        notflag = True
+                        notflag[0] = True
                         thislinerelation = 'and'
                 elif line['relation']=='and':
-                        notflag = False
+                        notflag[0] = False
                         thislinerelation = 'and'
                 elif line['relation']=='or':
-                        notflag = False
+                        notflag[0] = False
                         thislinerelation = 'or'
                 else:
                         return 'error'
@@ -101,7 +102,7 @@ def map2json(mp):
                 #???
         for line in mp[1:]:
                 relationstack.append(readrelation(line))
-                if notflag:
+                if notflag[0]:
                         expressionstack.append(readnotexpression(line))
                 else:
                         expressionstack.append(readexpression(line))
