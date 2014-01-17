@@ -139,6 +139,24 @@
                         <div class="sort" align="left">
                             <a href="{% url 'email_search' %}"><span>精确查询</span></a>
 						<div class="cl">&nbsp;</div>
+
+						<form action="{% url 'email_list' %}" method="get">
+							<input type="hidden" name="1-field" value="subject"/>
+    						<p> <br>主题: <br><input type="text" name="1-1"/></p>
+    						<input type="hidden" name="2-field" value="from_"/>  						
+     						<p> 发件人: <br><input type="text" name="2-1"/></p>
+     						<input type="hidden" name="3-field" value="to"/>
+     						<p> 收件人: <br><input type="text" name="3-1"/></p>
+     						<input type="hidden" name="4-field" value="ip"/>
+     						<p> ip地址: <br><input type="text" name="4-1"/></p>
+     						<input type="hidden" name="5-field" value="body_txt"/>
+     						<p> 内容: <br><input type="text" name="5-1"/></p>
+     						<input type="hidden" name="6-field" value="attach_txt"/>
+     						<p> 附件: <br><input type="text" name="6-1"/><br><br></p>
+  							<input type="submit" value="多关键字查询" />
+						</form>
+
+<!--
 						<div class="sort" align="left">
                               邮件主题
 							<input type="text" class="field" name="subject" />
@@ -148,7 +166,9 @@
                             <input type="text" class="field" name="date" />
                               邮件管理人
                             <input type="text" class="field" name="manager" />
-                            <a href="#" class="search-button"><span>多关键字查询</span></a>
+                            <input type="submit" value="多关键字查询"/>
+                            <a href="#" class="search-button"><span>多关键字查询</span></a> 
+-->
 						<div class="cl">&nbsp;</div>
 						</div>
 						<!-- End Sort -->
