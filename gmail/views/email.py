@@ -8,7 +8,6 @@ from django.views.generic import ListView, View, edit
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from gmail.models import Email
 from gmail.forms import EmailQueryForm
@@ -23,7 +22,7 @@ logger = logging.getLogger(__name__)
 class EmailList(LoginRequiredMixin, ListView):
     template_name = 'email_list.html'
     context_object_name = 'emails'
-    paginate_by = 2
+    paginate_by = 20
 
     def get_queryset(self):
         # The order doesn't matter, since we have user indexed,
