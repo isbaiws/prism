@@ -23,27 +23,19 @@ logger = logging.getLogger(__name__)
 class EmailList(LoginRequiredMixin, ListView):
     template_name = 'email_list.html'
     context_object_name = 'emails'
+    paginate_by = 2
 
     def get_queryset(self):
         # The order doesn't matter, since we have user indexed,
         # it will be used first
-        # path = self.kwargs.path
-        # self.request.user.filesystem
-        cursor = Email.find(self.request.GET.dict()).owned_by(self.request.user)
+        return Email.find(self.request.GET.dict()).owned_by(u).under(path)
 
-        paginator = Paginator(cursor, 20) # Show 20 emails per page
-        page = self.request.GET.get('page')
-        try:
-            emails = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            emails = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page of results.
-            emails = paginator.page(paginator.num_pages)
-        return emails
+    def get_context_data(self, **kwargs):
+        context = super(EmailList, self).get_context_data(**kwargs)
+        context['folders'] = set(self.request.user.folders)
+        return context
 
-    def post(self, request):
+    def post(self, request, path=None):
         # META is standard python dict
         # and content-length will be inside definitely
         if 'HTTP_X_PATH' not in request.META:
