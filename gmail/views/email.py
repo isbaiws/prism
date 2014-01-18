@@ -31,6 +31,7 @@ class EmailList(LoginRequiredMixin, ListView):
             raise Http404('No path found')
         if not path:
             path = u.folders[0] if len(u.folders)>1 else None
+        self.path = path
         # The order doesn't matter, since we have user & path indexed,
         # it will be used first
         return Email.find(self.request.GET.dict()).owned_by(u).under(path)
@@ -38,6 +39,7 @@ class EmailList(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(EmailList, self).get_context_data(**kwargs)
         context['folders'] = set(self.request.user.folders)
+        context['current_path'] = self.path
         return context
 
     def post(self, request, path=None):

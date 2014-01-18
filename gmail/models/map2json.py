@@ -18,7 +18,9 @@ def map2json(mp):
 
         def realgetexpr(key,value):
                 if key in ('subject','from_','to','attach_txt','body_txt'):
-                        return re.compile(re.escape(value))
+                        # re object cannot be deep-copied, use the raw form
+                        # return re.compile(re.escape(value))
+                        return {'$regex': re.escape(value), '$options': 'i'}
                 elif key=='start':
                         return {'$gte':value}
                 elif key=='end':
