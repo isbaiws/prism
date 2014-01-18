@@ -17,7 +17,7 @@ def map2json(mp):
         notflag = [False]
 
         def realgetexpr(key,value):
-                if key in ['subject','from_','to','attach_txt','body_txt']:
+                if key in ('subject','from_','to','attach_txt','body_txt'):
                         return re.compile(re.escape(value))
                 elif key=='start':
                         return {'$gte':value}
