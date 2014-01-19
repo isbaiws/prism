@@ -269,7 +269,7 @@ class Email(Document):
     resources = ListField(FileField(), default=list)
 
     user = ReferenceField(User, reverse_delete_rule=NULLIFY)
-    path = StringField(required=True)
+    path = StringField()
     source = FileField()
 
     meta = {
