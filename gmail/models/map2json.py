@@ -31,7 +31,7 @@ def map2json(mp):
                         return 'error'		
 
         def getexpr(key,value):
-                if key in ['subject','from_','to','attach_txt','body_txt']:
+                if key in ('subject','from_','to','attach_txt','body_txt'):
                         return {key:realgetexpr(key,value)}
                 elif key=='start':
                         return {'date':realgetexpr(key,value)}

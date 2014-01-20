@@ -13,7 +13,7 @@
 		<div id="top">
 			<h1>后台邮件管理</h1>
 			<div id="top-navigation">
-				欢迎 <a href="{% url 'user_detail' %}"><strong>{{ user.username }}</strong></a>
+				欢迎 <a href="{% url 'user_edit' %}"><strong>{{ user.username }}</strong></a>
 				<span>|</span>
 				<a href="{% url 'logout' %}">退出</a>
 			</div>
@@ -65,36 +65,8 @@
 					</div>
 					<!-- End Box Head -->
 					
-					<form action="{% url 'not_implemented' %}" method="post">{% csrf_token %}
-                        <!-- Form --> 
-						<div class="form">
-								<p>
-									<label>新用户名</label>
-									{{ form.user }}
-								</p>	
-								<p>
-									<label>初始密码</label>
-									{{ form.password1 }}
-								</p>	
-                                <p>
-									<label>密码确认</label>
-									{{ form.password2 }}
-								</p>
-                                <p>
-									<label>用户权限</label>
-									{{ form.is_superuser }}
-								</p>	
-							
-						</div>
-						<!-- End Form -->
-						
-						<!-- Form Buttons -->
-						<div class="buttons">
-							<input type="submit" class="button" value="提交" />
-                            <input type="reset" class="button" value="重置"  />
-						</div>
-						<!-- End Form Buttons -->
-					</form>
+                    <a href="{% url 'user_password_reset' %}">更改密码</a>
+
 				</div>
 				<!-- End Box -->
 
