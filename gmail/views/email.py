@@ -4,9 +4,7 @@ import ipdb
 import logging
 from json import dumps
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.views.generic import ListView, View, edit
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.views.generic import ListView, DetailView, View, edit
 from django.core.urlresolvers import reverse
 
 from gmail.models import Email
@@ -69,17 +67,16 @@ class EmailList(LoginRequiredMixin, ListView):
                request.build_absolute_uri(reverse('email_detail',
                    args=(email.id,))), status=201)
 
-class EmailDetail(LoginRequiredMixin, View):
+class EmailDetail(LoginRequiredMixin, DetailView):
     template_name = 'email_detail.html'
+    context_object_name = 'email'
 
-    def get(self, request, eid):
+    def get_object(self):
         e = get_document_or_404(Email.objects.exclude(
-            'resources', 'attach_txt'), id=eid)
-        if not e.has_perm(request.user, 'read_email'):
+            'resources', 'attach_txt'), id=self.kwargs['eid'])
+        if not e.has_perm(self.request.user, 'read_email'):
             raise Http404()
-        # Fuck you django DetailView, you bind too much with model
-        return render_to_response(self.template_name, {'email': e}, 
-                context_instance = RequestContext(request))
+        return e
 
 class Resource(LoginRequiredMixin, View):
 
