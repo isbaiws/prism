@@ -11,6 +11,7 @@ from mongoengine import (
 logger = logging.getLogger(__name__)
 
 class User(Document):
+    #TODO Why there is a '_cls' field in db?
     username = StringField(required=True)
     password = StringField(required=True)
     is_superuser = BooleanField(default=False)
