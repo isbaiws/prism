@@ -58,7 +58,7 @@ class EmailList(LoginRequiredMixin, ListView):
         email.owner = request.user
         email.path = path
         email.save()
-        request.user.update(push__folders=path) 
+        request.user.update(add_to_set__folders=path) 
         # If you wanna use user later, reload it
         # request.user.reload()
 
