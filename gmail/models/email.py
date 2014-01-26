@@ -244,7 +244,7 @@ class WhoseQuerySet(QuerySet):
     def owned_by(self, user):
         if user.is_superuser:
             return self
-        return self.filter(user=user)
+        return self.filter(owner=user)
 
     def under(self, path):
         return self.filter(path=path)
@@ -268,12 +268,12 @@ class Email(Document):
     # to find resources when deleting this doc
     resources = ListField(FileField(), default=list)
 
-    user = ReferenceField(User, reverse_delete_rule=NULLIFY)
+    owner = ReferenceField(User, reverse_delete_rule=NULLIFY)
     path = StringField()
     source = FileField()
 
     meta = {
-        'indexes': ['user', 'path'],
+        'indexes': ['owner', 'path'],
         'ordering': ['-date'],
         'queryset_class': WhoseQuerySet,
     }
@@ -307,7 +307,7 @@ class Email(Document):
     
     # @classmethod
     # def owned_by(cls, user):
-    #     return cls.objects.filter(user=user)
+    #     return cls.objects.filter(owner=user)
 
     @classmethod
     def find(cls, query_dict):
@@ -330,5 +330,5 @@ class Email(Document):
             resc.delete()
 
     def has_perm(self, user, whatever):
-        return user.is_superuser or self.user.id == user.id
+        return user.is_superuser or self.owner.id == user.id
 

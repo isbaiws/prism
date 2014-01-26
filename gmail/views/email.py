@@ -55,7 +55,7 @@ class EmailList(LoginRequiredMixin, ListView):
             return HttpResponse(status=413)
 
         email = Email.from_fp(request)
-        email.user = request.user
+        email.owner = request.user
         email.path = path
         email.save()
         request.user.update(push__folders=path) 
