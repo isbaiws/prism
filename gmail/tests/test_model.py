@@ -11,7 +11,7 @@ class DeleteTestCase(TestCase):
         fpath = os.path.join(os.path.dirname(__file__), 'fixtures/pic.eml')
         # Add one
         with open(fpath) as fp:
-            self.e = models.Email.from_fp(fp)
+            self.e = models.Email.from_string(fp.read())
         self.e.save()
 
     def test_delete_resources(self):
@@ -19,17 +19,19 @@ class DeleteTestCase(TestCase):
         self.assertIsInstance(models.Email.objects(id=self.e.id).first(),
                 models.Email)
 
-        resources = self.e.resources or []
+        resources = []
+        resources.extend(self.e.resources or [])
         self.assertNotEqual(resources, [])
         resources.extend(self.e.attachments or [])
+        resources.append(self.e.source)
         # All exist
-        for resc in self.e.resources:
+        for resc in resources:
             self.assertIsNotNone(GridFSProxy().get(resc.grid_id))
 
         self.e.delete()
         # None exsits
         self.assertIsNone(models.Email.objects(id=self.e.id).first())
-        for resc in self.e.resources:
+        for resc in resources:
             self.assertIsNone(GridFSProxy().get(resc.grid_id))
 
     def tearDown(self):

@@ -337,6 +337,7 @@ class Email(Document):
         # if self.resources:
         for resc in self.resources or []:
             resc.delete()
+        self.source.delete()
 
     def has_perm(self, user, whatever):
         return user.is_superuser or self.owner.id == user.id
