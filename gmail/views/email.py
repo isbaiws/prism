@@ -112,7 +112,8 @@ class Delete(LoginRequiredMixin, View):
         if e:
             e.delete()
             #TODO delete email path in user
-        return HttpResponseRedirect(reverse('email_list'))
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER')
+                or reverse('email_list'))
 
 class TimeLine(LoginRequiredMixin, ListView):
     template_name = 'email_timeline.html'
