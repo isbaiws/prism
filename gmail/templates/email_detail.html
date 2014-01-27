@@ -89,6 +89,9 @@
 									{% endfor %}
 									{% endif %}
                                 </p>
+                                <p>
+                                <a href="{{ email.source.url }}"> source </a>
+                                </p>
 								<p>
 									<label>邮件内容</label>
 								    {%if email.body%}{{ email.body |safe }}{%endif%}

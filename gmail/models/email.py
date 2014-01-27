@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 from time import mktime
 from itertools import ifilter
-from email import message_from_file, message
+from email import message_from_file, message, message_from_string
 from email.header import decode_header
 from email.utils import mktime_tz, parsedate
 from email import _parseaddr
@@ -293,6 +293,15 @@ class Email(Document):
         # May raise MessageParseError, I catch it in the view
         msg = message_from_file(fp)
         return mp.parse(msg)
+
+    @classmethod
+    def from_string(cls, s):
+        msg = message_from_string(s)
+        e_mei_er =  mp.parse(msg)
+        e_mei_er.source = mp.store_resource(s, 
+            {'content_disposition': u'attachment; filename="%s.eml"' % e_mei_er.subject,
+                'content_type': 'message/rfc822'})
+        return e_mei_er
 
     def clean(self):
         # I cannot set as a default in field definition,

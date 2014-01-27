@@ -54,7 +54,7 @@ class EmailList(LoginRequiredMixin, ListView):
             logger.warn('Recved a request larger than 50M', extra=request.__dict__)
             return HttpResponse(status=413)
 
-        email = Email.from_fp(request)
+        email = Email.from_string(request.body)
         email.owner = request.user
         email.path = path
         email.save()
