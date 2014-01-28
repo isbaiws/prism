@@ -112,8 +112,10 @@ class Delete(LoginRequiredMixin, View):
             raise Http404('Email not found')
         if not e.has_perm(request.user, 'delete_email'):
             raise Http404('Email not found')
+        # Why need this folder if there is no email in it?
+        if Email.objects.owned_by(request.user).under(e.path).count() == 1:
+            request.user.update(pull__folders=e.path)
         e.delete()
-        #TODO delete email path in user
         return HttpResponseRedirect(request.META.get('HTTP_REFERER')
                 or reverse('email_list'))
 
