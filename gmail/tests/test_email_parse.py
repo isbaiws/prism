@@ -4,6 +4,7 @@ from email import message_from_string
 from datetime import datetime, timedelta
 
 from gmail import models
+from gmail.errors import MessageParseError
 
 class EmailParseTestCase(TestCase):
     def test_decode_rfc2047(self):
@@ -17,8 +18,10 @@ class EmailParseTestCase(TestCase):
         self.assertEqual(u, u'【上海站】用Visual Studio 开发iOS及android应用，你也可以！')
 
     def test_defective_email(self):
-        pass
-        # models.Email.from_fp(StringIO(defective_email))
+        e = message_from_string('Content-Type: multipart/mixed; boundary="ssss"')
+        mp = models.MessageParse()
+        with self.assertRaises(MessageParseError):
+            mp.parse(e)
 
     def test_pass_invalid_msg_to_parse(self):
         self.assertRaises(TypeError, models.get_email_info, '')
