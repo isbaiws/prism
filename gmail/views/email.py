@@ -107,11 +107,13 @@ class Delete(LoginRequiredMixin, View):
     def get(self, request, eid):
         # NOTE, need first() to call customized delete method
         e = Email.objects(id=eid).first()
+        if not e:
+            # TODO, test case to ensure it won't happen again
+            raise Http404('Email not found')
         if not e.has_perm(request.user, 'delete_email'):
-            raise Http404()
-        if e:
-            e.delete()
-            #TODO delete email path in user
+            raise Http404('Email not found')
+        e.delete()
+        #TODO delete email path in user
         return HttpResponseRedirect(request.META.get('HTTP_REFERER')
                 or reverse('email_list'))
 
