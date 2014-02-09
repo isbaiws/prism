@@ -62,10 +62,12 @@ class EmailList(LoginRequiredMixin, ListView):
         # If you wanna use user later, reload it
         # request.user.reload()
 
-        return HttpResponse('{"ok": true, "location": "%s"}' %
-                # by http host
-               request.build_absolute_uri(reverse('email_detail',
-                   args=(email.id,))), status=201)
+        # by http host
+        location = request.build_absolute_uri(reverse('email_detail',
+                   args=(email.id,)))
+        resp = HttpResponse('{"ok": true, "location": "%s"}' % location, status=201)
+        resp['Location'] = location
+        return resp
 
 class EmailDetail(LoginRequiredMixin, DetailView):
     template_name = 'email_detail.html'
