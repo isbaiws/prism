@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 
 from gmail.forms import UserAddForm, PasswordResetForm
 from gmail.models import User
-from gmail.utils import LoginRequiredMixin
+from .mixins import LoginRequiredMixin
 
 logger = logging.getLogger(__name__)
 

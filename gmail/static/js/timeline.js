@@ -1,3 +1,4 @@
+// from http://almende.github.io/chap-links-library/js/timeline/doc/
 /**
  * @file timeline.js
  *

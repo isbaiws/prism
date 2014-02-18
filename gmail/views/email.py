@@ -2,9 +2,9 @@
 from __future__ import absolute_import
 import ipdb
 import logging
-from json import dumps
+from itertools import product
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.views.generic import ListView, DetailView, View, edit
+from django.views.generic import ListView, DetailView, View, edit, TemplateView
 from django.core.urlresolvers import reverse
 
 from gmail.models import Email
@@ -13,7 +13,7 @@ from mongoengine import GridFSProxy
 from mongoengine.django.shortcuts import get_document_or_404
 from bson.objectid import ObjectId
 
-from gmail.utils import LoginRequiredMixin
+from .mixins import LoginRequiredMixin, JsonViewMixin
 
 logger = logging.getLogger(__name__)
 
@@ -121,9 +121,26 @@ class Delete(LoginRequiredMixin, View):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER')
                 or reverse('email_list'))
 
-class TimeLine(LoginRequiredMixin, ListView):
+class TimeLine(LoginRequiredMixin, TemplateView):
     template_name = 'email_timeline.html'
-    context_object_name = 'emails'
 
-    def get_queryset(self):
-        return Email.objects.owned_by(self.request.user)
+class TimeLineJson(LoginRequiredMixin, JsonViewMixin):
+
+    def get(self, request):
+        return [{'date': e.date, 'url': reverse('email_detail', args=(e.id,)),
+                'subject': e.subject} for e in Email.objects.owned_by(request.user)]
+
+class Relation(LoginRequiredMixin, TemplateView):
+    template_name = 'email_relation.html'
+
+class RelationJson(LoginRequiredMixin, JsonViewMixin):
+
+    def get(self, request):
+        emails = Email.objects.owned_by(self.request.user)
+        resp = []
+        for e in emails:
+            from_= e.from_ if isinstance(e.from_, list) else [e.from_]
+            to= e.to if isinstance(e.to, list) else [e.to]
+            resp.extend([{'source': f, 'target': t} for f in from_ for t in to])
+            return resp
+

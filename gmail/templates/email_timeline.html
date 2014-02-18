@@ -12,14 +12,13 @@
                   "style": "box" // optional
             };
 
-            var data = [];
-            {% for e in emails %}
-                data.push({'start': new Date({{ e.date |date:'Y, m, d, G, i, s' }}),
-                    'content': '<a href="{% url 'email_detail' e.id %}">{{ e.subject }}</a>'
+            $.getJSON('{% url "email_timeline_json" %}', function(data){
+                $(data).each(function(index, element){
+                    element['start'] = new Date(element['date']);
+                    element['content'] = '<a href="'+element.url+'">'+element.subject+'</a>';
                 })
-            {% endfor %}
-
-            timeline.draw(data, options);
+                timeline.draw(data, options);
+            })
         });
     </script>
 </head>

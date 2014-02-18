@@ -63,6 +63,7 @@ def get_email_info(msg):
     # Not now
     # parse_datetime = lambda s: datetime.utcfromtimestamp(mktime_tz(parsedate_tz(s)))
     parse_datetime = lambda s: datetime.utcfromtimestamp(mktime(parsedate(s)))
+    listlize_addresses = lambda ads:[ad.strip() for ad in ads.split(',')]
 
     if not isinstance(msg, message.Message):
         raise TypeError('How dare you to pass me a %s, I want a message instance!'
@@ -90,6 +91,10 @@ def get_email_info(msg):
 
     if 'from' in info:
         info['from_'] = info['from']
+
+    for ad in ('from_', 'to'):
+        if ad in info:
+            info[ad] = listlize_addresses(info[ad])
     
     # Ensure there is a content-type key, if 'content-type' not in vanilla_hdr
     # get_content_type() will return a default one, all in lower-case
@@ -252,8 +257,8 @@ class WhoseQuerySet(QuerySet):
 class Email(Document):
     # Every attr is present
     subject = StringField(default='')
-    from_ = StringField(default='')
-    to = StringField(default='')
+    from_ = ListField(StringField(), default=list)
+    to = ListField(StringField(), default=list)
     ip = ListField(StringField(), default=list)
     content_type = StringField(default='')
     filename = StringField(default='')

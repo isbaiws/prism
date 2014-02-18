@@ -1,9 +1,4 @@
 from datetime import datetime
-from json import dumps
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.views.generic import View
-from django.http.response import HttpResponse
 
 from django.utils.formats import ISO_INPUT_FORMATS
 
@@ -38,14 +33,3 @@ def parse_input_datetime(value):
             continue
     return None
 
-class LoginRequiredMixin(object):
-    """ from http://stackoverflow.com/a/6455140 """
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
-
-class JsonView(View):
-    def dispatch(self, request, *args, **kwargs):
-        d = super(JsonView, self).dispatch(request, *args, **kwargs)
-        return HttpResponse(dumps(d))
