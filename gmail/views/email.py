@@ -142,8 +142,8 @@ class RelationJson(LoginRequiredMixin, JsonViewMixin):
         for e in emails:
             from_= e.from_ if isinstance(e.from_, list) else [e.from_]
             to = e.to if isinstance(e.to, list) else [e.to]
-            nodes.extend([{'id': f, 'text': f} for f in e.from_])
-            nodes.extend([{'id': t, 'text': t} for t in e.to])
+            nodes.extend([{'id': f, 'text': f} for f in from_])
+            nodes.extend([{'id': t, 'text': t} for t in to])
             links.extend([{'from': f, 'to': t} for f in from_ for t in to])
-            return {'nodes': nodes, 'links': links}
+        return {'nodes': nodes, 'links': links}
 
