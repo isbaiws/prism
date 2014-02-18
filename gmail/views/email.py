@@ -2,10 +2,12 @@
 from __future__ import absolute_import
 import ipdb
 import logging
-from itertools import product
+import re
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.generic import ListView, DetailView, View, edit, TemplateView
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 from gmail.models import Email
 from gmail.forms import EmailQueryForm
@@ -134,16 +136,24 @@ class Relation(LoginRequiredMixin, TemplateView):
     template_name = 'email_relation.html'
 
 class RelationJson(LoginRequiredMixin, JsonViewMixin):
+    email_patt = re.compile('[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+')
 
     def get(self, request):
-        emails = Email.objects.owned_by(self.request.user)
+        def extract_email(s):
+            mat = self.email_patt.search(s)
+            if mat:
+                return mat.group()
+            return s
+
         nodes = []
         links = []
+        emails = Email.objects.owned_by(self.request.user)
         for e in emails:
-            from_= e.from_ if isinstance(e.from_, list) else [e.from_]
+            from_ = e.from_ if isinstance(e.from_, list) else [e.from_]
             to = e.to if isinstance(e.to, list) else [e.to]
-            nodes.extend([{'id': f, 'text': f} for f in from_])
-            nodes.extend([{'id': t, 'text': t} for t in to])
-            links.extend([{'from': f, 'to': t} for f in from_ for t in to])
+            #TODO: efficiency
+            nodes.extend([{'id': extract_email(f), 'text': f} for f in from_])
+            nodes.extend([{'id': extract_email(t), 'text': t} for t in to])
+            links.extend([{'from': extract_email(f), 'to': extract_email(t)} for f in from_ for t in to])
         return {'nodes': nodes, 'links': links}
 
