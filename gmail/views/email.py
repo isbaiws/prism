@@ -6,8 +6,6 @@ import re
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views.generic import ListView, DetailView, View, edit, TemplateView
 from django.core.urlresolvers import reverse
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
 
 from gmail.models import Email
 from gmail.forms import EmailQueryForm

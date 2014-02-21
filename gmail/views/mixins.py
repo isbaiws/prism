@@ -1,4 +1,5 @@
 from json import dumps, JSONEncoder
+import ipdb
 import datetime
 from time import mktime
 from django.contrib.auth.decorators import login_required
@@ -22,7 +23,7 @@ class MyJsonEncoder(JSONEncoder):
             return int(mktime(obj.timetuple()))
         elif isinstance(obj, ObjectId):
             return str(obj)
-        return JSONEncoder.default(self, obj)
+        return super(MyJsonEncoder, self).default(obj)
 
 class JsonViewMixin(View):
     content_type = 'application/json'
