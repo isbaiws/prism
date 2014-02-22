@@ -1,3 +1,6 @@
+# pypi is blocked
+-i http://pypi.douban.com/simple/
+
 # We use a customized django until bug #21620 is fixed
 #Django==1.5.4
 git+https://github.com/dhudaddy/django.git
