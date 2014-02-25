@@ -152,7 +152,11 @@
                             <a href="{% url 'email_search' %}"><span>精确查询</span></a>
 						<div class="cl">&nbsp;</div>
 
-						<form action="{% url 'email_list'  current_path %}" method="get">
+                        {% if current_folder %}
+                            <form action="{% url 'email_list' current_folder %}" method="get">
+                        {% else %}
+                            <form action="{% url 'email_list'%}" method="get">
+                        {% endif %}
 							<input type="hidden" name="1-field" value="subject"/>
     						<p> <br>主题: <br><input type="text" name="1-1"/></p>
     						<input type="hidden" name="2-field" value="from_"/>  						

@@ -22,23 +22,36 @@ class EmailList(LoginRequiredMixin, ListView):
     context_object_name = 'emails'
     paginate_by = 20
 
+    def get(self, *args, **kwargs):
+        self.folders = self.get_folder_list()
+
+        if 'folder' not in self.kwargs and self.folders:
+            return HttpResponseRedirect(reverse('email_list', self.folders[0]))
+        return super(EmailList, self).get(*args, **kwargs)
+
     def get_queryset(self):
-        u = self.request.user
-        path = self.kwargs.get('path', None)
-        if path and path not in u.folders:
-            raise Http404('No path found')
-        if not path:
-            path = u.folders[0] if len(u.folders)>1 else None
-        self.path = path
-        # The order doesn't matter, since we have user & path indexed,
+        if not self.folders:
+            return []
+
+        this_folder = self.kwargs.get('folder', None)
+        if this_folder not in self.folders:
+            raise Http404('No folder found')
+        # The order doesn't matter, since we have user & folder indexed,
         # it will be used first
-        return Email.find(self.request.GET.dict()).owned_by(u).under(path)
+        return Email.find(self.request.GET.dict())\
+                .owned_by(self.request.user).under(this_folder)
 
     def get_context_data(self, **kwargs):
         context = super(EmailList, self).get_context_data(**kwargs)
-        context['folders'] = set(self.request.user.folders)
-        context['current_path'] = self.path
+        context['folders'] = self.folders
+        context['current_folder'] = self.kwargs.get('folder', '')
         return context
+
+    def get_folder_list(self):
+        folders = Email.objects.owned_by(self.request.user).distinct('folder')
+        # I trapped myself by setting nonexist values to None so mongoengine
+        # won't save it, but now it comes back to bite me!
+        return [f for f in folders if f is not None]
 
     def post(self, request, path=None):
         # META is standard python dict
@@ -115,8 +128,8 @@ class Delete(LoginRequiredMixin, View):
         if not e.has_perm(request.user, 'delete_email'):
             raise Http404('Email not found')
         # Why need this folder if there is no email in it?
-        if Email.objects.owned_by(request.user).under(e.path).count() == 1:
-            request.user.update(pull__folders=e.path)
+        # if Email.objects.owned_by(request.user).under(e.folder).count() == 1:
+        #     request.user.update(pull__folders=e.folder)
         e.delete()
         return HttpResponseRedirect(request.META.get('HTTP_REFERER')
                 or reverse('email_list'))
