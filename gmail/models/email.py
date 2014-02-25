@@ -251,8 +251,8 @@ class WhoseQuerySet(QuerySet):
             return self
         return self.filter(owner=user)
 
-    def under(self, path):
-        return self.filter(path=path)
+    def under(self, folder):
+        return self.filter(folder=folder)
 
 class Email(Document):
     # Every attr is present
@@ -274,11 +274,11 @@ class Email(Document):
     resources = ListField(FileField(), default=list)
 
     owner = ReferenceField(User, reverse_delete_rule=NULLIFY)
-    path = StringField()
+    folder = StringField(default='')
     source = FileField()
 
     meta = {
-        'indexes': ['owner', 'path'],
+        'indexes': ['owner', 'folder'],
         'ordering': ['-date'],
         'queryset_class': WhoseQuerySet,
     }
