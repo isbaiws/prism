@@ -4,7 +4,7 @@ import ipdb
 
 from django.contrib.auth import hashers
 from mongoengine import (
-        Document, StringField, BooleanField, ListField
+        Document, StringField, BooleanField, ListField, UUIDField
     )
 
 
@@ -15,14 +15,13 @@ class User(Document):
     username = StringField(required=True)
     password = StringField(required=True)
     is_superuser = BooleanField(default=False)
+    device_id = ListField(UUIDField(binary=True), default=list)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['username', 'password']
     meta = {
         'allow_inheritance': True,
-        'indexes': [
-            {'fields': ['username'], 'unique': True, 'sparse': True}
-        ]
+        'indexes': ['username', 'device_id'],
     }
 
     def get_username(self):

@@ -53,35 +53,6 @@ class EmailList(LoginRequiredMixin, ListView):
         # won't save it, but now it comes back to bite me!
         return [f for f in folders if f is not None]
 
-    def post(self, request, path=None):
-        # META is standard python dict
-        # and content-length will be inside definitely
-        if path is None:
-            logger.warn('Recved a email without path', extra=request.__dict__)
-            return HttpResponse(status=400)
-        # 2014/1/8 CONTENT_LENGTH will be an int
-        # when fired by django.test.client
-        length = str(request.META['CONTENT_LENGTH'])
-        # Max 50M, maybe should check it in nginx
-        if length.isdigit() and int(length) > 50*1024*1024:
-            logger.warn('Recved a request larger than 50M', extra=request.__dict__)
-            return HttpResponse(status=413)
-
-        email = Email.from_string(request.body)
-        email.owner = request.user
-        email.path = path
-        email.save()
-        request.user.update(add_to_set__folders=path) 
-        # If you wanna use user later, reload it
-        # request.user.reload()
-
-        # by http host
-        location = request.build_absolute_uri(reverse('email_detail',
-                   args=(email.id,)))
-        resp = HttpResponse('{"ok": true, "location": "%s"}' % location, status=201)
-        resp['Location'] = location
-        return resp
-
 class EmailDetail(LoginRequiredMixin, DetailView):
     template_name = 'email_detail.html'
     context_object_name = 'email'

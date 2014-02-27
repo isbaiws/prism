@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 from django.http import HttpResponse
 from .email import *
 from .user import *
+from .api import *
 
 class Index(TemplateView):
     template_name = 'index.html'

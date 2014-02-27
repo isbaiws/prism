@@ -215,3 +215,5 @@ DB_NAME = 'prism'
 DB_HOST = '127.0.0.1'
 DB_PORT = 27017
 mongoengine.connect(DB_NAME, host=DB_HOST, port=DB_PORT)
+
+API_SECRET_KEY = '123'
