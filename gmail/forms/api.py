@@ -6,6 +6,7 @@ from uuid import UUID
 from hashlib import md5
 
 from django import forms
+from django.contrib.auth import authenticate
 from django.conf import settings
 from bson import BSON, InvalidBSON
 from gmail.models import User
@@ -47,6 +48,16 @@ action_table = {
         124: 'install',
     }
 
+DUP_DEVID = 1000
+INVALID_DEVID = 1001
+INVALID_SIG = 1002
+LOGIN_FAILED = 1003
+INVALID_UID = 1004
+UNKNOWN_ACTION = 2000
+DATA_UPLOAD_FAIL = 3001
+INVALID_REQ = 3002
+SERVER_FAIL = 3003
+
 class ApiValidationError(Exception):
     def __init__(self, error_id, desc):
         self.error_id = error_id
@@ -73,19 +84,19 @@ class ApiForm(forms.Form):
             self.clean_nonce()
 
             if self.cleaned_data['sig'] != self.sign():
-                raise ApiValidationError(1002,  'Invalid signature')
+                raise ApiValidationError(INVALID_SIG,  'Invalid signature')
 
             self.clean_shit()
 
         except InvalidBSON as e:
-            self.error_id = 3002
+            self.error_id = INVALID_REQ
             self.errors = 'InvalidBSON: %s' % e
         except ApiValidationError as e:
             self.error_id = e.error_id
             self.errors = e.desc
         #TODO, define one
         except KeyError as e:  # Key missing
-            self.error_id = 3002
+            self.error_id = INVALID_REQ
             self.errors = 'Key missing %s' % e
 
     def clean_devid(self):
@@ -93,28 +104,28 @@ class ApiForm(forms.Form):
             try:
                self.cleaned_data['devid'] = UUID(str(self.cleaned_data['devid']))
             except ValueError as e:  # invalid_devid
-                raise ApiValidationError(1001, 'Invalid device id: %s' % e)
+                raise ApiValidationError(INVALID_DEVID, 'Invalid device id: %s' % e)
 
     def clean_action(self):
         if self.cleaned_data['action'] not in action_table:
-            raise ApiValidationError(2000, 'Action id is unknown')
+            raise ApiValidationError(UNKNOWN_ACTION, 'Action id is unknown')
 
     def clean_ver(self):
         if not isinstance(self.cleaned_data['ver'], int):
-            raise ApiValidationError(3002, 'Ver should be an integer')
+            raise ApiValidationError(INVALID_REQ, 'Ver should be an integer')
 
     def clean_source(self):
         if not isinstance(self.cleaned_data['source'], int):
-            raise ApiValidationError(3002, 'Source should be an integer')
+            raise ApiValidationError(INVALID_REQ, 'Source should be an integer')
         #TODO define one
         if self.cleaned_data['source'] not in source_table:
-            raise ApiValidationError(3002, 'Source id is unknown')
-        #TODO Should I store string in db?
+            raise ApiValidationError(INVALID_REQ, 'Source id is unknown')
+        #TODO Should I store string in db? NO
         self.cleaned_data['source'] = source_table[self.cleaned_data['source']]
 
     def clean_nonce(self):
         if not isinstance(self.cleaned_data['nonce'], int):
-            raise ApiValidationError(3002, 'Nonce should be an integer')
+            raise ApiValidationError(INVALID_REQ, 'Nonce should be an integer')
 
     def sign(self):
         d = self.cleaned_data
@@ -126,32 +137,55 @@ class ApiForm(forms.Form):
         self.full_clean()
         return self.is_bound and not bool(self.errors)
 
-class InitForm(ApiForm):
-
-    def clean_shit(self):
-        #TODO what if doesn't match
-        if self.cleaned_data['action'] != 101: # register a new device
-            raise ApiValidationError(2000, 'Invalid action id')
-        if User.objects.find_one(self.cleaned_data['devid']):
-            raise ApiValidationError(1000, 'Duplicated device id')
-
 class UploadForm(ApiForm):
 
     def clean_shit(self):
         if self.cleaned_data['action'] != 111:
-            raise ApiValidationError(2000, 'Invalid action id')
+            raise ApiValidationError(UNKNOWN_ACTION, 'Invalid action id')
         self.clean_upload_data()
+        self.clean_upload_devid()
 
     def clean_upload_data(self):
         if not isinstance(self.cleaned_data['data'], (list, tuple)):
-            raise ApiValidationError(3002, 'Uploaded data should be an array')
+            raise ApiValidationError(INVALID_REQ, 'Uploaded data should be an array')
         for ele in self.cleaned_data['data']:
             # Try triger keyerror
             ele['id'], ele['typeid'], ele['data']
             ele['data']['folder'], ele['data']['content']
             # if not isinstance(ele['id'], int):
-            #     raise ApiValidationError(3002, 'Id should be an integer')
+            #     raise ApiValidationError(INVALID_REQ, 'Id should be an integer')
             #TODO, correct docs
             if not isinstance(ele['typeid'], int):
-                raise ApiValidationError(3002, 'Typeid should be an integer')
+                raise ApiValidationError(INVALID_REQ, 'Typeid should be an integer')
+
+    def clean_upload_devid(self):
+        u = User.objects.find_one(device_ids=self.cleaned_data['devid'])
+        if not u:
+            raise ApiValidationError(INVALID_DEVID, 'Invalid device id: %s' %
+                    self.cleaned_data['devid'])
+        self.user = u
+
+class InitForm(ApiForm):
+
+    def clean_shit(self):
+        #TODO what if doesn't match, SHOULD BE INVALID_REQ
+        if self.cleaned_data['action'] != 101: # register a new device
+            raise ApiValidationError(UNKNOWN_ACTION, 'Invalid action id')
+        if User.objects.find_one(device_ids=self.cleaned_data['devid']):
+            raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
+        u = User.objects.find_one(id=self.cleaned_data['uid'])
+        if not u:
+            raise ApiValidationError(INVALID_UID, 'Invalid user id')
+        self.user = u
+
+class LoginForm(ApiForm):
+
+    def clean_shit(self):
+        if User.objects.find_one(device_ids=self.cleaned_data['devid']):
+            raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
+        u, p = self.cleaned_data['username'], self.cleaned_data['password']
+        user = authenticate(username=u, password=p)
+        if not user:
+            raise ApiValidationError(LOGIN_FAILED, 'Login failed')
+        self.user = user
 

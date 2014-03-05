@@ -29,8 +29,10 @@ urlpatterns = patterns('',
     url(r'^email/(?P<eid>\w{24})/delete$', views.Delete.as_view(), name='delete_email'),
 
     url(r'^api/upload$', views.ApiUpload.as_view(), name='api_upload'),
+    url(r'^api/login$', views.ApiLogin.as_view(), name='api_login'),
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
     url(r'^not-implemented$', views.not_implemented, name='not_implemented'),
+    url(r'^debug$', views.debug, name='debug'),
 )

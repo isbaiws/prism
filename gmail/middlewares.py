@@ -1,7 +1,7 @@
 import time
 import logging
 
-from errors import MessageParseError, ObjectDoesNotExist
+from gmail.errors import MessageParseError, ObjectDoesNotExist
 from django.http import Http404, HttpResponseBadRequest
 
 logger = logging.getLogger(__name__)

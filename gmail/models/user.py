@@ -15,13 +15,13 @@ class User(Document):
     username = StringField(required=True)
     password = StringField(required=True)
     is_superuser = BooleanField(default=False)
-    device_id = ListField(UUIDField(binary=True), default=list)
+    device_ids = ListField(UUIDField(binary=True), default=list)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['username', 'password']
     meta = {
         'allow_inheritance': True,
-        'indexes': ['username', 'device_id'],
+        'indexes': ['username', 'device_ids'],
     }
 
     def get_username(self):
