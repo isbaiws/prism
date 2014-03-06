@@ -121,7 +121,7 @@ class ApiForm(forms.Form):
         if self.cleaned_data['source'] not in source_table:
             raise ApiValidationError(INVALID_REQ, 'Source id is unknown')
         #TODO Should I store string in db? NO
-        self.cleaned_data['source'] = source_table[self.cleaned_data['source']]
+        #self.cleaned_data['source'] = source_table[self.cleaned_data['source']]
 
     def clean_nonce(self):
         if not isinstance(self.cleaned_data['nonce'], int):
@@ -159,7 +159,7 @@ class UploadForm(ApiForm):
                 raise ApiValidationError(INVALID_REQ, 'Typeid should be an integer')
 
     def clean_upload_devid(self):
-        u = User.objects.find_one(device_ids=self.cleaned_data['devid'])
+        u = User.objects(device_ids=self.cleaned_data['devid']).first()
         if not u:
             raise ApiValidationError(INVALID_DEVID, 'Invalid device id: %s' %
                     self.cleaned_data['devid'])
@@ -171,9 +171,9 @@ class InitForm(ApiForm):
         #TODO what if doesn't match, SHOULD BE INVALID_REQ
         if self.cleaned_data['action'] != 101: # register a new device
             raise ApiValidationError(UNKNOWN_ACTION, 'Invalid action id')
-        if User.objects.find_one(device_ids=self.cleaned_data['devid']):
+        if User.objects(device_ids=self.cleaned_data['devid']).first():
             raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
-        u = User.objects.find_one(id=self.cleaned_data['uid'])
+        u = User.objects(id=self.cleaned_data['uid']).first()
         if not u:
             raise ApiValidationError(INVALID_UID, 'Invalid user id')
         self.user = u
@@ -181,7 +181,7 @@ class InitForm(ApiForm):
 class LoginForm(ApiForm):
 
     def clean_shit(self):
-        if User.objects.find_one(device_ids=self.cleaned_data['devid']):
+        if User.objects(device_ids=self.cleaned_data['devid']).first():
             raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
         u, p = self.cleaned_data['username'], self.cleaned_data['password']
         user = authenticate(username=u, password=p)
