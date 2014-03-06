@@ -41,6 +41,7 @@ source_table = {
 
 action_table = {
         101: 'init',
+        102: 'login',
         111: 'upload',
         121: 'comm',
         122: 'config',
