@@ -24,6 +24,19 @@ class ApiFormMixin(object):
                 'ack': [],
             }
 
+    def get_form_kwargs(self):
+        """
+        Returns the keyword arguments for instantiating the form.
+        """
+        kwargs = {'initial': self.get_initial()}
+        if self.request.method in ('POST', 'PUT'):
+            kwargs.update({
+                'data': self.request.body,
+                'files': self.request.FILES,
+            })
+        return kwargs
+
+
 class ApiUpload(ApiFormMixin, JsonViewMixin, FormView):
     form_class = UploadForm
     action_code = 111
