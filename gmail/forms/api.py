@@ -75,7 +75,6 @@ class ApiForm(forms.Form):
             # Will raise InvalidBSON
             # self.cleaned_data = BSON(self.data).decode(as_class=lambda : defaultdict(str))
             self.cleaned_data = BSON(self.data).decode()
-            ipdb.set_trace()
 
             self.clean_devid()
             self.clean_ver()
