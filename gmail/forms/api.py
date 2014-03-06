@@ -181,8 +181,9 @@ class InitForm(ApiForm):
 class LoginForm(ApiForm):
 
     def clean_shit(self):
-        if User.objects(device_ids=self.cleaned_data['devid']).first():
-            raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
+	# According to Jeff, this is not init, we should be able to login in multi times
+        # if User.objects(device_ids=self.cleaned_data['devid']).first():
+        #    raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
         u, p = self.cleaned_data['username'], self.cleaned_data['password']
         user = authenticate(username=u, password=p)
         if not user:
