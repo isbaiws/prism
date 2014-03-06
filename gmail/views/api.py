@@ -53,7 +53,7 @@ class ApiInit(ApiFormMixin, JsonViewMixin, FormView):
     action_code = 101
 
     def form_valid(self, form):
-        form.user.update(push__device_ids=form.cleaned_data['devid'])
+        form.user.update(add_to_set__device_ids=form.cleaned_data['devid'])
         return {'action': self.action_code,
                 'error': form.error_id,
                 'errormsg': form.errors,
@@ -64,6 +64,7 @@ class ApiLogin(ApiFormMixin, JsonViewMixin, FormView):
     action_code = 102
 
     def form_valid(self, form):
+        form.user.update(add_to_set__device_ids=form.cleaned_data['devid'])
         return {'action': self.action_code,
                 'error': form.error_id,
                 'errormsg': form.errors,
