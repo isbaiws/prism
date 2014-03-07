@@ -26,7 +26,7 @@ class EmailList(LoginRequiredMixin, ListView):
         self.folders = self.get_folder_list()
 
         if 'folder' not in self.kwargs and self.folders:
-            return HttpResponseRedirect(reverse('email_list', self.folders[0]))
+            return HttpResponseRedirect(reverse('email_list', args=(self.folders[0],)))
         return super(EmailList, self).get(*args, **kwargs)
 
     def get_queryset(self):
