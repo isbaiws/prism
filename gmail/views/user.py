@@ -24,7 +24,7 @@ class AddUser(LoginRequiredMixin, FormView):
         return super(AddUser, self).form_valid(form)
 
     def get_success_url(self):
-        return reverse('user_detail')
+        return reverse('user_edit')
 
 class UserDetail(LoginRequiredMixin, TemplateView):
     template_name = 'user_detail.html'
