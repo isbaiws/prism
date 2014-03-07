@@ -151,6 +151,9 @@ class UploadForm(ApiForm):
         for ele in self.cleaned_data['data']:
             # Try triger keyerror
             ele['id'], ele['typeid'], ele['data']
+	    if not isinstance(ele['data'], dict):
+                raise ApiValidationError(INVALID_REQ, 'data.data should be a dict')
+
             ele['data']['folder'], ele['data']['content']
             # if not isinstance(ele['id'], int):
             #     raise ApiValidationError(INVALID_REQ, 'Id should be an integer')
