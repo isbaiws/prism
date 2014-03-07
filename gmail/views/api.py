@@ -45,9 +45,10 @@ class ApiUpload(ApiFormMixin, JsonViewMixin, FormView):
         ack_ids = []
         for ele in form.cleaned_data['data']:
             try:
-                email = Email.from_string(ele['content'])
+		# Oh, fuck this shit!
+                email = Email.from_string(ele['data']['content'])
                 email.owner = form.user
-                email.folder = ele['folder']
+                email.folder = ele['data']['folder']
                 email.save()
             except MessageParseError as e:
                 form.error_id = INVALID_REQ
