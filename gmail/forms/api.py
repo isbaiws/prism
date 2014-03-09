@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from collections import defaultdict
 import ipdb
 from uuid import UUID
+import logging
 from hashlib import md5
 
 from django import forms
@@ -59,6 +60,8 @@ DATA_UPLOAD_FAIL = 3001
 INVALID_REQ = 3002
 SERVER_FAIL = 3003
 
+logger = logging.getLogger(__name__)
+
 class ApiValidationError(Exception):
     def __init__(self, error_id, desc):
         self.error_id = error_id
@@ -91,13 +94,17 @@ class ApiForm(forms.Form):
         except InvalidBSON as e:
             self.error_id = INVALID_REQ
             self.errors = 'InvalidBSON: %s' % e
+            logger.warning(self.errors)
         except ApiValidationError as e:
             self.error_id = e.error_id
             self.errors = e.desc
+            if self.error_id != LOGIN_FAILED:
+                logger.warning(self.errors)
         #TODO, define one
         except KeyError as e:  # Key missing
             self.error_id = INVALID_REQ
             self.errors = 'Key missing %s' % e
+            logger.warning(self.errors)
 
     def clean_devid(self):
         if not isinstance(self.cleaned_data['devid'], UUID):
@@ -190,6 +197,7 @@ class LoginForm(ApiForm):
         u, p = self.cleaned_data['username'], self.cleaned_data['password']
         user = authenticate(username=u, password=p)
         if not user:
+            logger.warning('User %s login failed', u)
             raise ApiValidationError(LOGIN_FAILED, 'Login failed')
         self.user = user
 
