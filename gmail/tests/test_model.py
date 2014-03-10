@@ -37,3 +37,13 @@ class DeleteTestCase(TestCase):
     def tearDown(self):
         self.e.delete()
 
+class EmptyBodyTestCase(TestCase):
+    def test_empty_body(self):
+        e = models.Email.from_string('To: ph0tinia@163.com')
+        try:
+            # msg.body will be None, in which case we cannot pass it
+            # to HTMLParser, who only accepts string
+            e.clean()
+        except TypeError as e:
+            self.fail('%s, may email.body is None' % e)
+

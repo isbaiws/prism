@@ -67,3 +67,4 @@ class EmailParseTestCase(TestCase):
         info = models.get_email_info(msg)
         self.assertIn('content_type', info)
         self.assertEqual(info['content_type'], 'text/plain')
+
