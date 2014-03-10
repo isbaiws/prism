@@ -97,7 +97,7 @@
 								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
                                 <td>{% if e.ip %}{{e.ip}}{% else %}&nbsp;&nbsp;{% endif %}</td>
 								<td>{% if e.date %}{{ e.date | date:"d/m/Y G:i"  }}{% else %}&nbsp;&nbsp;{% endif %}</td>
-                                <td>{{ e.user.username }}</td>
+                                <td>{{ e.owner.username }}</td>
 								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
 							</tr>
                             {% endfor %}
