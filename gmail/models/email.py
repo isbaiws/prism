@@ -83,11 +83,15 @@ def get_email_info(msg):
         info[k] = v
     # from is a keyword in python, escape it to from_
     info['ip'] = ip
-    if 'date' not in info:
+
+    # I pop date to be filled later or by other function
+    datetime_mat = datetime_patt.search(info.pop('date', ''))
+    # In some cases, date is in the form of 2009-04-02 04:52:08
+    if not datetime_mat:
         if possible_date:
             info['date'] = min(map(parse_datetime, possible_date))
     else:
-        info['date'] = parse_datetime(info['date'])
+        info['date'] = parse_datetime(datetime_mat.group())
 
     if 'from' in info:
         info['from_'] = info['from']

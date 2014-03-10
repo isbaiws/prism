@@ -61,6 +61,10 @@ class EmailParseTestCase(TestCase):
         self.assertIn('date', info)
         self.assertEqual(info['date'], datetime(2014, 1, 20, 16, 41, 15))
 
+    def test_unstandard_datetime(self):
+        msg = message_from_string('Date: 2009-04-02 04:52:08')
+        info = models.get_email_info(msg)
+        self.assertNotIn('date', info)
 
     def test_default_content_type(self):
         msg = message_from_string('Date: Sat, 11 Jan 2014 00:41:13 +0800 (CST)')
