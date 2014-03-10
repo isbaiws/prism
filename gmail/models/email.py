@@ -157,7 +157,7 @@ def sterilize_query(query_dict):
     return sterilized
 
 class MessageParse(object):
-    multipart_alternatives = ['text/html', 'text/richtext', 'text/plain', 'message/rfc822']
+    multipart_alternatives = [ 'message/rfc822', 'text/html', 'text/richtext', 'text/plain',]
     img_tmpl =  '<img border="0" hspace="0" align="baseline" src="%s" />'
     resource_meta = ('content_type', 'content_disposition', 'filename')
 
