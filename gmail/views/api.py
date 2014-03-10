@@ -55,7 +55,8 @@ class ApiUpload(ApiFormMixin, JsonViewMixin, FormView):
                 form.errors = str(e)
             else:
                 ack_ids.append(ele['id'])
-                logger.info('%s uploaded a new email %s(%s)', form.user.username, email.subject, email.id)
+                logger.info('%s uploaded a new email %s(%s)', form.user.username, email.subject,
+                        email.id, extra=self.request.__dict__)
 
         return {'action': self.action_code,
                 'error': form.error_id,
@@ -69,7 +70,8 @@ class ApiInit(ApiFormMixin, JsonViewMixin, FormView):
 
     def form_valid(self, form):
         form.user.update(add_to_set__device_ids=form.cleaned_data['devid'])
-        logger.info('%s adds a new device id %s', form.user.username, form.cleaned_data['devid'])
+        logger.info('%s adds a new device id %s', form.user.username,
+                form.cleaned_data['devid'], extra=self.request.__dict__)
         return {'action': self.action_code,
                 'error': form.error_id,
                 'errormsg': form.errors,
@@ -82,7 +84,8 @@ class ApiLogin(ApiFormMixin, JsonViewMixin, FormView):
     def form_valid(self, form):
         form.user.update(add_to_set__device_ids=form.cleaned_data['devid'])
         logger.info('%s logged in via api with device id %s, sending back uid: %s',  
-                form.user.username, form.cleaned_data['devid'], form.user.id)
+                form.user.username, form.cleaned_data['devid'], form.user.id,
+                extra=self.request.__dict__)
         return {'action': self.action_code,
                 'error': form.error_id,
                 'errormsg': form.errors,
