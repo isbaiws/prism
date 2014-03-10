@@ -38,6 +38,7 @@ class DeleteTestCase(TestCase):
         self.e.delete()
 
 class EmptyBodyTestCase(TestCase):
+
     def test_empty_body(self):
         e = models.Email.from_string('To: ph0tinia@163.com')
         try:
@@ -46,6 +47,3 @@ class EmptyBodyTestCase(TestCase):
             e.clean()
         except TypeError as e:
             self.fail('%s, may email.body is None' % e)
-
-    def test_shit(self):
-        e = models.Email.from_string(open('/tmp/f.eml').read())
