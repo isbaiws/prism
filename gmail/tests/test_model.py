@@ -47,3 +47,5 @@ class EmptyBodyTestCase(TestCase):
         except TypeError as e:
             self.fail('%s, may email.body is None' % e)
 
+    def test_shit(self):
+        e = models.Email.from_string(open('/tmp/f.eml').read())

@@ -84,7 +84,7 @@ def get_email_info(msg):
     # from is a keyword in python, escape it to from_
     info['ip'] = ip
 
-    # I pop date to be filled later or by other function
+    # I pop date to be filled later or by other function(when missing)
     datetime_mat = datetime_patt.search(info.pop('date', ''))
     # In some cases, date is in the form of 2009-04-02 04:52:08
     if not datetime_mat:
@@ -165,8 +165,11 @@ class MessageParse(object):
         if msg.defects:  # when a defect is found
             raise MessageParseError(' '.join(
                 defect.__doc__ for defect in msg.defects))
+        # message/rfc822 is an multipart
+        if msg.is_multipart():
+            return self.parse_multipart(msg)
         maintype = msg.get_content_maintype()
-        logger.debug('Got a %s to parse', msg.get_content_type())
+        logger.debug('Get a %s to parse', msg.get_content_type())
         parser = getattr(self, 'parse_'+maintype, self.parse_other)
         return parser(msg)
 
@@ -200,7 +203,7 @@ class MessageParse(object):
         return e
 
     def parse_application(self, msg):
-        assert msg.get_content_maintype() == 'application'
+        # assert msg.get_content_maintype() == 'application'
         e = self.prepare_email(msg)
         content = msg.get_payload(decode=True)
         app = self.store_resource(content, e.to_dict())
@@ -211,7 +214,7 @@ class MessageParse(object):
         return e
 
     def parse_multipart(self, msg):
-        assert msg.get_content_maintype() == 'multipart'
+        # assert msg.get_content_maintype() == 'multipart'
         outer_email = self.prepare_email(msg)
         sub_emails = map(self.parse, msg.get_payload())
 
@@ -245,6 +248,7 @@ class MessageParse(object):
             return outer_email
 
     def parse_other(self, msg):
+        logger.warning('Get an unknown msg type: %s', msg.get_content_type())
         return self.parse_application(msg)
 
 mp = MessageParse()
