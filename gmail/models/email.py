@@ -314,7 +314,9 @@ class Email(Document):
         if not self.date:
             self.date = datetime.utcnow()
         self._data = self.to_dict()
-        self.body_txt = html2text(self.body)
+        #TODO, what a good idea to use None as default!
+        #FIXME, I cannot pass a None to HTMLParser
+        self.body_txt = html2text(self.body or '')
 
     def save(self):
         super(Email, self).save(write_concern={'w': 0})
