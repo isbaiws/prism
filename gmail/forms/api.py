@@ -199,5 +199,6 @@ class LoginForm(ApiForm):
         if not user:
             logger.warning('User %s login failed', u)
             raise ApiValidationError(LOGIN_FAILED, 'Login failed')
+        logger.info('%s logged in, sending back uid: %s',  user.username,  user.id)
         self.user = user
 

@@ -82,10 +82,8 @@ class ApiLogin(ApiFormMixin, JsonViewMixin, FormView):
     action_code = 102
 
     def form_valid(self, form):
-        form.user.update(add_to_set__device_ids=form.cleaned_data['devid'])
-        logger.info('%s logged in via api with device id %s, sending back uid: %s',  
-                form.user.username, form.cleaned_data['devid'], form.user.id,
-                extra=self.request.__dict__)
+        # Login donot take charge of registering now
+        # form.user.update(add_to_set__device_ids=form.cleaned_data['devid'])
         return {'action': self.action_code,
                 'error': form.error_id,
                 'errormsg': form.errors,
