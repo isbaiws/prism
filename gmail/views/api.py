@@ -56,7 +56,7 @@ class ApiUpload(ApiFormMixin, JsonViewMixin, FormView):
             else:
                 ack_ids.append(ele['id'])
                 logger.info("%s uploaded a new email '%s'(%s)", form.user.username, email.subject,
-                        email.id, extra=self.request.__dict__)
+                        email.folder, extra=self.request.__dict__)
 
         return {'action': self.action_code,
                 'error': form.error_id,
