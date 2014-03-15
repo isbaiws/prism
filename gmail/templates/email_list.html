@@ -27,7 +27,7 @@
 			    <li><a href="{% url 'user_add' %}"><span>用户管理</span></a></li>
                 <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
                 <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
-                <li><a href="{% url 'not_implemented' %}"><span>邮件关系图</span></a></li>
+                <li><a href="{% url 'email_relation' %}"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>
 		<!-- End Main Nav -->
@@ -53,7 +53,7 @@
 			
 			<!-- LeftSideBar -->
 			
-			<div id="leftbar">
+			<div id="leftbar___">
                 <ul>
                     {% for folder in folders%}
                     <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>

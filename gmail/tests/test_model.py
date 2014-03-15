@@ -38,6 +38,7 @@ class DeleteTestCase(TestCase):
         self.e.delete()
 
 class EmptyBodyTestCase(TestCase):
+
     def test_empty_body(self):
         e = models.Email.from_string('To: ph0tinia@163.com')
         try:

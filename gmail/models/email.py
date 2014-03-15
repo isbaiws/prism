@@ -286,7 +286,7 @@ class Email(Document):
     source = FileField()
 
     meta = {
-        'indexes': ['owner', 'folder'],
+        'indexes': ['owner', 'folder', 'date'],
         'ordering': ['-date'],
         'queryset_class': WhoseQuerySet,
     }
