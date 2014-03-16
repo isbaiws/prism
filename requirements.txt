@@ -4,8 +4,8 @@
 # We use a customized django until bug #21620 is fixed
 #Django==1.5.4
 git+https://github.com/dhudaddy/django.git
-pymongo==2.6.3
 mongoengine
+pymongo==2.6.3
 xlrd
 pytz
 ipdb
