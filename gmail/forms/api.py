@@ -163,6 +163,8 @@ class UploadForm(ApiForm):
                 raise ApiValidationError(INVALID_REQ, 'data.data should be a dict')
 
             ele['data']['folder'], ele['data']['content']
+	    if not isinstance(ele['data']['content'], str):
+                raise ApiValidationError(INVALID_REQ, 'data.content should be binary')
             # if not isinstance(ele['id'], int):
             #     raise ApiValidationError(INVALID_REQ, 'Id should be an integer')
             #TODO, correct docs
