@@ -10,6 +10,7 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.conf import settings
 from bson import BSON, InvalidBSON
+from bson.objectid import ObjectId
 from gmail.models import User
 
 """
@@ -183,10 +184,12 @@ class InitForm(ApiForm):
             raise ApiValidationError(UNKNOWN_ACTION, 'Invalid action id')
         if User.objects(device_ids=self.cleaned_data['devid']).first():
             raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
-        u = User.objects(id=self.cleaned_data['uid']).first()
-        if not u:
-            raise ApiValidationError(INVALID_UID, 'Invalid user id')
-        self.user = u
+        if ObjectId.is_valid(self.cleaned_data['uid']):
+            u = User.objects(id=self.cleaned_data['uid']).first()
+            if u:
+                self.user = u
+                return
+        raise ApiValidationError(INVALID_UID, 'Invalid user id')
 
 class LoginForm(ApiForm):
 
