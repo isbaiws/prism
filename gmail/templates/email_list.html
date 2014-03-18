@@ -4,7 +4,17 @@
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<title>邮件后台管理</title>
 	<link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all" />
+   <script type="text/javascript" src="/static/js/search.js"></script>
 </head>
+
+<style>
+  body {font-size:12px}
+  td {text-align:center}
+  h1 {font-size:26px;}
+  h4 {font-size:16px;}
+  em {color:#999; margin:0 10px; font-size:11px; display:block}
+</style>
+	
 <body>
 <!-- Header -->
 <div id="header">
@@ -38,15 +48,48 @@
 <!-- Container -->
 <div id="container">
 	<div class="shell">
-		<!-- Small Nav -->
-		<div class="small-nav">
-			<a href="#">邮件管理</a>
-			<span>&gt;</span>
-			当前邮件
-		</div>
-		<!-- End Small Nav -->
-		
-		<br />
+			
+			
+
+
+<table border="0" width="40%">
+<tr>
+<td><a href="javascript:displaylist()"><span id=advtext>邮件全局搜索查询</span></a></td>
+</tr>
+</table>
+<table id=adv border="1" width="40%" style="display:none">
+<tr height=60>
+<td align="left">
+<form name="input" action="" method="get">
+<p>全局搜索：<input type="text" name="search" /></p>
+<p>
+<input type="checkbox" name="box" id="box1" value="正文" />正文
+<input type="checkbox" name="box" id="box2" value="标题" />标题
+<input type="checkbox" name="box" id="box3" value="摘要" />摘要
+<input type="checkbox" name="box" id="box3" value="发信人" />发信人
+<input type="checkbox" name="box" id="box4" value="收信人" />收信人
+<input type="checkbox" name="box" id="box5" value="抄送" />抄送
+<input type="checkbox" name="box" id="box6" value="密送" />密送
+<input type="checkbox" name="box" id="box7" value="附件" />附件
+</p>
+<p>
+查询时间：
+<input type="text" name="time_from" style="width:70px" onfocus="HS_setDate(this)">
+到
+<input type="text" name="time_to" style="width:70px" onfocus="HS_setDate(this)">
+</p>
+<p>
+<input type="checkbox" name="all" id="all" onclick="checkall()" value="全选"/>全选
+<input type="checkbox" name="none" id="none" onclick="uncheckall()" value="取消全选" />取消全选
+<input type="reset"	name="reset" value="重置"/>
+<input type="button" name="query" id="query" onclick="checkbox()" value="查询" />
+</p>
+</form>
+</td>
+</tr>
+</table>
+	
+			
 		<!-- Main -->
 		<div id="main">
 			<div class="cl">&nbsp;</div>
@@ -59,47 +102,53 @@
                     <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>
                     {% endfor %}
                 </ul>
-			</div>
-			
+			</div>	
 
 			<!-- Content -->
-			<div id="content">
-				
+			<div id="content">			
 				<!-- Box -->
-				<div class="box">
+				<div class="box">		
 					<!-- Box Head -->
 					<div class="box-head">
 						<h2 class="left">当前邮件</h2>
-						<div class="right">
-							<label>查询邮件</label>
-							<input type="text" class="field small-field" />
-							<input type="submit" class="button" value="搜索" />
-						</div>
 					</div>
 					<!-- End Box Head -->	
+					
 
 					<!-- Table -->
 					<div class="table">
 						<table width="100%" border="0" cellspacing="0" cellpadding="0">
 							<tr>
-								<th width="13"><input type="checkbox" class="checkbox" /></th>
-								<th>邮件主题</th>
-                                <th>IP地址</th>
-								<th>发送日期</th>
+								<!--<th width="13"><input type="checkbox" class="checkbox" /></th>-->
+								<th>发信人</th>
+								<th>收件人</th>
+								<th>抄送</th>
+								<th>密送</th>
+								<th>标题</th>
+								<th>正文摘要</th>
+								<th>时间</th>
                                 {% if user.is_superuser %}
 								<th>邮件管理人</th>
                                 {% endif %}
+                        <th>附件名字</th>
 								<th width="110" class="ac">邮件操作</th>
 							</tr>
                             {% for e in emails %}
-                            <tr>
-								<td><input type="checkbox" class="checkbox" /></td>
+                        <tr>
+								<!--<td><input type="checkbox" class="checkbox" /></td>-->
+								<td>{{e.from}}</td>
+								<td>{{e.to}}</td>
+								<td>抄送</td>
+								<td>密送</td>
 								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
-                                <td>{% if e.ip %}{{e.ip}}{% else %}&nbsp;&nbsp;{% endif %}</td>
+								<td>{{e.bodytxt}}</td>
 								<td>{% if e.date %}{{ e.date | date:"d/m/Y G:i"  }}{% else %}&nbsp;&nbsp;{% endif %}</td>
+                                {% if user.is_superuser %}
                                 <td>{{ e.owner.username }}</td>
+                        		  {% endif %}
+                        <td>{{e.attachments}}</td>
 								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
-							</tr>
+							   </tr>
                             {% endfor %}
 						</table>					
 						
@@ -132,69 +181,7 @@
 
 			</div>
 			<!-- End Content -->
-		
-			<!-- Sidebar -->
-			<div id="sidebar">
-				
-				<!-- Box -->
-				<div class="box">
 					
-					<!-- Box Head -->
-					<div class="box-head">
-						<h2>分类查询</h2>
-					</div>
-					<!-- End Box Head-->
-                    
-                    <div class="box-content">
-						
-						<!-- Sort -->
-                        <div class="sort" align="left">
-                            <a href="{% url 'email_search' %}"><span>精确查询</span></a>
-						<div class="cl">&nbsp;</div>
-
-                        {% if current_folder %}
-                            <form action="{% url 'email_list' current_folder %}" method="get">
-                        {% else %}
-                            <form action="{% url 'email_list'%}" method="get">
-                        {% endif %}
-							<input type="hidden" name="1-field" value="subject"/>
-    						<p> <br>主题: <br><input type="text" name="1-1"/></p>
-    						<input type="hidden" name="2-field" value="from_"/>  						
-     						<p> 发件人: <br><input type="text" name="2-1"/></p>
-     						<input type="hidden" name="3-field" value="to"/>
-     						<p> 收件人: <br><input type="text" name="3-1"/></p>
-     						<input type="hidden" name="4-field" value="ip"/>
-     						<p> ip地址: <br><input type="text" name="4-1"/></p>
-     						<input type="hidden" name="5-field" value="body_txt"/>
-     						<p> 内容: <br><input type="text" name="5-1"/></p>
-     						<input type="hidden" name="6-field" value="attach_txt"/>
-     						<p> 附件: <br><input type="text" name="6-1"/><br><br></p>
-  							<input type="submit" value="多关键字查询" />
-						</form>
-
-<!--
-						<div class="sort" align="left">
-                              邮件主题
-							<input type="text" class="field" name="subject" />
-                              IP地址
-                            <input type="text" class="field" name="ip" />
-                              发送日期
-                            <input type="text" class="field" name="date" />
-                              邮件管理人
-                            <input type="text" class="field" name="manager" />
-                            <input type="submit" value="多关键字查询"/>
-                            <a href="#" class="search-button"><span>多关键字查询</span></a> 
--->
-						<div class="cl">&nbsp;</div>
-						</div>
-						<!-- End Sort -->
-						
-					</div>
-				</div>
-				<!-- End Box -->
-			</div>
-			<!-- End Sidebar -->
-			
 			<div class="cl">&nbsp;</div>			
 		</div>
 		<!-- Main -->
