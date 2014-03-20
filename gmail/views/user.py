@@ -21,6 +21,8 @@ class AddUser(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         User.create_user(form.cleaned_data['username'],
                 form.cleaned_data['password1'], form.cleaned_data['is_superuser'])
+        logger.info('%s created a %suser: %s', self.request.user.username, 
+                ['', 'super '][form.cleaned_data['is_superuser']], form.cleaned_data['username'])
         return super(AddUser, self).form_valid(form)
 
     def get_success_url(self):
