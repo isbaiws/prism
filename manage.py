@@ -97,7 +97,7 @@ if __name__ == "__main__":
                 }
             pprint(requests.post(urljoin(api_host, 'upload'), BSON.encode(pay_load)).json()) 
         else:
-            print 'What are you trying to do with %s?' % sys.argv[1] 
+            print 'Api commands: api-login, api-init, api-upload'
 
     elif sys.argv[1] == 'createsuperuser':
         if len(sys.argv) < 4:
