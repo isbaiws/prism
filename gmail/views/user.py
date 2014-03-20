@@ -86,4 +86,4 @@ class Login(FormView):
 class Logout(View):
     def get(self, request):
         logout(request)
-        return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(reverse('login'))
