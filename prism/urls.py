@@ -11,9 +11,13 @@ urlpatterns = patterns('',
     url(r'^login$', views.Login.as_view(), name='login'),
     url(r'^logout$', views.Logout.as_view(), name='logout'),
 
+    url(r'^user$', views.UserList.as_view(), name='user_list'),
     url(r'^user/edit$', views.UserEdit.as_view(), name='user_edit'),
     url(r'^user/password/edit$', views.PasswordEdit.as_view(), name='user_password_reset'),
     url(r'^user/add$', views.AddUser.as_view(), name='user_add'),
+
+    url(r'^group$', views.GroupList.as_view(), name='group_list'),
+    url(r'^group/add$', views.GroupAdd.as_view(), name='group_add'),
 
     # url(r'^email$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/folder$', views.EmailList.as_view(), name='email_list'),

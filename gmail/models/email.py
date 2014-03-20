@@ -25,6 +25,7 @@ from gmail.HTMLtoText import html2text
 from gmail.utils import decode_str, parse_input_datetime
 from gmail import attachreader
 from .user import User
+from .group import Group
 from .map2json import map2json
 
 logger = logging.getLogger(__name__)
@@ -257,7 +258,9 @@ class WhoseQuerySet(QuerySet):
     def owned_by(self, user):
         if user.is_superuser:
             return self
-        return self.filter(owner=user)
+        groups_in_charge = Group.objects(managers=user.id)
+        users_in_charge = User.objects(groups__in=groups_in_charge)
+        return self.filter(owner__in=[user]+list(users_in_charge))
 
     def under(self, folder):
         return self.filter(folder=folder)

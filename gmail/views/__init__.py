@@ -6,6 +6,7 @@ from json import dumps
 
 from .email import *
 from .user import *
+from .group import *
 from .api import *
 
 class Index(TemplateView):

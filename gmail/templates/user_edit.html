@@ -65,7 +65,11 @@
 					</div>
 					<!-- End Box Head -->
 					
+                    <p>用户名: {{ user.username }}</p>
                     <a href="{% url 'user_password_reset' %}">更改密码</a>
+                    <p>是否管理员: {{ user.is_superuser| yesno:"是,否" }}</p>
+                    <p>设备号: {{ user.device_ids| join:", "| default:"暂无" }}</p>
+                    <p>所属组: {{ user.groups| default:"暂无" }}</p>
 
 				</div>
 				<!-- End Box -->
@@ -73,10 +77,6 @@
 			</div>
 			<!-- End Content -->
             
-            
-			
-
-			
 			<div class="cl">&nbsp;</div>			
 		</div>
 		<!-- Main -->
