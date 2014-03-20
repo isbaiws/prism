@@ -188,10 +188,10 @@ class InitForm(ApiForm):
             raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
         if ObjectId.is_valid(self.cleaned_data['uid']):
             u = User.objects(id=self.cleaned_data['uid']).first()
-            if u:
+            if u and not u.is_superuser:
                 self.user = u
                 return
-        raise ApiValidationError(INVALID_UID, 'Invalid user id')
+        raise ApiValidationError(INVALID_UID, 'Hey, you are an administrator' if u else 'Invalid user id')
 
 class LoginForm(ApiForm):
 
