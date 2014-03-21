@@ -71,6 +71,7 @@ class Resource(LoginRequiredMixin, View):
         referer = request.META.get('HTTP_REFERER')
         resource = self.get_resource_or_404(rid)
         response = HttpResponse(resource.read())
+        #TODO, see http://blog.robotshell.org/2012/deal-with-http-header-encoding-for-file-download/
         for hdr in ('content_type', 'content_disposition',):
             if hasattr(resource, hdr):
                 response[hdr.replace('_', '-').title()] = getattr(resource, hdr)
