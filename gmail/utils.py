@@ -1,4 +1,6 @@
+#coding: utf-8
 from datetime import datetime
+from urllib import quote
 
 from django.utils.formats import ISO_INPUT_FORMATS
 
@@ -33,3 +35,11 @@ def parse_input_datetime(value):
             continue
     return None
 
+def build_content_disposition(filename):
+    "See http://blog.robotshell.org/2012/deal-with-http-header-encoding-for-file-download/"
+    if isinstance(filename, unicode):
+        filename = filename.encode('utf-8')
+    # Due to https://code.djangoproject.com/ticket/20889, I cannot insert CRLF into header
+    filename = filename.replace('\r', '').replace('\n', '')
+    return """attachment; filename="{fn}"; filename*=utf-8''{fn}"""\
+            .format(fn=quote(filename))
