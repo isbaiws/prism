@@ -104,6 +104,11 @@
                 </ul>
 			</div>	
 
+                <form method="get">
+                    {{ form.as_p }}
+                    <input type="submit" value="Submit" />
+                </form>
+
 			<!-- Content -->
 			<div id="content">			
 				<!-- Box -->
@@ -136,7 +141,7 @@
                             {% for e in emails %}
                         <tr>
 								<!--<td><input type="checkbox" class="checkbox" /></td>-->
-								<td>{{e.from}}</td>
+								<td>{{e.from_}}</td>
 								<td>{{e.to}}</td>
 								<td>抄送</td>
 								<td>密送</td>
@@ -146,7 +151,7 @@
                                 {% if user.is_superuser %}
                                 <td>{{ e.owner.username }}</td>
                         		  {% endif %}
-                        <td>{{e.attachments}}</td>
+                                  <td>{%for att in e.attachments%}{{att.filename}}, {%endfor%}</td>
 								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
 							   </tr>
                             {% endfor %}

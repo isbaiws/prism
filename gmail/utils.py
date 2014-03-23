@@ -28,6 +28,9 @@ def decode_str(s, encodings=('utf-8', 'gbk'), E=UnicodeDecodeError):
             raise E("'%s' cannot be decoded by %s" % (s, encodings))
 
 def parse_input_datetime(value):
+    """Parse string in the form of 
+    '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%d %H:%M', '%Y-%m-%d'
+    to datetime"""
     for format in ISO_INPUT_FORMATS['DATETIME_INPUT_FORMATS']:
         try:
             return datetime.strptime(value, format)
@@ -41,5 +44,5 @@ def build_content_disposition(filename):
         filename = filename.encode('utf-8')
     # Due to https://code.djangoproject.com/ticket/20889, I cannot insert CRLF into header
     filename = filename.replace('\r', '').replace('\n', '')
-    return """attachment; filename="{fn}"; filename*=utf-8''{fn}"""\
+    return u"""attachment; filename="{fn}"; filename*=utf-8''{fn}"""\
             .format(fn=quote(filename))

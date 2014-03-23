@@ -15,10 +15,10 @@ class UtilsTestCase(TestCase):
     def test_building_content_disposition(self):
         filename = u"中文  .txt"
         self.assertEqual(utils.build_content_disposition(filename),
-                """attachment; filename="%E4%B8%AD%E6%96%87%20%20.txt"; filename*=utf-8''%E4%B8%AD%E6%96%87%20%20.txt""")
+                u"""attachment; filename="%E4%B8%AD%E6%96%87%20%20.txt"; filename*=utf-8''%E4%B8%AD%E6%96%87%20%20.txt""")
         filename = u"中文  .txt".encode('utf-8')
         self.assertEqual(utils.build_content_disposition(filename),
-                                """attachment; filename="%E4%B8%AD%E6%96%87%20%20.txt"; filename*=utf-8''%E4%B8%AD%E6%96%87%20%20.txt""")
+                                u"""attachment; filename="%E4%B8%AD%E6%96%87%20%20.txt"; filename*=utf-8''%E4%B8%AD%E6%96%87%20%20.txt""")
 
         filename = u"ss\rrr\nnn\n\r\r\n"
-        self.assertEqual(utils.build_content_disposition(filename),'''attachment; filename="ssrrnn"; filename*=utf-8''ssrrnn''')
+        self.assertEqual(utils.build_content_disposition(filename), u'''attachment; filename="ssrrnn"; filename*=utf-8''ssrrnn''')

@@ -36,15 +36,17 @@ class EmailList(LoginRequiredMixin, ListView):
         this_folder = self.kwargs.get('folder', None)
         if this_folder not in self.folders:
             raise Http404('No folder found')
+        form = EmailQueryForm(self.request.GET)
+        form.is_valid()  # We don't care, just clean it for us
         # The order doesn't matter, since we have user & folder indexed,
         # it will be used first
-        return Email.find(self.request.GET.dict())\
-                .owned_by(self.request.user).under(this_folder)
+        return Email.find(form.cleaned_data).owned_by(self.request.user).under(this_folder)
 
     def get_context_data(self, **kwargs):
         context = super(EmailList, self).get_context_data(**kwargs)
         context['folders'] = self.folders
         context['current_folder'] = self.kwargs.get('folder', '')
+        context['form'] = EmailQueryForm()
         return context
 
     def get_folder_list(self):
