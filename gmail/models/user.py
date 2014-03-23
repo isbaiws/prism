@@ -11,7 +11,6 @@ from mongoengine import (
 logger = logging.getLogger(__name__)
 
 class User(Document):
-    #TODO Why there is a '_cls' field in db?
     username = StringField(required=True)
     password = StringField(required=True)
     is_superuser = BooleanField(default=False)
@@ -21,7 +20,8 @@ class User(Document):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['username', 'password']
     meta = {
-        'allow_inheritance': True,
+        # There will be a '_cls' field in db, if allow inheritance
+        'allow_inheritance': False,
         'indexes': ['username', 'device_ids'],
     }
 
