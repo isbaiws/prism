@@ -332,6 +332,7 @@ class Email(Document):
 
     @classmethod
     def find(cls, query_dict):
+        logger.info('Query dict: %s', query_dict)
         equal_queries = ('ip',)
         string_queries = ('from_', 'to', 'subject', 'body_txt', 'attach_txt', 'bcc', 'cc')
         query = Q()
