@@ -9,5 +9,5 @@ pymongo==2.6.3
 xlrd
 pytz
 ipdb
-jieba
+# jieba
 requests

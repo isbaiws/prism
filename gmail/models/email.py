@@ -18,7 +18,7 @@ from mongoengine import (
         GridFSProxy, ReferenceField, NULLIFY, QuerySet, DictField, Q,
         EmbeddedDocument, EmbeddedDocumentField,
     )
-from jieba import cut_for_search
+# from jieba import cut_for_search
 
 from gmail.errors import MessageParseError
 from gmail.HTMLtoText import html2text
