@@ -56,9 +56,6 @@
 <div id="container">
 	<div class="shell">
 			
-			
-
-
 <table border="0" width="40%">
 <tr>
 <td><a href="javascript:displaylist()"><span id=advtext>邮件全局搜索查询</span></a></td>
@@ -70,22 +67,23 @@
 <form name="input" action="" method="get">
 <p>全局搜索：<input type="text" name="search" /></p>
 <p>
-{{ form.subject }}
-{{ form.from_ }}
-<input type="checkbox" name="box" id="box1" value="正文" />正文
-<input type="checkbox" name="box" id="box2" value="标题" />标题
-<input type="checkbox" name="box" id="box3" value="摘要" />摘要
-<input type="checkbox" name="box" id="box3" value="发信人" />发信人
-<input type="checkbox" name="box" id="box4" value="收信人" />收信人
-<input type="checkbox" name="box" id="box5" value="抄送" />抄送
-<input type="checkbox" name="box" id="box6" value="密送" />密送
-<input type="checkbox" name="box" id="box7" value="附件" />附件
+{{ form.q.label_tag }}{{ form.q }}
+
+{{ form.from_.label_tag }}{{ form.from_ }}
+{{ form.to.label_tag }}{{ form.to }}
+{{ form.subject.label_tag }}{{ form.subject }}
+{{ form.body_txt.label_tag }}{{ form.body_txt }}
+{{ form.attach_filename.label_tag }}{{ form.attach_filename }}
+{{ form.attach_txt.label_tag }}{{ form.attach_txt }}
+{{ form.ip.label_tag }}{{ form.ip }}
+{{ form.bcc.label_tag }}{{ form.bcc }}
+{{ form.cc.label_tag }}{{ form.cc }}
 </p>
 <p>
 查询时间：
-<input type="text" name="time_from" style="width:70px" onfocus="HS_setDate(this)">
+<input type="text" name="{{ form.start.html_name }}" style="width:70px" onfocus="HS_setDate(this)">
 到
-<input type="text" name="time_to" style="width:70px" onfocus="HS_setDate(this)">
+<input type="text" name="{{ form.to.html_name }}" style="width:70px" onfocus="HS_setDate(this)">
 </p>
 <p>
 <input type="checkbox" name="all" id="all" onclick="checkall()" value="全选"/>全选
@@ -145,11 +143,7 @@
                             {% for e in emails %}
                         <tr>
 								<!--<td><input type="checkbox" class="checkbox" /></td>-->
-<<<<<<< HEAD
-								<td>{{e.from}}</td>
-=======
 								<td>{{e.from_}}</td>
->>>>>>> d3dcd113fe05dcc8ab8fae5e4d1e5cb243bcb6d5
 								<td>{{e.to}}</td>
 								<td>抄送</td>
 								<td>密送</td>
@@ -159,11 +153,7 @@
                                 {% if user.is_superuser %}
                                 <td>{{ e.owner.username }}</td>
                         		  {% endif %}
-<<<<<<< HEAD
-                        <td>{{e.attachments}}</td>
-=======
                                   <td>{%for att in e.attachments%}{{att.filename}}, {%endfor%}</td>
->>>>>>> d3dcd113fe05dcc8ab8fae5e4d1e5cb243bcb6d5
 								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
 							   </tr>
                             {% endfor %}
