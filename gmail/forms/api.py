@@ -10,6 +10,7 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.conf import settings
 from bson import BSON, InvalidBSON
+from bson.objectid import ObjectId
 from gmail.models import User
 
 """
@@ -162,6 +163,8 @@ class UploadForm(ApiForm):
                 raise ApiValidationError(INVALID_REQ, 'data.data should be a dict')
 
             ele['data']['folder'], ele['data']['content']
+	    if not isinstance(ele['data']['content'], str):
+                raise ApiValidationError(INVALID_REQ, 'data.content should be binary')
             # if not isinstance(ele['id'], int):
             #     raise ApiValidationError(INVALID_REQ, 'Id should be an integer')
             #TODO, correct docs
@@ -183,10 +186,12 @@ class InitForm(ApiForm):
             raise ApiValidationError(UNKNOWN_ACTION, 'Invalid action id')
         if User.objects(device_ids=self.cleaned_data['devid']).first():
             raise ApiValidationError(DUP_DEVID, 'Duplicated device id')
-        u = User.objects(id=self.cleaned_data['uid']).first()
-        if not u:
-            raise ApiValidationError(INVALID_UID, 'Invalid user id')
-        self.user = u
+        if ObjectId.is_valid(self.cleaned_data['uid']):
+            u = User.objects(id=self.cleaned_data['uid']).first()
+            if u and not u.is_superuser:
+                self.user = u
+                return
+        raise ApiValidationError(INVALID_UID, 'Hey, you are an administrator' if u else 'Invalid user id')
 
 class LoginForm(ApiForm):
 

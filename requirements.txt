@@ -1,10 +1,11 @@
 # pypi is blocked
 -i http://pypi.douban.com/simple/
 
+Django==1.5.4
 # We use a customized django until bug #21620 is fixed
-#Django==1.5.4
-pymongo
+#git+https://github.com/dhudaddy/django.git
 mongoengine
+pymongo==2.6.3
 xlrd
 pytz
 ipdb

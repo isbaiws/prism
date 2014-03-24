@@ -14,37 +14,91 @@ if __name__ == "__main__":
         import prism.settings
         from mongoengine.connection import get_connection
         get_connection().drop_database('prism')
-    elif sys.argv[1] == 'sendmail':
+
+    elif sys.argv[1].startswith('api'):
+        from bson import BSON, Binary
+        from hashlib import md5
+        from urlparse import urljoin
+        import uuid
+        from pprint import pprint
         import requests
-        login_url = 'http://localhost:8000/login'
-        post_email_url = 'http://localhost:8000/email'
-        payload = {
-            'username': 'test',
-            'password': 'test',
-        }
+        from bson.objectid import ObjectId
+        from prism import settings
 
-        def pretty_header(r):
-            print '\n'.join('< %s: %s' % (k, v) for k, v in r.request.headers.items())
-            print
-            print '\n'.join('> %s: %s' % (k, v) for k, v in r.headers.items())
-            print
+        def require_args(*args):
+            if len(sys.argv) < len(args)+2:
+                print 'Usage:', ' '.join(sys.argv[:2]), ' '.join(args)
+                sys.exit(1)
+            if len(args) == 1:
+                return sys.argv[2]
+            return sys.argv[2:len(args)+2]
 
-        s = requests.Session()
-        r = s.post(login_url, data=payload, allow_redirects=False)
-        # pretty_header(r)
-        if r.status_code != 302:
-            print 'Login failed!!'
-            sys.exit(1)
+        def sign():
+            return md5('%s'*6 % (
+                devid, version, source, action, nonce, 
+                settings.API_SECRET_KEY)).hexdigest().lower()
 
-        if len(sys.argv) < 4:
-            print 'Usage ./manage.py sendmail /path/to/email.eml account'
-            sys.exit(1)
-        fn = sys.argv[2]
-        # files = {'file': open(fn, 'rb')}
-        r = s.post('%s/path/%s' % (post_email_url, sys.argv[3]), data=open(fn, 'rb'))
-        # pretty_header(r)
-        # print r.json()
-        print r.text
+        api_host = 'http://localhost:8000/api/'
+        version = 6
+        source = 22
+        nonce = 1392696510
+
+        if sys.argv[1] == 'api-login':
+            u, p = require_args('username', 'password')
+            devid = uuid.uuid4()
+            action = 102
+
+            pay_load = {
+                    'devid': devid,
+                    'ver': version,
+                    'source': source,
+                    'action': action,
+                    'nonce': nonce,
+                    'sig': sign(),
+                    'username': u,
+                    'password': p,
+                }
+            pprint(requests.post(urljoin(api_host, 'login'), BSON.encode(pay_load)).json())
+        elif sys.argv[1] == 'api-init':
+            devid = uuid.uuid4()
+            action = 101
+
+            pay_load = {
+                    'devid': devid,
+                    'ver': version,
+                    'source': source,
+                    'action': action,
+                    'nonce': nonce,
+                    'sig': sign(),
+                    'uid': ObjectId(require_args('userid')),
+                }
+            print 'device id is', devid
+            pprint(requests.post(urljoin(api_host, 'init'), BSON.encode(pay_load)).json()) 
+
+        elif sys.argv[1] == 'api-upload':
+            action = 111
+            devid, folder, path = require_args('device-id', 'folder', 'path-to-email')
+
+            pay_load = {
+                    'devid': uuid.UUID(devid),
+                    'ver': version,
+                    'source': source,
+                    'action': action,
+                    'nonce': nonce,
+                    'sig': sign(),
+                    'data': [{
+                        'id': 1,
+                        'typeid': 105,
+                        'data': {
+                            'folder': folder,
+                            'content': Binary(open(path, 'rb').read()),
+                        }
+                    }]
+                }
+            pprint(requests.post(urljoin(api_host, 'upload'), BSON.encode(pay_load)).json()) 
+        else:
+            print 'Api commands: api-login, api-init, api-upload'
+
     elif sys.argv[1] == 'createsuperuser':
         if len(sys.argv) < 4:
             print 'Usage: ./manage.py createsuperuser username password'

@@ -78,6 +78,10 @@
 									{{ form.password2 }}
 								</p>
                                 <p>
+									<label>群组</label>{{ form.group.errors }}
+									{{ form.group }}
+								</p>	
+                                <p>
 									<label>超级用户</label>{{ form.is_superuser.errors }}
 									{{ form.is_superuser }}
 								</p>	

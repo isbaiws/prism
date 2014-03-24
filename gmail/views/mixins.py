@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http.response import HttpResponse
 from django.views.generic import View
+from django.http import Http404
 from bson.objectid import ObjectId
 
 class LoginRequiredMixin(View):
@@ -15,6 +16,11 @@ class LoginRequiredMixin(View):
     def dispatch(self, request, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
+class AdminRequired(object):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise Http404('Only admin can view this page, remind me to remove it in production.')
+        return super(AdminRequired, self).dispatch(request, *args, **kwargs)
 
 class MyJsonEncoder(JSONEncoder):
 

@@ -1,0 +1,7 @@
+{% for group in groups %}
+    <p>名字: {{ group.name }}</p>
+    <p>组长: {{ group.managers| join:", " }}</p>
+    <p>组员: {{ group.members }}</p>
+{% empty %}
+    empty
+{% endfor %}

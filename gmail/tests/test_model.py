@@ -26,13 +26,13 @@ class DeleteTestCase(TestCase):
         resources.append(self.e.source)
         # All exist
         for resc in resources:
-            self.assertIsNotNone(GridFSProxy().get(resc.grid_id))
+            self.assertIsNotNone(GridFSProxy().get(resc.id))
 
         self.e.delete()
         # None exsits
         self.assertIsNone(models.Email.objects(id=self.e.id).first())
         for resc in resources:
-            self.assertIsNone(GridFSProxy().get(resc.grid_id))
+            self.assertIsNone(GridFSProxy().get(resc.id))
 
     def tearDown(self):
         self.e.delete()

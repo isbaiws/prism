@@ -10,17 +10,20 @@ from django.http import HttpResponseRedirect
 
 from gmail.forms import UserAddForm, PasswordResetForm
 from gmail.models import User
-from .mixins import LoginRequiredMixin
+from .mixins import LoginRequiredMixin, AdminRequired
 
 logger = logging.getLogger(__name__)
 
-class AddUser(LoginRequiredMixin, FormView):
+class AddUser(LoginRequiredMixin, AdminRequired, FormView):
     template_name = 'user_add.html'
     form_class = UserAddForm
 
     def form_valid(self, form):
-        User.create_user(form.cleaned_data['username'],
-                form.cleaned_data['password1'], form.cleaned_data['is_superuser'])
+        d = form.cleaned_data
+        groups = [d['group']] if d['group'] else []
+        User.create_user(d['username'], d['password1'], d['is_superuser'], groups)
+        logger.info('%s created a %suser: %s', self.request.user.username, 
+                ['', 'super '][form.cleaned_data['is_superuser']], form.cleaned_data['username'])
         return super(AddUser, self).form_valid(form)
 
     def get_success_url(self):
@@ -31,7 +34,6 @@ class UserDetail(LoginRequiredMixin, TemplateView):
 
 class UserEdit(LoginRequiredMixin, FormView):
     template_name = 'user_edit.html'
-    #TODO mod
     form_class = UserAddForm
 
     def get_initial(self):
@@ -61,7 +63,7 @@ class PasswordEdit(LoginRequiredMixin, FormView):
         return reverse('user_edit')
 
 
-class UserList(LoginRequiredMixin, ListView):
+class UserList(LoginRequiredMixin, AdminRequired, ListView):
     template_name = 'user_list.html'
     context_object_name = 'users'
 
@@ -84,4 +86,4 @@ class Login(FormView):
 class Logout(View):
     def get(self, request):
         logout(request)
-        return HttpResponseRedirect(reverse('index'))
+        return HttpResponseRedirect(reverse('login'))

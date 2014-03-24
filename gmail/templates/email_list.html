@@ -10,6 +10,8 @@
 <style>
   body {font-size:12px}
   td {text-align:center}
+  h1 {font-size:26px;}
+  h4 {font-size:16px;}
   em {color:#999; margin:0 10px; font-size:11px; display:block}
 </style>
 	
@@ -38,7 +40,7 @@
                                 {% if user.is_superuser %}
 			    <li><a href="{% url 'user_add' %}"><span>用户管理</span></a></li>
 			    						  {% else %}
-			    <li><a href="{% url 'user_detail' %}"><span>用户信息</span></a></li>
+			    <li><a href="{% url 'user_edit' %}"><span>用户信息</span></a></li>
 			                       {% endif %}
              <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
              <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
@@ -68,6 +70,8 @@
 <form name="input" action="" method="get">
 <p>全局搜索：<input type="text" name="search" /></p>
 <p>
+{{ form.subject }}
+{{ form.from_ }}
 <input type="checkbox" name="box" id="box1" value="正文" />正文
 <input type="checkbox" name="box" id="box2" value="标题" />标题
 <input type="checkbox" name="box" id="box3" value="摘要" />摘要
@@ -141,17 +145,25 @@
                             {% for e in emails %}
                         <tr>
 								<!--<td><input type="checkbox" class="checkbox" /></td>-->
+<<<<<<< HEAD
 								<td>{{e.from}}</td>
+=======
+								<td>{{e.from_}}</td>
+>>>>>>> d3dcd113fe05dcc8ab8fae5e4d1e5cb243bcb6d5
 								<td>{{e.to}}</td>
 								<td>抄送</td>
 								<td>密送</td>
 								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
-								<td>{{e.bodytxt}}</td>
+								<td>{{e.body_txt}}</td>
 								<td>{% if e.date %}{{ e.date | date:"d/m/Y G:i"  }}{% else %}&nbsp;&nbsp;{% endif %}</td>
                                 {% if user.is_superuser %}
                                 <td>{{ e.owner.username }}</td>
                         		  {% endif %}
+<<<<<<< HEAD
                         <td>{{e.attachments}}</td>
+=======
+                                  <td>{%for att in e.attachments%}{{att.filename}}, {%endfor%}</td>
+>>>>>>> d3dcd113fe05dcc8ab8fae5e4d1e5cb243bcb6d5
 								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
 							   </tr>
                             {% endfor %}

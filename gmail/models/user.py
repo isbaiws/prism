@@ -4,23 +4,24 @@ import ipdb
 
 from django.contrib.auth import hashers
 from mongoengine import (
-        Document, StringField, BooleanField, ListField, UUIDField
+        Document, StringField, BooleanField, ListField, UUIDField, ReferenceField
     )
 
 
 logger = logging.getLogger(__name__)
 
 class User(Document):
-    #TODO Why there is a '_cls' field in db?
     username = StringField(required=True)
     password = StringField(required=True)
     is_superuser = BooleanField(default=False)
     device_ids = ListField(UUIDField(binary=True), default=list)
+    groups = ListField(ReferenceField('Group'))
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['username', 'password']
     meta = {
-        'allow_inheritance': True,
+        # There will be a '_cls' field in db, if allow inheritance
+        'allow_inheritance': False,
         'indexes': ['username', 'device_ids'],
     }
 
@@ -28,7 +29,7 @@ class User(Document):
         "Return the identifying username for this User"
         return self.username
 
-    def __str__(self):
+    def __unicode__(self):
         return self.get_username()
 
     def natural_key(self):
@@ -72,16 +73,15 @@ class User(Document):
         return hashers.is_password_usable(self.password)
 
     @classmethod
-    def create_user(cls, username, password, is_superuser=False):
-        user = cls(username=username, is_superuser=is_superuser)
+    def create_user(cls, username, password, is_superuser=False, groups=[]):
+        user = cls(username=username, is_superuser=is_superuser, groups=groups)
         user.set_password(password)
         user.save()
         return user
 
-    def my_emails(self):
-        # import here to avoid circular reference
-        from .email import Email
-        return Email.objects(user=self.id)
+    def groups_in_charge(self):
+        from .group import Group
+        return Group.objects(managers=self.id)
 
     @classmethod
     def exist(cls, **kwargs):

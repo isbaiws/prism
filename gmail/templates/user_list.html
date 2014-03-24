@@ -1,3 +1,5 @@
 {% for usr in users %}
-    {{ usr }}
+    <p>用户名: {{ usr }}</p>
+    <p>所属组: {{ usr.groups }}</p>
+    <p>管理: {{ usr.groups_in_charge| join:", " }}</p>
 {% endfor %}

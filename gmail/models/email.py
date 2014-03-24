@@ -13,19 +13,19 @@ from email.utils import mktime_tz, parsedate
 from email import _parseaddr
 
 from django.core.urlresolvers import reverse
-from bson.objectid import ObjectId
 from mongoengine import (
         Document, StringField, ListField, FileField, DateTimeField,
-        GridFSProxy, ReferenceField, NULLIFY, QuerySet
+        GridFSProxy, ReferenceField, NULLIFY, QuerySet, DictField, Q,
+        EmbeddedDocument, EmbeddedDocumentField,
     )
 from jieba import cut_for_search
 
 from gmail.errors import MessageParseError
 from gmail.HTMLtoText import html2text
-from gmail.utils import decode_str, parse_input_datetime
+from gmail.utils import decode_str, parse_input_datetime, build_content_disposition
 from gmail import attachreader
 from .user import User
-from .map2json import map2json
+from .group import Group
 
 logger = logging.getLogger(__name__)
 
@@ -107,59 +107,15 @@ def get_email_info(msg):
     
     if msg.get_filename():
         info['filename'] = decode_rfc2047(msg.get_filename())
+        if 'content_disposition' in info:
+            # Override with the standard one
+            info['content_disposition'] = build_content_disposition(info['filename'])
 
     return info
-
-def sterilize_query(query_dict):
-    def sibling(row, col, field):
-        return '%s-%s-%s' % (row, 3-int(col), field)
-    sterilized = []
-
-    queries = sorted(filter(lambda t: t[1], query_dict.items()))
-    for key, value in queries:
-        if key.count('-') != 1:
-            continue
-        row, field = key.split('-')
-        if field != 'field':
-            continue
-
-        leftvalue = query_dict.get('%s-1' % row, '')
-        rightvalue = query_dict.get('%s-2' % row, '')
-
-        if field in ('start', 'end'):
-            time_point = parse_input_datetime(leftvalue)
-            leftvalue = time_point if time_point else ''
-
-            time_point = parse_input_datetime(rightvalue)
-            rightvalue = time_point if time_point else ''
-
-        if not leftvalue and not rightvalue:
-            continue
-
-        relation = query_dict.get('%s-relation' % row, 'and')
-        logical = query_dict.get('%s-logical' % row, 'and')
-
-        sterilized.append({'relation': relation.lower(),
-            'logical': logical.lower(),
-            'key': value.lower(),
-            'leftvalue': leftvalue,
-            'rightvalue': rightvalue})
-
-        # elif key in ('start', 'end'):
-        #     time_point = parse_input_datetime(value)
-        #     if time_point:
-        #         sterilized.append({'relation': 'and',
-        #             'logical': 'and',
-        #             'key': key,
-        #             'leftvalue': time_point,
-        #             'rightvalue': ''})
-
-    return sterilized
 
 class MessageParse(object):
     multipart_alternatives = [ 'message/rfc822', 'text/html', 'text/richtext', 'text/plain',]
     img_tmpl =  '<img border="0" hspace="0" align="baseline" src="%s" />'
-    resource_meta = ('content_type', 'content_disposition', 'filename')
 
     def parse(self, msg):
         if msg.defects:  # when a defect is found
@@ -179,14 +135,6 @@ class MessageParse(object):
         e.update(info)
         return e
 
-    def store_resource(self, content, meta):
-        id = ObjectId()  # Generate one so I can use it to assemble the url
-        resc = GridFSProxy()
-        kwargs = {k: meta[k] for k in self.resource_meta if meta.get(k)}
-        kwargs.update({'url': reverse('resource', args=(id,)), '_id': id})
-        resc.put(content, **kwargs)
-        return resc
-
     def parse_text(self, msg):
         # assert msg.get_content_maintype() == 'text'
         e = self.prepare_email(msg)
@@ -197,7 +145,8 @@ class MessageParse(object):
     def parse_image(self, msg):
         assert msg.get_content_maintype() == 'image'
         e = self.prepare_email(msg)
-        img = self.store_resource(msg.get_payload(decode=True), e.to_dict())
+        img = store_resoure(msg.get_payload(decode=True), **e.to_dict())
+        #TODO, strip out filename, otherwise it will be searched as attachment
         e.resources.append(img)
         e.body = self.img_tmpl % img.url
         return e
@@ -206,7 +155,7 @@ class MessageParse(object):
         # assert msg.get_content_maintype() == 'application'
         e = self.prepare_email(msg)
         content = msg.get_payload(decode=True)
-        app = self.store_resource(content, e.to_dict())
+        app = store_resoure(content, **e.to_dict())
         e.resources.append(app)
         # e.body = ''
         e.attachments.append(app)
@@ -257,10 +206,57 @@ class WhoseQuerySet(QuerySet):
     def owned_by(self, user):
         if user.is_superuser:
             return self
-        return self.filter(owner=user)
+        groups_in_charge = Group.objects(managers=user.id)
+        users_in_charge = User.objects(groups__in=groups_in_charge)
+        return self.filter(owner__in=[user]+list(users_in_charge))
 
     def under(self, folder):
         return self.filter(folder=folder)
+
+class Resource(EmbeddedDocument):
+    gridfs = FileField()
+    # Store filename outside, so it can be searched
+    filename = StringField(default='')
+
+    # DONOT store things in __init__, it will be called when constructing
+    # Document, thus leads to endless storing in GridFS
+    # def __init__(self, content, filename=None, content_type=None, 
+    #         content_disposition=None, **kwargs):
+    #     http_meta = {}
+    #     if content_type:
+    #         http_meta['content_type'] = content_type
+    #     if content_disposition:
+    #         http_meta['content_disposition'] = content_disposition
+    #     resc = GridFSProxy()
+    #     # Store there for resource view
+    #     resc.put(content, **http_meta)
+    #     return super(Resource, self).__init__(gridfs=resc,
+    #             filename=filename, **kwargs)
+    #
+    @property
+    def id(self):
+        return self.gridfs.grid_id
+
+    @property
+    def url(self):
+        return reverse('resource', args=(self.gridfs.grid_id, ))
+
+    def delete(self):
+        return self.gridfs.delete()
+
+def store_resoure(content, filename=None, content_type=None, 
+        content_disposition=None, **kwargs):
+    """A helper to create Resource instance"""
+    http_meta = {}
+    if content_type:
+        http_meta['content_type'] = content_type
+    if content_disposition:
+        http_meta['content_disposition'] = content_disposition
+    resc = GridFSProxy()
+    # Store there for resource view
+    resc.put(content, **http_meta)
+    return Resource(gridfs=resc,
+            filename=filename, **kwargs)
 
 class Email(Document):
     # Every attr is present
@@ -276,14 +272,14 @@ class Email(Document):
     body = StringField(default='')
     body_txt = StringField(default='')
     # Pitty I cannot customize FileField
-    attachments = ListField(FileField(), default=list)
+    attachments = ListField(EmbeddedDocumentField(Resource), default=list)
     attach_txt = StringField(default='')
     # to find resources when deleting this doc
-    resources = ListField(FileField(), default=list)
+    resources = ListField(EmbeddedDocumentField(Resource), default=list)
 
     owner = ReferenceField(User, reverse_delete_rule=NULLIFY)
     folder = StringField(default='')
-    source = FileField()
+    source = EmbeddedDocumentField(Resource)
 
     meta = {
         'indexes': ['owner', 'folder', 'date'],
@@ -311,9 +307,10 @@ class Email(Document):
     def from_string(cls, s):
         msg = message_from_string(s)
         e_mei_er =  mp.parse(msg)
-        e_mei_er.source = mp.store_resource(s, 
-            {'content_disposition': u'attachment; filename="%s.eml"' % e_mei_er.subject,
-                'content_type': 'message/rfc822'})
+        e_mei_er.source = store_resoure(s, 
+                content_disposition=build_content_disposition(e_mei_er.subject+'.eml'),
+                content_type='message/rfc822',
+                filename=e_mei_er.subject+'.eml')
         return e_mei_er
 
     def clean(self):
@@ -335,13 +332,28 @@ class Email(Document):
 
     @classmethod
     def find(cls, query_dict):
-        """query_dict is in the form of
-        {1-1-ip: '127.0.0.1,' 1-relation='and', 1-1-subject: 'what', 2-1-ip: '192.168.0.1'}"""
-        sterilized = sterilize_query(query_dict)
-        logger.debug('Query matrix is %s' % sterilized)
-        qd = map2json(sterilized)
-        logger.debug('Query dict is %s' % qd)
-        return cls.objects(__raw__=qd)
+        logger.info('Query dict: %s', query_dict)
+        equal_queries = ('ip',)
+        string_queries = ('from_', 'to', 'subject', 'body_txt', 'attach_txt', 'bcc', 'cc')
+        query = Q()
+        q_str = query_dict.get('q', '')
+
+        for k in string_queries:
+            if query_dict.get(k):
+                query |= Q(**{'%s__contains' % k: re.escape(q_str)})
+
+        for k in equal_queries:
+            if query_dict.get(k):
+                query |= Q(**{k: q_str})
+
+        if query_dict.get('attach_filename'):
+            query |= Q(attachments__filename__contains=re.escape(q_str))
+
+        if query_dict.get('start'):
+            query &= Q(date__gte=query_dict['start'])
+        if query_dict.get('end'):
+            query &= Q(date__lte=query_dict['end'])
+        return cls.objects(query)
 
     def delete(self):
         # Won't raise anything if not found?

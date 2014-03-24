@@ -1,12 +1,22 @@
 # coding: utf-8
 from django import forms
-from gmail.models import User
+from bson.objectid import ObjectId
+
+from gmail.models import User, Group
 
 class UserAddForm(forms.Form):
     username = forms.CharField()
     password1 = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(widget=forms.PasswordInput)
     is_superuser = forms.BooleanField(initial=False, required=False)
+    group = forms.ChoiceField(choices=[('--', '--')]+[(g.id, g.name)
+        for g in Group.objects], required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(UserAddForm, self).__init__(*args, **kwargs)
+        # For dynamic choices
+        self.fields['group'] = forms.ChoiceField(choices=[('--', '--')]+[(g.id, g.name)
+            for g in Group.objects], required=False)
 
     def clean_username(self):
         if User.exist(username=self.cleaned_data['username']):
@@ -17,6 +27,15 @@ class UserAddForm(forms.Form):
         if self.cleaned_data['password1'] != self.cleaned_data['password2']:
             raise forms.ValidationError('Your passwords do not match')
         return self.cleaned_data['password1']
+
+    def clean_group(self):
+        if self.cleaned_data['group'] == '--':
+            return None
+        if not ObjectId.is_valid(self.cleaned_data['group']):
+            raise forms.ValidationError("Group %s is not found" % self.cleaned_data['group'])
+        if not User.objects(id=self.cleaned_data['group']).first():
+            raise forms.ValidationError("group %s is not found" % self.cleaned_data['group'])
+        return ObjectId(self.cleaned_data['group'])
 
 class PasswordResetForm(forms.Form):
     old_password = forms.CharField(label="当前密码", widget=forms.PasswordInput)
