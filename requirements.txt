@@ -11,3 +11,4 @@ pytz
 ipdb
 # jieba
 requests
+django-debug-toolbar
