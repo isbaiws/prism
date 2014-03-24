@@ -244,6 +244,9 @@ class Resource(EmbeddedDocument):
     def delete(self):
         return self.gridfs.delete()
 
+    def __unicode__(self):
+        return self.filename
+
 def store_resoure(content, filename=None, content_type=None, 
         content_disposition=None, **kwargs):
     """A helper to create Resource instance"""

@@ -143,8 +143,8 @@
                             {% for e in emails %}
                         <tr>
 								<!--<td><input type="checkbox" class="checkbox" /></td>-->
-								<td>{{e.from_}}</td>
-								<td>{{e.to}}</td>
+								<td>{{e.from_ | slice:":5" | join:", "}}</td>
+								<td>{{e.to | slice:":5" | join:", "}}</td>
 								<td>抄送</td>
 								<td>密送</td>
 								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
@@ -153,7 +153,7 @@
                                 {% if user.is_superuser %}
                                 <td>{{ e.owner.username }}</td>
                         		  {% endif %}
-                                  <td>{%for att in e.attachments%}{{att.filename}}, {%endfor%}</td>
+                                  <td>{{ e.attachments|slice:":5"|join:", ss "}}</td>
 								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
 							   </tr>
                             {% endfor %}
