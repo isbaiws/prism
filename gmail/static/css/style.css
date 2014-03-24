@@ -76,8 +76,8 @@ h3 a{ text-decoration: none; }
 
 #main {}
 #leftbar { float:left; width:100px; }
-#content { float:left; width:650px; }
-#sidebar { float:right; width:225px; }
+#content { float:left; width:900px; }
+#sidebar { float:right; width:125px; }
 
 
 .table {}

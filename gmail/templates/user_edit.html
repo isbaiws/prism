@@ -24,7 +24,14 @@
 		<div id="navigation">
 			<ul>
 			    <li><a href="{% url 'email_list' %}"><span>邮件管理</span></a></li>
-			    <li><a href="{% url 'user_add' %}"  class="active"><span>用户管理</span></a></li>
+			    			    			           {% if user.is_superuser %}
+				 <li><a href="#"><span>组管理</span></a></li>
+                                {% endif %}
+                                {% if user.is_superuser %}
+			    <li><a href="{% url 'user_add' %}" class="active"><span>用户管理</span></a></li>
+			    						  {% else %}
+			    <li><a href="{% url 'user_detail' %}"><span>用户信息</span></a></li>
+			                       {% endif %}
                 <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
                 <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
                 <li><a href="{% url 'not_implemented' %}"><span>邮件关系图</span></a></li>
@@ -39,14 +46,6 @@
 <div id="container">
 	<div class="shell">
 		
-		<!-- Small Nav -->
-		<div class="small-nav">
-			<a href="#">用户管理</a>
-			<span>&gt;</span>
-			添加用户
-		</div>
-		<!-- End Small Nav -->
-        
         
 		
 		<br />
