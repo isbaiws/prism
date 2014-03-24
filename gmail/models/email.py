@@ -349,6 +349,9 @@ class Email(Document):
             if query_dict.get(k):
                 query |= Q(**{k: q_str})
 
+        if query_dict.get('folder'):
+            query &= Q(folder=query_dict['folder'])
+
         if query_dict.get('attach_filename'):
             query |= Q(attachments__filename__contains=re.escape(q_str))
 

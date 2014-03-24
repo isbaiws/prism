@@ -1,5 +1,6 @@
 {% for usr in users %}
     <p>用户名: {{ usr }}</p>
     <p>所属组: {{ usr.groups }}</p>
+    <p>设备: {{ usr.device_ids| join:", " }}</p>
     <p>管理: {{ usr.groups_in_charge| join:", " }}</p>
 {% endfor %}
