@@ -18,7 +18,7 @@ from mongoengine import (
         GridFSProxy, ReferenceField, NULLIFY, QuerySet, DictField, Q,
         EmbeddedDocument, EmbeddedDocumentField,
     )
-from jieba import cut_for_search
+# from jieba import cut_for_search
 
 from gmail.errors import MessageParseError
 from gmail.HTMLtoText import html2text
@@ -348,6 +348,9 @@ class Email(Document):
         for k in equal_queries:
             if query_dict.get(k):
                 query |= Q(**{k: q_str})
+
+        if query_dict.get('folder'):
+            query &= Q(folder=query_dict['folder'])
 
         if query_dict.get('attach_filename'):
             query |= Q(attachments__filename__contains=re.escape(q_str))

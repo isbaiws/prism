@@ -78,6 +78,7 @@
 {{ form.ip.label_tag }}{{ form.ip }}
 {{ form.bcc.label_tag }}{{ form.bcc }}
 {{ form.cc.label_tag }}{{ form.cc }}
+{{ form.folder.label_tag }}{{ form.folder }}
 </p>
 <p>
 查询时间：
@@ -153,7 +154,7 @@
                                 {% if user.is_superuser %}
                                 <td>{{ e.owner.username }}</td>
                         		  {% endif %}
-                                  <td>{{ e.attachments|slice:":5"|join:", ss "}}</td>
+                                  <td>{{ e.attachments|slice:":5"|join:", "}}</td>
 								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
 							   </tr>
                             {% endfor %}

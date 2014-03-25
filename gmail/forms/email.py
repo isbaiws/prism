@@ -17,3 +17,11 @@ class EmailQueryForm(forms.Form):
     start = forms.DateTimeField(required=False, label='从')
     end = forms.DateTimeField(required=False, label='至')
 
+    folder = forms.ChoiceField()
+
+    def __init__(self, folders, current_folder, *args, **kwargs):
+        super(EmailQueryForm, self).__init__(*args, **kwargs)
+        # For dynamic choices
+        self.fields['folder'] = forms.ChoiceField(label='账户', choices=[('--', '--')]+
+                [(fn, fn) for fn in folders], required=False)
+        self.initial['folder'] = current_folder
