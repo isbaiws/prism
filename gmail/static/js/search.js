@@ -193,9 +193,9 @@ if(targetObj.style.display!="none"){
  
  
 //复选框：
-function checkbox()
+function check()
 {
-var str=document.getElementsByName("box");
+var str=document.form("checkbox");
 var objarray=str.length;
 var chestr="";
 for (i=0;i<objarray;i++)
@@ -205,38 +205,34 @@ for (i=0;i<objarray;i++)
 　　 chestr+=str[i].value+",";
 　 }
 }
+if(chestr == "")
+{
+　 alert("请先选择复选框！");
+}
 var time_from=document.getElementsByName("time_from");
 var time_to=document.getElementsByName("time_to");
 if(Date.parse(time_from[0].value)>Date.parse(time_to[0].value))
 {
 	alert("开始时间不能晚于结束时间！");
 }
-else
-{
-	chestr+=" 查询时间从"+time_from[0].value+"到"+time_to[0].value;
 }
-if(chestr == "")
-{
-　 alert("请先选择复选框～！");
-}
-else
-{
-　 alert("查询内容为："+chestr);
-}
-}
+
+
 function checkall()
 {
-var str=document.getElementsByName("box");
+var str=document.getElementById("form1").elements;
 var objarray=str.length;
 for (i=0;i<objarray;i++)
-{
+{	
 	str[i].checked=true;
 }
 document.getElementById("none").checked=false;
 }
+
+
 function uncheckall()
 {
-var str=document.getElementsByName("box");
+var str=document.getElementById("form1").elements;
 var objarray=str.length;
 for (i=0;i<objarray;i++)
 {
