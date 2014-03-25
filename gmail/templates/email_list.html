@@ -64,11 +64,11 @@
 <table id=adv border="1" width="40%" style="display:none">
 <tr height=60>
 <td align="left">
-<form name="input" action="" method="get">
-<p>全局搜索：<input type="text" name="search" /></p>
+<form id="form1" name="input" action="" method="get">
 <p>
 {{ form.q.label_tag }}{{ form.q }}
-
+</p>
+<p>
 {{ form.from_.label_tag }}{{ form.from_ }}
 {{ form.to.label_tag }}{{ form.to }}
 {{ form.subject.label_tag }}{{ form.subject }}
@@ -89,7 +89,7 @@
 <input type="checkbox" name="all" id="all" onclick="checkall()" value="全选"/>全选
 <input type="checkbox" name="none" id="none" onclick="uncheckall()" value="取消全选" />取消全选
 <input type="reset"	name="reset" value="重置"/>
-<input type="button" name="query" id="query" onclick="checkbox()" value="查询" />
+<input type="submit" name="submit" onclick="check()" value="查询" />
 </p>
 </form>
 </td>
@@ -145,8 +145,8 @@
 								<!--<td><input type="checkbox" class="checkbox" /></td>-->
 								<td>{{e.from_ | slice:":5" | join:", "}}</td>
 								<td>{{e.to | slice:":5" | join:", "}}</td>
-								<td>抄送</td>
-								<td>密送</td>
+								<td>{{e.cc}}</td>
+								<td>{{e.bcc}}</td>
 								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
 								<td>{{e.body_txt}}</td>
 								<td>{% if e.date %}{{ e.date | date:"d/m/Y G:i"  }}{% else %}&nbsp;&nbsp;{% endif %}</td>
