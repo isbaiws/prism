@@ -125,24 +125,50 @@ class Relation(LoginRequiredMixin, TemplateView):
     template_name = 'email_relation.html'
 
 class RelationJson(LoginRequiredMixin, JsonViewMixin):
-    email_patt = re.compile('[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+')
 
     def get(self, request):
-        def extract_email(s):
-            mat = self.email_patt.search(s)
-            if mat:
-                return mat.group()
-            return s
+        return Email.objects.owned_by(self.request.user).exec_js("""
 
-        nodes = []
-        links = []
-        emails = Email.objects.owned_by(self.request.user)
-        for e in emails:
-            from_ = e.from_ if isinstance(e.from_, list) else [e.from_]
-            to = e.to if isinstance(e.to, list) else [e.to]
-            #TODO: efficiency
-            nodes.extend([{'id': extract_email(f), 'text': f} for f in from_])
-            nodes.extend([{'id': extract_email(t), 'text': t} for t in to])
-            links.extend([{'from': extract_email(f), 'to': extract_email(t)} for f in from_ for t in to])
-        return {'nodes': nodes, 'links': links}
+                // Construct an adjacent list
+                // For performance reason, you should only exec it using mongo 2.4 or higher
+                function() { 
+                    var nodes = [];
+                    var links = [];
+                    var email_patt = /\w+@\w+\.\w+/;
+                    db[collection].find(query).forEach(function(doc) {
+                        // Ensure array
+                        var from = [].concat(doc.from_);
+                        var to = [].concat(doc.to);
 
+                        // Construct nodes
+                        var from_id = [];
+                        for(var i=0; i<from.length; ++i) {
+                            var email = email_patt.exec(from[i]);
+                            from_id.push(email? email[0]: from[i])
+                            nodes.push({
+                                'id': from_id[i],
+                                'text': from[i]
+                            });
+                        }
+                        var to_id = [];
+                        for(var i=0; i<to.length; ++i) {
+                            var email = email_patt.exec(to[i]);
+                            to_id.push(email? email[0]: to[i])
+                            nodes.push({
+                                'id': to_id[i],
+                                'text': to[i]
+                            });
+                        }
+                        // Now links
+                        for(var i=0; i<from_id.length; ++i) {
+                            for(var j=0; j<to_id.length; ++j) {
+                                links.push({
+                                    'from': from_id[i],
+                                    'to': to_id[j]
+                                })
+                            }
+                        }
+                    });
+                    return {'nodes': nodes, 'links': links};
+                }
+                """)
