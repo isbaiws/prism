@@ -81,7 +81,8 @@ h3 a{ text-decoration: none; }
 
 
 .table {}
-.table th{ background:#fffdfa url(images/th.gif) repeat-x 0 0; color:#818181; text-align: left; padding:7px 10px; border-bottom:solid 1px #d2d1cb;}
+.table tt{ background:#fffdfa url(images/th.gif) repeat-x 0 0; color:#818181; text-align: center; padding:7px 10px; border-bottom:solid 1px #d2d1cb;}
+.table th{ background:#fffdfa; color:#818181; text-align: center; padding:7px 4px; border-bottom:solid 1px #d2d1cb;}
 .table td{ background:#fbfcfc;  border-bottom:solid 1px #e0e0e0; padding:8px 5px; }
 .table tr.odd td{ background:#f8f8f8; }
 .table tr:hover td{ background:#fff9e1; }
