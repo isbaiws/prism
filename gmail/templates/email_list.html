@@ -10,8 +10,6 @@
 <style>
   body {font-size:12px}
   td {text-align:center}
-  h1 {font-size:26px;}
-  h4 {font-size:16px;}
   em {color:#999; margin:0 10px; font-size:11px; display:block}
 </style>
 	
@@ -35,10 +33,10 @@
 			<ul>
 			    <li><a href="{% url 'email_list' %}" class="active"><span>邮件管理</span></a></li>
 			                       {% if user.is_superuser %}
-				 <li><a href="#"><span>组管理</span></a></li>
+				 <li><a href="{% url 'group_list' %}"><span>组管理</span></a></li>
                                 {% endif %}
                                 {% if user.is_superuser %}
-			    <li><a href="{% url 'user_add' %}"><span>用户管理</span></a></li>
+			    <li><a href="{% url 'user_list' %}"><span>用户管理</span></a></li>
 			    						  {% else %}
 			    <li><a href="{% url 'user_edit' %}"><span>用户信息</span></a></li>
 			                       {% endif %}
@@ -70,14 +68,18 @@
 </p>
 <p>
 {{ form.from_.label_tag }}{{ form.from_ }}
-{{ form.to.label_tag }}{{ form.to }}
+{{ form.to.label_tag }}{{ form.to }}	
 {{ form.subject.label_tag }}{{ form.subject }}
 {{ form.body_txt.label_tag }}{{ form.body_txt }}
 {{ form.attach_filename.label_tag }}{{ form.attach_filename }}
+</p>
+<p>
 {{ form.attach_txt.label_tag }}{{ form.attach_txt }}
 {{ form.ip.label_tag }}{{ form.ip }}
 {{ form.bcc.label_tag }}{{ form.bcc }}
-{{ form.cc.label_tag }}{{ form.cc }}
+{{ form.cc.label_tag }}{{ form.cc }}		
+</p>
+<p>
 {{ form.folder.label_tag }}{{ form.folder }}
 </p>
 <p>

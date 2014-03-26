@@ -33,13 +33,13 @@
 				 <li><a href="#"><span>组管理</span></a></li>
                                 {% endif %}
                                 {% if user.is_superuser %}
-			    <li><a href="{% url 'user_add' %}"><span>用户管理</span></a></li>
+			    <li><a href="{% url 'user_list' %}"><span>用户管理</span></a></li>
 			    						  {% else %}
-			    <li><a href="#"><span>用户信息</span></a></li>
+			    <li><a href="{% url 'user_edit' %}"><span>用户信息</span></a></li>
 			                       {% endif %}
                 <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
                 <li><a href="{% url 'not_implemented' %}" class="active"><span>邮件统计图</span></a></li>
-                <li><a href="{% url 'not_implemented' %}"><span>邮件关系图</span></a></li>
+                <li><a href="{% url 'email_relation' %}"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>
 		<!-- End Main Nav -->

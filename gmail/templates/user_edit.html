@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<title>邮件后台管理</title>
-	<link rel="stylesheet" href="../static/css/style.css" type="text/css" media="all" />
+	<link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all" />
 </head>
 <body>
 <!-- Header -->
@@ -28,13 +28,13 @@
 				 <li><a href="#"><span>组管理</span></a></li>
                                 {% endif %}
                                 {% if user.is_superuser %}
-			    <li><a href="{% url 'user_add' %}" class="active"><span>用户管理</span></a></li>
+			    <li><a href="{% url 'user_list' %}" class="active"><span>用户管理</span></a></li>
 			    						  {% else %}
-			    <li><a href="{% url 'user_edit' %}"><span>用户信息</span></a></li>
+			    <li><a href="{% url 'user_edit' %}" class="active"><span>用户信息</span></a></li>
 			                       {% endif %}
                 <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
                 <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
-                <li><a href="{% url 'not_implemented' %}"><span>邮件关系图</span></a></li>
+                <li><a href="{% url 'email_relation' %}"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>
 		<!-- End Main Nav -->
@@ -60,15 +60,17 @@
 				<div class="box">
 					<!-- Box Head -->
 					<div class="box-head">
-						<h2>用户信息修改</h2>
+						<h2>当前用户信息</h2>
 					</div>
 					<!-- End Box Head -->
 					
-                    <p>用户名: {{ user.username }}</p>
-                    <a href="{% url 'user_password_reset' %}">更改密码</a>
-                    <p>是否管理员: {{ user.is_superuser| yesno:"是,否" }}</p>
-                    <p>设备号: {{ user.device_ids| join:", "| default:"暂无" }}</p>
-                    <p>所属组: {{ user.groups| default:"暂无" }}</p>
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr><td>用户名: {{ user.username }}</td></tr>
+                    <tr><td><a href="{% url 'user_password_reset' %}">更改密码</a></td></tr>
+                    <tr><td>是否管理员: {{ user.is_superuser| yesno:"是,否" }}</td></tr>
+                    <tr><td>设备号: {{ user.device_ids| join:", "| default:"暂无" }}</td></tr>
+                    <tr><td>所属组: {{ user.groups| default:"暂无" }}</td></tr>
+						  </table>
 
 				</div>
 				<!-- End Box -->
