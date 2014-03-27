@@ -58,12 +58,23 @@
 				<div class="box">
 					<!-- Box Head -->
 					<div class="box-head">
-						<h2>添加新用户</h2>
+						<h2>用户密码修改</h2>
 					</div>
 					<!-- End Box Head -->
 					
-               <form action="{% url 'user_edit'%}" method="post">{% csrf_token %}
-						<label>{{ form.as_p }}</label>
+               <form action="" method="post">
+						<p>
+						<label>初始密码：</label>
+						<div  class="login_label">{{ form.old_password }}</div>
+						</p>
+						<p>
+						<label>新密码：</label>
+						<div class="login_label">{{ form.new_password1 }}</div>
+						</p>
+						<p>
+						<label>新密码确认：</label>
+						<div  class="login_label">{{ form.new_password2 }}</div>
+						</p>
 						<div class="buttons">
 							<input type="submit" class="button" value="提交" />
                      <input type="reset" class="button" value="重置"  />

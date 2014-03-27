@@ -73,12 +73,17 @@
 								<th>组长</th>
 								<th>组员</th>
 								<th>管理</th>
+								<th>修改</th>
+								<th>删除</th>
 							</tr>
                             {% for group in groups %}
                         <tr>
 								<td>{{ group.name }}</td>
 								<td>{{ group.managers| join:", " }}</td>
 								<td>{{ group.members }}</td>
+								<td>need to edit</td>/////////need to change
+								<td align="center"><a href="#" class="ico edit">Edit</a></td>
+								<td align="center"><a href="#" class="ico del">Delete</a></td>	
 							   </tr>
                             {% endfor %}
                             

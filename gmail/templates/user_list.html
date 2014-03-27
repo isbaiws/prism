@@ -73,15 +73,15 @@
 								<th>所属组</th>
 								<th>设备</th>
 								<th>管理</th>
-								<th width="110" class="ac">用户信息修改</th>
-								<th width="110" class="ac">用户信息删除</th>
+								<th width="110" class="ac">修改</th>
+								<th width="110" class="ac">删除</th>
 							</tr>
-                            {% for user in users %}
+                            {% for usr in users %}
                         <tr>
-								<td>{{ usr }}</td>
-								<td>{{ usr.groups }}</td>
-								<td>{{ usr.device_ids| join:", " }}</td>
-								<td>{{ usr.groups_in_charge| join:", " }}</td>
+								<td align="center">{{ usr }}</td>
+								<td align="center">{{ usr.groups }}</td>
+								<td align="center">{{ usr.device_ids| join:", " }}</td>
+								<td align="center">{{ usr.groups_in_charge| join:", " }}</td>
 								<td align="center"><a href="{% url 'user_edit' %}" class="ico edit">Edit</a></td>
 								<td align="center"><a href="#" class="ico del">Delete</a></td>		
 							   </tr>

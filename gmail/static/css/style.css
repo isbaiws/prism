@@ -83,7 +83,7 @@ h3 a{ text-decoration: none; }
 .table {}
 .table tt{ background:#fffdfa url(images/th.gif) repeat-x 0 0; color:#818181; text-align: center; padding:7px 10px; border-bottom:solid 1px #d2d1cb;}
 .table th{ background:#fffdfa; color:#818181; text-align: center; padding:7px 4px; border-bottom:solid 1px #d2d1cb;}
-.table td{ background:#fbfcfc;  border-bottom:solid 1px #e0e0e0; padding:8px 5px; }
+.table td{ background:#fbfcfc;  border-bottom:solid 1px #e0e0e0; padding:8px 5px; text-align: center;}
 .table tr.odd td{ background:#f8f8f8; }
 .table tr:hover td{ background:#fff9e1; }
 .table a.ico{ }
@@ -170,3 +170,10 @@ textarea.size1 { height:180px; }
 .msg p { -moz-border-radius:6px; -webkit-border-radius:6px; }
 
 .button { -moz-box-shadow: 0 0 2px #978f6c; -webkit-box-shadow: 0 0 2px #978f6c;}
+
+ .login_label{
+  display:inline-block;
+  width:70px;
+  padding-right:10px;
+  text-align:right;
+ }
