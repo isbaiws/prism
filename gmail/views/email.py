@@ -17,31 +17,45 @@ from .mixins import LoginRequiredMixin, JsonViewMixin
 
 logger = logging.getLogger(__name__)
 
-class EmailList(LoginRequiredMixin, ListView):
+class FolderMixin(object):
+
+    def dispatch(self, *args, **kwargs):
+        self.folders = self.get_folder_list()
+
+        self.current_folder = kwargs.get('folder', '')
+        if self.current_folder:
+            if self.current_folder not in self.folders:
+                raise Http404('No folder found')
+        elif self.folders:
+            return HttpResponseRedirect(reverse(self.view_name, args=(self.folders[0],)))
+        else:
+            # Only emaillist can take this walk
+            self.get_queryset = lambda self: []
+        return super(FolderMixin, self).dispatch(*args, **kwargs)
+
+    def get_folder_list(self):
+        folders = Email.objects.owned_by(self.request.user).distinct('folder')
+        # I trapped myself by setting nonexist values to None so mongoengine
+        # won't save it, but now it comes back to bite me!
+        return [f for f in folders if f is not None]
+
+
+class EmailList(LoginRequiredMixin, FolderMixin, ListView):
     template_name = 'email_list.html'
     context_object_name = 'emails'
     paginate_by = 20
-
-    def get(self, *args, **kwargs):
-        self.folders = self.get_folder_list()
-
-        if 'folder' not in self.kwargs and self.folders:
-            return HttpResponseRedirect(reverse('email_list', args=(self.folders[0],)))
-        return super(EmailList, self).get(*args, **kwargs)
+    view_name = 'email_list'
 
     def get_queryset(self):
         if not self.folders:
             return []
 
-        current_folder = self.kwargs.get('folder', None)
-        if current_folder not in self.folders:
-            raise Http404('No folder found')
-        form = EmailQueryForm(self.folders, current_folder, self.request.GET)
+        form = EmailQueryForm(self.folders, self.current_folder, self.request.GET)
         form.is_valid()  # We don't care, just clean it for us
         # The order doesn't matter, since we have user & folder indexed,
         # it will be used first
         if not form.cleaned_data.get('folder'):
-            form.cleaned_data['folder'] = current_folder
+            form.cleaned_data['folder'] = self.current_folder
         elif form.cleaned_data.get('folder') == '--':
             form.cleaned_data.pop('folder')
         return Email.find(form.cleaned_data).owned_by(self.request.user)
@@ -49,15 +63,10 @@ class EmailList(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(EmailList, self).get_context_data(**kwargs)
         context['folders'] = self.folders
-        context['current_folder'] = self.kwargs.get('folder', '')
+        context['current_folder'] = self.current_folder
         context['form'] = EmailQueryForm(self.folders, context['current_folder'])
         return context
 
-    def get_folder_list(self):
-        folders = Email.objects.owned_by(self.request.user).distinct('folder')
-        # I trapped myself by setting nonexist values to None so mongoengine
-        # won't save it, but now it comes back to bite me!
-        return [f for f in folders if f is not None]
 
 class EmailDetail(LoginRequiredMixin, DetailView):
     template_name = 'email_detail.html'
@@ -112,63 +121,116 @@ class Delete(LoginRequiredMixin, View):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER')
                 or reverse('email_list'))
 
-class TimeLine(LoginRequiredMixin, TemplateView):
+class TimeLine(LoginRequiredMixin, FolderMixin, TemplateView):
     template_name = 'email_timeline.html'
+    view_name = 'email_timeline'
 
-class TimeLineJson(LoginRequiredMixin, JsonViewMixin):
+    def get_context_data(self, **kwargs):
+        context = super(TimeLine, self).get_context_data(**kwargs)
+        context['current_folder'] = self.current_folder
+        return context
 
-    def get(self, request):
+class TimeLineJson(LoginRequiredMixin, FolderMixin, JsonViewMixin):
+    view_name = 'email_timeline_json'
+
+    def get(self, request, folder):
         return [{'date': e.date, 'url': reverse('email_detail', args=(e.id,)),
-                'subject': e.subject} for e in Email.objects.owned_by(request.user)]
+                'subject': e.subject} for e in 
+                Email.objects.owned_by(request.user).under(folder)]
 
-class Relation(LoginRequiredMixin, TemplateView):
+class Relation(LoginRequiredMixin, FolderMixin, TemplateView):
     template_name = 'email_relation.html'
+    view_name = 'email_relation'
 
-class RelationJson(LoginRequiredMixin, JsonViewMixin):
+    def get_context_data(self, **kwargs):
+        context = super(Relation, self).get_context_data(**kwargs)
+        context['current_folder'] = self.current_folder
+        return context
 
-    def get(self, request):
-        return Email.objects.owned_by(self.request.user).exec_js("""
+
+class RelationJson(LoginRequiredMixin, FolderMixin, JsonViewMixin):
+    view_name = 'email_relation_json'
+
+    def get(self, request, folder):
+        threshold = self.request.GET.get('threshold', 1)
+        try:
+            threshold = int(threshold)
+        except ValueError:
+            threshold = 1
+
+        return Email.objects.owned_by(self.request.user). \
+            under(folder).exec_js("""
 
                 // Construct an adjacent list
                 // For performance reason, you should only exec it using mongo 2.4 or higher
-                function() { 
-                    var nodes = [];
-                    var links = [];
-                    var email_patt = /\w+@\w+\.\w+/;
-                    db[collection].find(query).forEach(function(doc) {
-                        // Ensure array
-                        var from = [].concat(doc.from_);
-                        var to = [].concat(doc.to);
 
-                        // Construct nodes
-                        var from_id = [];
-                        for(var i=0; i<from.length; ++i) {
-                            var email = email_patt.exec(from[i]);
-                            from_id.push(email? email[0]: from[i])
-                            nodes.push({
-                                'id': from_id[i],
-                                'text': from[i]
-                            });
-                        }
-                        var to_id = [];
-                        for(var i=0; i<to.length; ++i) {
-                            var email = email_patt.exec(to[i]);
-                            to_id.push(email? email[0]: to[i])
-                            nodes.push({
-                                'id': to_id[i],
-                                'text': to[i]
-                            });
-                        }
-                        // Now links
-                        for(var i=0; i<from_id.length; ++i) {
-                            for(var j=0; j<to_id.length; ++j) {
-                                links.push({
-                                    'from': from_id[i],
-                                    'to': to_id[j]
-                                })
-                            }
-                        }
-                    });
-                    return {'nodes': nodes, 'links': links};
+function() { 
+    var node = {};
+    var connection = {};
+    var relation = {};
+    // Email address is in the form of
+    // "name <account@example.com>"
+    var email_patt = /\w+@\w+\.\w+/;
+    db[collection].find(query).forEach(function(doc) {
+        // Ensure array
+        var from = [].concat(doc.from_);
+        var to = [].concat(doc.to);
+
+        // Clean up data
+        var from_id = [];
+        for(var i=0; i<from.length; ++i) {
+            var email = email_patt.exec(from[i]);
+            from_id.push(email? email[0]: from[i]);
+            node[from_id[i]] = from[i];
+            connection[from_id[i]] = connection[from_id[i]] || {}
+        }
+        var to_id = [];
+        for(var i=0; i<to.length; ++i) {
+            var email = email_patt.exec(to[i]);
+            to_id.push(email? email[0]: to[i]);
+            node[to_id[i]] = to[i];
+            connection[to_id[i]] = connection[to_id[i]] || {}
+        }
+
+        // Relations
+        for(var i=0; i<from_id.length; ++i) {
+            for(var j=0; j<to_id.length; ++j) {
+                var f=from_id[i], t=to_id[j];
+                if(connection[t][f]) {
+                    connection[t][f] -= 1;
+                    // Ensure key(f,t) is the same as key(t,f)
+                    if(f>t){ f = [t, t=f][0]; }
+                    relation[f] = relation[f] || {};
+                    // I really miss defaultdict in python
+                    relation[f][t] = (relation[f][t] || 0) + 1;
+                } else {
+                    connection[f][t] = (connection[f][t] || 0) + 1;
                 }
-                """)
+            }
+        }
+    });
+    var vertex=[], edge=[];
+    for(var f in relation) {
+        for(var t in relation[f]) {
+            if(relation[f][t] >= options.threshold) {
+                // TODO duplicated 
+                vertex.push({
+                    'id': f,
+                    'text': node[f]
+                });
+                vertex.push({
+                    'id': t,
+                    'text': node[t]
+                });
+                edge.push({
+                    'from': f,
+                    'to': t,
+                    'value': relation[f][t],
+                    'title': relation[f][t]
+                });
+            }
+        }
+    }
+    return {'nodes': vertex, 'links': edge};
+}
+                """, threshold=threshold)
