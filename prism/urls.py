@@ -20,7 +20,7 @@ urlpatterns = patterns('',
     url(r'^group/add$', views.GroupAdd.as_view(), name='group_add'),
 
     # url(r'^email$', views.EmailList.as_view(), name='email_list'),
-    url(r'^email/folder$', views.EmailList.as_view(), name='email_list'),
+    url(r'^email/folder$', views.EmailList.as_view(), name='email_list', kwargs={'folder': None}),
     url(r'^email/folder/(?P<folder>.+)$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/resource/(?P<rid>\w{24})$', views.Resource.as_view(), name='resource'),
     url(r'^email/search$', views.Search.as_view(), name='email_search'),

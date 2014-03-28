@@ -22,15 +22,14 @@ class FolderMixin(object):
     def dispatch(self, *args, **kwargs):
         self.folders = self.get_folder_list()
 
-        self.current_folder = kwargs.get('folder', '')
+        self.current_folder = kwargs.get('folder', None)
         if self.current_folder:
             if self.current_folder not in self.folders:
                 raise Http404('No folder found')
         elif self.folders:
             return HttpResponseRedirect(reverse(self.view_name, args=(self.folders[0],)))
         else:
-            # Only emaillist can take this walk
-            self.get_queryset = lambda self: []
+            self.get_queryset = lambda : []
         return super(FolderMixin, self).dispatch(*args, **kwargs)
 
     def get_folder_list(self):
