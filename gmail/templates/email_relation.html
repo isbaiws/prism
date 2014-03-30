@@ -59,7 +59,7 @@
 			    <li><a href="{% url 'user_edit' %}"><span>用户信息</span></a></li>
 			                       {% endif %}
              <li><a href="{% if current_folder %}{% url 'email_timeline' current_folder %}{% else %}{% url 'email_timeline' %}{% endif %}"><span>事件时间轴</span></a></li>
-             <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
+             <li><a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}"><span>邮件统计图</span></a></li>
              <li><a href="{% if current_folder %}{% url 'email_relation'  current_folder %}{% else %}{% url 'email_relation'  %}{% endif %}"  class="active"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>

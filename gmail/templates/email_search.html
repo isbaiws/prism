@@ -130,8 +130,8 @@ function GetRow()
 			    <li><a href="{% url 'user_detail' %}"><span>用户信息</span></a></li>
 			                       {% endif %}
                 <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
-                <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
-                <li><a href="{% url 'not_implemented' %}"><span>邮件关系图</span></a></li>
+                <li><a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}"><span>邮件统计图</span></a></li>
+                <li><a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>
 		<!-- End Main Nav -->
