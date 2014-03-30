@@ -23,7 +23,7 @@
 		<!-- Main Nav -->
 		<div id="navigation">
 			<ul>
-			    <li><a href="{% url 'email_list' 'current_folder'%}"><span>邮件管理</span></a></li>
+			    <li><a href="{% url 'email_list' %}"><span>邮件管理</span></a></li>
 			    			    			           {% if user.is_superuser %}
 				 <li><a href="#"><span>组管理</span></a></li>
                                 {% endif %}
@@ -32,9 +32,9 @@
 			    						  {% else %}
 			    <li><a href="{% url 'user_edit' %}" class="active"><span>用户信息</span></a></li>
 			                       {% endif %}
-                <li><a href="{% url 'email_timeline' 'current_folder'%}"><span>事件时间轴</span></a></li>
+                <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
                 <li><a href="{% url 'not_implemented' %}"><span>邮件统计图</span></a></li>
-                <li><a href="{% url 'email_relation' 'current_folder'%}"><span>邮件关系图</span></a></li>
+                <li><a href="{% url 'email_relation' %}"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>
 		<!-- End Main Nav -->

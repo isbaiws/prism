@@ -71,18 +71,43 @@
 		<div id="main">
 			<div class="cl">&nbsp;</div>
 			
-			<!-- LeftSideBar -->
-			
-			<div id="leftbar___">
-                <ul>
+	<!-- leftbar_list -->
+			<div id="leftbar_list">
+				
+				<!-- Box -->
+				<div class="box">
+					
+					<!-- Box Head -->
+					<div class="box-head">
+						<h2>邮箱用户</h2>
+					</div>
+					<!-- End Box Head-->
+						
+						<!-- Sort -->
+						<div class="sort">
+						 
                     {% for folder in folders%}
+                    {% if folder = current_folder %} 
+                    <label>
                     <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>
-                    {% endfor %}
-                </ul>
-			</div>	
+                    </label>
+                    {% else %}
+                    <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>
+                    {% endif %}
+                    {% endfor %}  
+                   
+						<div class="cl">&nbsp;</div>
+						</div>
+						<!-- End Sort -->
+						
+					</div>
+				</div>
+				<!-- End Box -->
+			</div>
+			<!-- End leftbar_list -->
 
-			<!-- Content -->
-			<div id="content">			
+			<!-- Content_list -->
+			<div id="content_list">			
 				<!-- Box -->
 				<div class="box">		
 					<!-- Box Head -->
@@ -103,7 +128,7 @@
 		<!-- Main -->
 	</div>
 </div>
-<!-- End Container -->
+<!-- End Container_list -->
 
 
 <!-- Footer -->
