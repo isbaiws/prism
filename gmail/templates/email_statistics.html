@@ -1,8 +1,7 @@
 <head>
+    <script type="text/javascript" src="/static/js/jquery-1.9.0.min.js"></script>
     <script src="/static/js/amcharts/amcharts.js" type="text/javascript"></script>
     <script src="/static/js/amcharts/serial.js" type="text/javascript"></script>
-    <script src="/static/js/amcharts/amstock.js" type="text/javascript"></script>
-    <link rel="stylesheet" href="/static/css/amcharts_stock_style.css" type="text/css">
 </head>
 
 <body>
@@ -11,63 +10,80 @@
     <div id="chartdiv" style="width:100%; height:400px;"></div>
 <script>
 AmCharts.ready(function(){
-var chart = AmCharts.makeChart("chartdiv", {
-        "type": "serial",
-        "theme": "none",
-        "pathToImages": "http://www.amcharts.com/lib/3/images/",
-        // "dataDateFormat": "YYYY-MM-DD",
-        "valueAxes": [{
-            "axisAlpha": 0,
-            "position": "left"
-        }],
-        "graphs": [{
-            "id": "g1",
-            "bullet": "round",
-            "bulletBorderAlpha": 1,
-            "bulletColor": "#FFFFFF",
-            "bulletSize": 5,
-            "hideBulletsCount": 50,
-            "lineThickness": 2,
-            "title": "red line",
-            "useLineColorForBulletBorder": true,
-            "valueField": "value"
-        }],
-        "chartScrollbar": {
-            "graph": "g1",
-            "scrollbarHeight": 30
-        },
-        "chartCursor": {
-            "cursorPosition": "mouse",
-            "pan": true
-        },
-        "categoryField": "date",
-        "categoryAxis": {
-            "parseDates": true,
-            "dashLength": 1,
-            "minorGridEnabled": true,
-            "position": "top"
-        },
-        exportConfig:{
-          menuRight: '20px',
-          menuBottom: '50px',
-          menuItems: [{
-          icon: 'http://www.amcharts.com/lib/3/images/export.png',
-          format: 'png'   
-          }]  
-        },
-        "dataProvider": [{
-            'date': 1383401950000,
-            'value': 1
-        }]
+    var data_provider = [];
+    var chart = AmCharts.makeChart("chartdiv", {
+            "type": "serial",
+            "theme": "none",
+            "pathToImages": "/static/js/amcharts/images/",
+            "dataDateFormat": "YYYY-MM-DD",
+            "valueAxes": [{
+                "axisAlpha": 0,
+                "position": "left"
+            }],
+            "graphs": [{
+                "id": "g1",
+                "bullet": "round",
+                "bulletBorderAlpha": 1,
+                "bulletColor": "#FFFFFF",
+                "bulletSize": 5,
+                "hideBulletsCount": 50,
+                "lineThickness": 2,
+                "title": "red line",
+                "useLineColorForBulletBorder": true,
+                "valueField": "value"
+            }],
+            "chartScrollbar": {
+                "graph": "g1",
+                "scrollbarHeight": 30
+            },
+            "chartCursor": {
+                "cursorPosition": "mouse",
+                "pan": true
+            },
+            "categoryField": "date",
+            "categoryAxis": {
+                "parseDates": true,
+                "dashLength": 1,
+                "minorGridEnabled": true,
+                "position": "bottom"
+            },
+            exportConfig:{
+              menuRight: '20px',
+              menuBottom: '50px',
+              menuItems: [{
+              icon: '/static/js/amcharts/images/export.png',
+              format: 'png'   
+              }]  
+            },
+            "dataProvider": data_provider
+        }
+    );
+
+
+    $.getJSON('{% if current_folder %}{% url "email_statistics_json" current_folder %}{% else %}{% url "email_statistics_json" %}{% endif %}', function(data){
+        var yAxis = {};
+        $(data).each(function(idx, ele){
+            var d = parseInt(ele.date);
+            yAxis[d] = (yAxis[d] || 0) + parseInt(ele.value);
+        });
+        $.each(yAxis, function(date, value){
+            date = new Date(parseInt(date));
+            data_provider.push({
+                'date': date,
+                'value': value
+            });
+        });
+        // Ensure ordered, otherwise it won't show, SHIT!!!
+        data_provider.sort(function(a, b){return a.date > b.date;})
+        chart.validateData();
+    })
+
+    chart.addListener("rendered", zoomChart);
+
+    zoomChart();
+    function zoomChart(){
+        chart.zoomToIndexes(chart.dataProvider.length - 40, chart.dataProvider.length - 1);
     }
-);
-
-chart.addListener("rendered", zoomChart);
-
-zoomChart();
-function zoomChart(){
-    chart.zoomToIndexes(chart.dataProvider.length - 40, chart.dataProvider.length - 1);
-}
 });
 </script>
 </body>

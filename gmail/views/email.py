@@ -117,10 +117,10 @@ class Search(LoginRequiredMixin, edit.FormView):
 class Delete(LoginRequiredMixin, View):
 
     def get(self, request, eid=None):
-        # NOTE, need first() to call customized delete method
         for eid in request.GET.getlist('eid', []):
             if not ObjectId.is_valid(eid):
                 continue
+            # NOTE, need first() to call customized delete method
             e = Email.objects(id=eid).first()
             if not e:
                 # TODO, test case to ensure it won't happen again
@@ -153,9 +153,10 @@ class Statistics(LoginRequiredMixin, FolderMixin, TemplateView):
     template_name = 'email_statistics.html'
     view_name = 'email_statistics'
 
-class StatisticsJson(LoginRequiredMixin, FolderMixin, JsonViewMixin):
+class StatisticsJson(LoginRequiredMixin, JsonViewMixin):
     def get(self, request, folder):
-        return []
+        return [{'date': e.date, 'value': 1} for e in
+                Email.objects.owned_by(request.user).under(folder)]
 
 
 class Relation(LoginRequiredMixin, FolderMixin, TemplateView):
