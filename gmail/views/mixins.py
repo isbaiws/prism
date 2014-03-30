@@ -29,7 +29,7 @@ class MyJsonEncoder(JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
-            return int(mktime(obj.timetuple()))
+            return int(mktime(obj.timetuple()))*1000
         elif isinstance(obj, ObjectId):
             return str(obj)
         return super(MyJsonEncoder, self).default(obj)
@@ -40,5 +40,4 @@ class JsonViewMixin(View):
     def dispatch(self, request, *args, **kwargs):
         d = super(JsonViewMixin, self).dispatch(request, *args, **kwargs)
         return HttpResponse(dumps(d, cls=MyJsonEncoder), content_type=self.content_type)
-
 
