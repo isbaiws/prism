@@ -7,11 +7,11 @@ from django.core.urlresolvers import reverse
 
 from gmail.forms import GroupAddForm
 from gmail.models import Group, User
-from .mixins import LoginRequiredMixin, AdminRequired, FolderMixin
+from .mixins import LoginRequiredMixin, AdminRequired
 
 logger = logging.getLogger(__name__)
 
-class GroupList(LoginRequiredMixin, AdminRequired, FolderMixin, ListView):
+class GroupList(LoginRequiredMixin, AdminRequired, ListView):
     template_name = 'group_list.html'
     context_object_name = 'groups'
 
@@ -29,7 +29,7 @@ class GroupList(LoginRequiredMixin, AdminRequired, FolderMixin, ListView):
             groups.append({'name': g.name, 'manager_names': manager_names})
         return groups
 
-class GroupAdd(LoginRequiredMixin, AdminRequired, FolderMixin, FormView):
+class GroupAdd(LoginRequiredMixin, AdminRequired, FormView):
     template_name = 'group_add.html'
     form_class = GroupAddForm
 

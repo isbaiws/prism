@@ -10,11 +10,11 @@ from django.http import HttpResponseRedirect
 
 from gmail.forms import UserAddForm, PasswordResetForm
 from gmail.models import User
-from .mixins import LoginRequiredMixin, AdminRequired, FolderMixin
+from .mixins import LoginRequiredMixin, AdminRequired
 
 logger = logging.getLogger(__name__)
 
-class AddUser(LoginRequiredMixin, AdminRequired, FolderMixin, FormView):
+class AddUser(LoginRequiredMixin, AdminRequired, FormView):
     template_name = 'user_add.html'
     form_class = UserAddForm
 
@@ -23,16 +23,18 @@ class AddUser(LoginRequiredMixin, AdminRequired, FolderMixin, FormView):
         groups = [d['group']] if d['group'] else []
         User.create_user(d['username'], d['password1'], d['is_superuser'], groups)
         logger.info('%s created a %suser: %s', self.request.user.username, 
-                ['', 'super '][form.cleaned_data['is_superuser']], form.cleaned_data['username'])
+                ['', 'super '][form.cleaned_data['is_superuser']], form.cleaned_data['username'],
+                extra=self.request.__dict__)
         return super(AddUser, self).form_valid(form)
 
     def get_success_url(self):
-        return reverse('user_edit')
+        referer = self.request.META.get('HTTP_REFERER') or reverse('user_list')
+        return referer
 
-class UserDetail(LoginRequiredMixin, FolderMixin, TemplateView):
+class UserDetail(LoginRequiredMixin, TemplateView):
     template_name = 'user_detail.html'
 
-class UserEdit(LoginRequiredMixin, FolderMixin, FormView):
+class UserEdit(LoginRequiredMixin, FormView):
     template_name = 'user_edit.html'
     form_class = UserAddForm
 
@@ -46,7 +48,7 @@ class UserEdit(LoginRequiredMixin, FolderMixin, FormView):
     def get_success_url(self):
         return reverse('user_edit')
 
-class PasswordEdit(LoginRequiredMixin, FolderMixin, FormView):
+class PasswordEdit(LoginRequiredMixin, FormView):
     template_name = 'user_passwd_edit.html'
     form_class = PasswordResetForm
 
@@ -63,7 +65,7 @@ class PasswordEdit(LoginRequiredMixin, FolderMixin, FormView):
         return reverse('user_edit')
 
 
-class UserList(LoginRequiredMixin, AdminRequired, FolderMixin, ListView):
+class UserList(LoginRequiredMixin, AdminRequired, ListView):
     template_name = 'user_list.html'
     context_object_name = 'users'
 

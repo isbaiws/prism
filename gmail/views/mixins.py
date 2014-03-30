@@ -42,31 +42,3 @@ class JsonViewMixin(View):
         return HttpResponse(dumps(d, cls=MyJsonEncoder), content_type=self.content_type)
 
 
-class FolderMixin(object):
-
-    def dispatch(self, *args, **kwargs):
-        self.folders = self.get_folder_list()
-
-        self.current_folder = kwargs.get('folder', None)
-        if self.current_folder:
-            if self.current_folder not in self.folders:
-                raise Http404('No folder found')
-        elif self.folders:
-            return HttpResponseRedirect(reverse(self.view_name, args=(self.folders[0],)))
-        else:
-            self.get_queryset = lambda : []
-        return super(FolderMixin, self).dispatch(*args, **kwargs)
-
-    def get_folder_list(self):
-        folders = Email.objects.owned_by(self.request.user).distinct('folder')
-        # I trapped myself by setting nonexist values to None so mongoengine
-        # won't save it, but now it comes back to bite me!
-        return [f for f in folders if f is not None]
-
-    def get_context_data(self, **kwargs):
-        context = super(FolderMixin, self).get_context_data(**kwargs)
-        context['folders'] = self.folders
-        context['current_folder'] = self.current_folder
-        return context
-
-
