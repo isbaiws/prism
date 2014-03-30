@@ -6,8 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http.response import HttpResponse
 from django.views.generic import View
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
+from django.core.urlresolvers import reverse
 from bson.objectid import ObjectId
+
+from gmail.models import Email
 
 class LoginRequiredMixin(View):
     """ from http://stackoverflow.com/a/6455140 """
@@ -37,4 +40,5 @@ class JsonViewMixin(View):
     def dispatch(self, request, *args, **kwargs):
         d = super(JsonViewMixin, self).dispatch(request, *args, **kwargs)
         return HttpResponse(dumps(d, cls=MyJsonEncoder), content_type=self.content_type)
+
 

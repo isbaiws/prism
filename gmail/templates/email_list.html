@@ -186,7 +186,7 @@
                                 <td>{{ e.owner.username }}</td>
                         		  {% endif %}
                                   <td>{{ e.attachments|slice:":5"|join:", "}}</td>
-								<td align="center"><a href="{% url 'delete_email' e.id %}" class="ico del">Delete</a></td>
+								<td align="center"><a href="{% url 'email_delete' e.id %}" class="ico del">Delete</a></td>
 							   </tr>
                             {% endfor %}
 						</table>					

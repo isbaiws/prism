@@ -1,10 +1,9 @@
 import ipdb
 import logging
 
-from django.views.generic import ListView, TemplateView, View
+from django.views.generic import ListView
 from django.views.generic.edit import FormView
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 
 from gmail.forms import GroupAddForm
 from gmail.models import Group, User

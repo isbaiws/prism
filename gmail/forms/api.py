@@ -1,6 +1,6 @@
 # coding: utf-8
 from __future__ import absolute_import
-from collections import defaultdict
+import re
 import ipdb
 from uuid import UUID
 import logging
@@ -159,15 +159,17 @@ class UploadForm(ApiForm):
         for ele in self.cleaned_data['data']:
             # Try triger keyerror
             ele['id'], ele['typeid'], ele['data']
-	    if not isinstance(ele['data'], dict):
-                raise ApiValidationError(INVALID_REQ, 'data.data should be a dict')
+            if not isinstance(ele['data'], dict):
+                    raise ApiValidationError(INVALID_REQ, 'data.data should be a dict')
 
-            ele['data']['folder'], ele['data']['content']
-	    if not isinstance(ele['data']['content'], str):
-                raise ApiValidationError(INVALID_REQ, 'data.content should be binary')
-            # if not isinstance(ele['id'], int):
-            #     raise ApiValidationError(INVALID_REQ, 'Id should be an integer')
-            #TODO, correct docs
+            email_mat = re.search(r'\w+@\w+\.\w+', ele['data']['folder'])
+            if email_mat:
+                ele['data']['folder'] = email_mat.group()
+            if not isinstance(ele['data']['content'], str):
+                    raise ApiValidationError(INVALID_REQ, 'data.content should be binary')
+                # if not isinstance(ele['id'], int):
+                #     raise ApiValidationError(INVALID_REQ, 'Id should be an integer')
+                #TODO, correct docs
             if not isinstance(ele['typeid'], int):
                 raise ApiValidationError(INVALID_REQ, 'Typeid should be an integer')
 

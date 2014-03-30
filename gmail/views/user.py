@@ -23,11 +23,13 @@ class AddUser(LoginRequiredMixin, AdminRequired, FormView):
         groups = [d['group']] if d['group'] else []
         User.create_user(d['username'], d['password1'], d['is_superuser'], groups)
         logger.info('%s created a %suser: %s', self.request.user.username, 
-                ['', 'super '][form.cleaned_data['is_superuser']], form.cleaned_data['username'])
+                ['', 'super '][form.cleaned_data['is_superuser']], form.cleaned_data['username'],
+                extra=self.request.__dict__)
         return super(AddUser, self).form_valid(form)
 
     def get_success_url(self):
-        return reverse('user_edit')
+        referer = self.request.META.get('HTTP_REFERER') or reverse('user_list')
+        return referer
 
 class UserDetail(LoginRequiredMixin, TemplateView):
     template_name = 'user_detail.html'

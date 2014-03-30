@@ -28,7 +28,7 @@ class FolderMixin(object):
                 raise Http404('No folder found')
         elif self.folders:
             return HttpResponseRedirect(reverse(self.view_name, args=(self.folders[0],)))
-        else:
+        else:  # current_folder: None, folders: []
             self.get_queryset = lambda : []
         return super(FolderMixin, self).dispatch(*args, **kwargs)
 
@@ -38,6 +38,11 @@ class FolderMixin(object):
         # won't save it, but now it comes back to bite me!
         return [f for f in folders if f is not None]
 
+    def get_context_data(self, **kwargs):
+        context = super(FolderMixin, self).get_context_data(**kwargs)
+        context['folders'] = self.folders
+        context['current_folder'] = self.current_folder
+        return context
 
 class EmailList(LoginRequiredMixin, FolderMixin, ListView):
     template_name = 'email_list.html'
@@ -61,8 +66,6 @@ class EmailList(LoginRequiredMixin, FolderMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(EmailList, self).get_context_data(**kwargs)
-        context['folders'] = self.folders
-        context['current_folder'] = self.current_folder
         context['form'] = EmailQueryForm(self.folders, context['current_folder'])
         return context
 
@@ -105,18 +108,23 @@ class Search(LoginRequiredMixin, edit.FormView):
 
 class Delete(LoginRequiredMixin, View):
 
-    def get(self, request, eid):
+    def get(self, request, eid=None):
         # NOTE, need first() to call customized delete method
-        e = Email.objects(id=eid).first()
-        if not e:
-            # TODO, test case to ensure it won't happen again
-            raise Http404('Email not found')
-        if not e.has_perm(request.user, 'delete_email'):
-            raise Http404('Email not found')
-        # Why need this folder if there is no email in it?
-        # if Email.objects.owned_by(request.user).under(e.folder).count() == 1:
-        #     request.user.update(pull__folders=e.folder)
-        e.delete()
+        for eid in request.GET.getlist('eid', []):
+            if not ObjectId.is_valid(eid):
+                continue
+            e = Email.objects(id=eid).first()
+            if not e:
+                # TODO, test case to ensure it won't happen again
+                continue
+            if not e.has_perm(request.user, 'email_delete'):
+                logger.warning("%s tries to delete email %s(%s)", request.user.username, e.subject,
+                        e.id, extra=self.request.__dict__)
+                continue
+            # Why need this folder if there is no email in it?
+            # if Email.objects.owned_by(request.user).under(e.folder).count() == 1:
+            #     request.user.update(pull__folders=e.folder)
+            e.delete()
         return HttpResponseRedirect(request.META.get('HTTP_REFERER')
                 or reverse('email_list'))
 
@@ -143,7 +151,6 @@ class Relation(LoginRequiredMixin, FolderMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Relation, self).get_context_data(**kwargs)
-        context['current_folder'] = self.current_folder
         return context
 
 

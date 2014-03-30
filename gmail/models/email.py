@@ -373,5 +373,10 @@ class Email(Document):
         self.source.delete()
 
     def has_perm(self, user, whatever):
-        return user.is_superuser or self.owner.id == user.id
+        if user.is_superuser or self.owner.id == user.id:
+            return True
+        for group in self.owner.groups:
+            if user in group.managers:
+                return True
+        return False
 
