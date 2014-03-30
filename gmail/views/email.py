@@ -108,18 +108,23 @@ class Search(LoginRequiredMixin, edit.FormView):
 
 class Delete(LoginRequiredMixin, View):
 
-    def get(self, request, eid):
+    def get(self, request, eid=None):
         # NOTE, need first() to call customized delete method
-        e = Email.objects(id=eid).first()
-        if not e:
-            # TODO, test case to ensure it won't happen again
-            raise Http404('Email not found')
-        if not e.has_perm(request.user, 'delete_email'):
-            raise Http404('Email not found')
-        # Why need this folder if there is no email in it?
-        # if Email.objects.owned_by(request.user).under(e.folder).count() == 1:
-        #     request.user.update(pull__folders=e.folder)
-        e.delete()
+        for eid in request.GET.getlist('eid', []):
+            if not ObjectId.is_valid(eid):
+                continue
+            e = Email.objects(id=eid).first()
+            if not e:
+                # TODO, test case to ensure it won't happen again
+                continue
+            if not e.has_perm(request.user, 'delete_email'):
+                logger.warning("%s tries to delete email %s(%s)", request.user.username, e.subject,
+                        e.id, extra=self.request.__dict__)
+                continue
+            # Why need this folder if there is no email in it?
+            # if Email.objects.owned_by(request.user).under(e.folder).count() == 1:
+            #     request.user.update(pull__folders=e.folder)
+            e.delete()
         return HttpResponseRedirect(request.META.get('HTTP_REFERER')
                 or reverse('email_list'))
 

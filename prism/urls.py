@@ -35,6 +35,7 @@ urlpatterns = patterns('',
     # url(r'^email/timeline\.json$', views.TimeLine.as_view(), {'is_ajax': True}, name='email_timeline_ajax'),
     url(r'^email/(?P<eid>\w{24})$', views.EmailDetail.as_view(), name='email_detail'),
     url(r'^email/(?P<eid>\w{24})/delete$', views.Delete.as_view(), name='delete_email'),
+    url(r'^email/delete$', views.Delete.as_view(), name='delete_email'),
 
     url(r'^api/upload$', views.ApiUpload.as_view(), name='api_upload'),
     url(r'^api/init$', views.ApiInit.as_view(), name='api_init'),
@@ -43,5 +44,5 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
     url(r'^not-implemented$', views.not_implemented, name='not_implemented'),
-    url(r'^debug$', views.debug, name='debug'),
+    # url(r'^debug$', views.debug, name='debug'),
 )
