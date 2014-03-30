@@ -56,7 +56,7 @@
 			
 <table border="0" width="40%">
 <tr>
-<td><a href="javascript:displaylist()"><span id=advtext>邮件全局搜索查询</span></a></td>
+<td><a href="javascript:displaylist()"><span id=advtext>邮件搜索查询</span></a></td>
 </tr>
 </table>
 <table id=adv border="1" width="40%" style="display:none">
@@ -142,7 +142,7 @@
 			
 			
 
-
+			<form id="form2" action="{% url 'email_delete' %}" method="get">		
 			<!-- Content_list -->
 			<div id="content_list">			
 				<!-- Box -->
@@ -150,6 +150,10 @@
 					<!-- Box Head -->
 					<div class="box-head">
 						<h2 class="left">当前邮件</h2>
+						<div class="right">
+							<label>邮件操作</label>
+							<input type="submit" class="button" value="批量删除" onclick=""/>
+						</div>
 					</div>
 					<!-- End Box Head -->	
 					
@@ -157,8 +161,9 @@
 					<!-- Table -->
 					<div class="table">
 						<table width="100%" border="0" cellspacing="0" cellpadding="0">
+						  
 							<tr>
-								<!--<th width="13"><input type="checkbox" class="checkbox" /></th>-->
+								<th width="13"><input id="allemail" type="checkbox" class="checkbox" onclick="selectall()"/></th>
 								<th>发信人</th>
 								<th>收件人</th>
 								<th>抄送</th>
@@ -170,27 +175,26 @@
 								<th>邮件管理人</th>
                                 {% endif %}
                         <th>附件名字</th>
-								<th width="60" class="ac">邮件操作</th>
 							</tr>
                             {% for e in emails %}
                         <tr>
-								<!--<td><input type="checkbox" class="checkbox" /></td>-->
-								<td>{{e.from_ | slice:":5" | join:", "}}</td>
-								<td>{{e.to | slice:":5" | join:", "}}</td>
+								<td><input id="{{e.id}}" name="eid" type="checkbox" class="checkbox" value="{{e.id}}"/></td>
+								<td>{{e.from_ | slice:":5" | join:","}}</td>
+								<td>{{e.to | slice:":5" | join:","}}</td>
 								<td>{{e.cc}}</td>
 								<td>{{e.bcc}}</td>
 								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
-								<td>{{e.body_txt}}</td>
+								<td>{{e.body_txt | truncatechars:10}}</td>
 								<td>{% if e.date %}{{ e.date | date:"d/m/Y G:i"  }}{% else %}&nbsp;&nbsp;{% endif %}</td>
                                 {% if user.is_superuser %}
                                 <td>{{ e.owner.username }}</td>
                         		  {% endif %}
-                                  <td>{{ e.attachments|slice:":5"|join:", "}}</td>
-								<td align="center"><a href="{% url 'email_delete' e.id %}" class="ico del">Delete</a></td>
+                                  <td>{{ e.attachments |slice:":5"|join:", "| truncatechars:10}}</td>
 							   </tr>
                             {% endfor %}
+                     
 						</table>					
-						
+						</form>
 						<!-- Pagging -->
                         {% if is_paginated %}
                         <div class="pagination">

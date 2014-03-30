@@ -162,10 +162,10 @@ function HS_setDate(inputObj){
  function displaylist() {
               if(adv.style.display=="none") {
                          adv.style.display="";
-                         advtext.innerText="关闭列表";
+                         advtext.innerText="关闭查询列表";
               } else {
                          adv.style.display="none";
-                        advtext.innerText="显示列表";
+                        advtext.innerText="邮件搜索查询";
                 }
 }
 
@@ -192,10 +192,10 @@ if(targetObj.style.display!="none"){
 
  
  
-//复选框：
+//查询复选框：
 function check()
 {
-var str=document.form("checkbox");
+var str=document.getElementById("form1").elements;
 var objarray=str.length;
 var chestr="";
 for (i=0;i<objarray;i++)
@@ -209,34 +209,52 @@ if(chestr == "")
 {
 　 alert("请先选择复选框！");
 }
-var time_from=document.getElementsByName("time_from");
-var time_to=document.getElementsByName("time_to");
-if(Date.parse(time_from[0].value)>Date.parse(time_to[0].value))
-{
-	alert("开始时间不能晚于结束时间！");
-}
+	var time_from=document.getElementsByName("time_from");
+	var time_to=document.getElementsByName("time_to");
+	if(Date.parse(time_from[0].value)>Date.parse(time_to[0].value))
+	{
+		alert("开始时间不能晚于结束时间！");
+	}
 }
 
 
 function checkall()
 {
-var str=document.getElementById("form1").elements;
-var objarray=str.length;
-for (i=0;i<objarray;i++)
-{	
-	str[i].checked=true;
-}
-document.getElementById("none").checked=false;
+	var str=document.getElementById("form1").elements;
+	var objarray=str.length;
+	for (i=0;i<objarray;i++)
+	{
+		str[i].checked=true;
+	}
+	document.getElementById("none").checked=false;
 }
 
 
 function uncheckall()
 {
-var str=document.getElementById("form1").elements;
-var objarray=str.length;
-for (i=0;i<objarray;i++)
-{
-	str[i].checked=false;
+	var str=document.getElementById("form1").elements;
+	var objarray=str.length;
+	for (i=0;i<objarray;i++)
+	{
+		str[i].checked=false;
+	}
+	document.getElementById("all").checked=false;
 }
-document.getElementById("all").checked=false;
+
+//邮件查询列表全选功能：
+function selectall()
+{
+	var s=document.getElementById("allemail");
+	var str=document.getElementById("form2").elements;
+   var objarray=str.length;
+   if(s.checked==true)
+   for (i=0;i<objarray;i++)
+	{
+		str[i].checked=true;
+	}
+	else
+   for (i=0;i<objarray;i++)
+	{
+		str[i].checked=false;
+	}
 }

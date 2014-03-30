@@ -94,10 +94,10 @@
                     {% for folder in folders%}
                     {% if folder = current_folder %} 
                     <label>
-                    <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>
+                    <li><a href="{% url 'email_relation' folder %}">{{ folder }}</a></li>
                     </label>
                     {% else %}
-                    <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>
+                    <li><a href="{% url 'email_relation' folder %}">{{ folder }}</a></li>
                     {% endif %}
                     {% endfor %}  
                    
