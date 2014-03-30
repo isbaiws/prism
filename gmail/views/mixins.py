@@ -6,8 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http.response import HttpResponse
 from django.views.generic import View
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
+from django.core.urlresolvers import reverse
 from bson.objectid import ObjectId
+
+from gmail.models import Email
 
 class LoginRequiredMixin(View):
     """ from http://stackoverflow.com/a/6455140 """
@@ -37,4 +40,33 @@ class JsonViewMixin(View):
     def dispatch(self, request, *args, **kwargs):
         d = super(JsonViewMixin, self).dispatch(request, *args, **kwargs)
         return HttpResponse(dumps(d, cls=MyJsonEncoder), content_type=self.content_type)
+
+
+class FolderMixin(object):
+
+    def dispatch(self, *args, **kwargs):
+        self.folders = self.get_folder_list()
+
+        self.current_folder = kwargs.get('folder', None)
+        if self.current_folder:
+            if self.current_folder not in self.folders:
+                raise Http404('No folder found')
+        elif self.folders:
+            return HttpResponseRedirect(reverse(self.view_name, args=(self.folders[0],)))
+        else:
+            self.get_queryset = lambda : []
+        return super(FolderMixin, self).dispatch(*args, **kwargs)
+
+    def get_folder_list(self):
+        folders = Email.objects.owned_by(self.request.user).distinct('folder')
+        # I trapped myself by setting nonexist values to None so mongoengine
+        # won't save it, but now it comes back to bite me!
+        return [f for f in folders if f is not None]
+
+    def get_context_data(self, **kwargs):
+        context = super(FolderMixin, self).get_context_data(**kwargs)
+        context['folders'] = self.folders
+        context['current_folder'] = self.current_folder
+        return context
+
 

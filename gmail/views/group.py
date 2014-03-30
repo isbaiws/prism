@@ -1,18 +1,17 @@
 import ipdb
 import logging
 
-from django.views.generic import ListView, TemplateView, View
+from django.views.generic import ListView
 from django.views.generic.edit import FormView
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 
 from gmail.forms import GroupAddForm
 from gmail.models import Group, User
-from .mixins import LoginRequiredMixin, AdminRequired
+from .mixins import LoginRequiredMixin, AdminRequired, FolderMixin
 
 logger = logging.getLogger(__name__)
 
-class GroupList(LoginRequiredMixin, AdminRequired, ListView):
+class GroupList(LoginRequiredMixin, AdminRequired, FolderMixin, ListView):
     template_name = 'group_list.html'
     context_object_name = 'groups'
 
@@ -30,7 +29,7 @@ class GroupList(LoginRequiredMixin, AdminRequired, ListView):
             groups.append({'name': g.name, 'manager_names': manager_names})
         return groups
 
-class GroupAdd(LoginRequiredMixin, AdminRequired, FormView):
+class GroupAdd(LoginRequiredMixin, AdminRequired, FolderMixin, FormView):
     template_name = 'group_add.html'
     form_class = GroupAddForm
 
