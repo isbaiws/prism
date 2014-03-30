@@ -117,7 +117,7 @@ class Delete(LoginRequiredMixin, View):
             if not e:
                 # TODO, test case to ensure it won't happen again
                 continue
-            if not e.has_perm(request.user, 'delete_email'):
+            if not e.has_perm(request.user, 'email_delete'):
                 logger.warning("%s tries to delete email %s(%s)", request.user.username, e.subject,
                         e.id, extra=self.request.__dict__)
                 continue
