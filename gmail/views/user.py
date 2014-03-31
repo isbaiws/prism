@@ -7,7 +7,6 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.http import HttpResponseRedirect, Http404
-from bson.objectid import ObjectId
 
 from gmail.forms import UserAddForm, PasswordResetForm, UserEditForm
 from gmail.models import User

@@ -23,6 +23,8 @@ urlpatterns = patterns('',
 
     url(r'^group/$', views.GroupList.as_view(), name='group_list'),
     url(r'^group/add/$', views.GroupAdd.as_view(), name='group_add'),
+    url(r'^group/edit/(?P<gid>\w{24})$', views.GroupEdit.as_view(), name='group_edit'),
+    url(r'^group/delete/(?P<gid>\w{24})$', views.GroupDelete.as_view(), name='group_delete'),
 
     # url(r'^email$', views.EmailList.as_view(), name='email_list'),
     url(r'^email/folder/$', views.EmailList.as_view(), name='email_list', kwargs={'folder': None}),
