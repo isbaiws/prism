@@ -66,3 +66,35 @@ class PasswordResetForm(forms.Form):
         if commit:
             self.user.save()
         return self.user
+
+class UserEditForm(forms.Form):
+    username = forms.CharField(label="用户名")
+    is_superuser = forms.BooleanField(required=False)
+    group = forms.ChoiceField(required=False)
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super(UserEditForm, self).__init__(*args, **kwargs)
+        self.fields['group'] = forms.ChoiceField(label='所属组', choices=[(g.id, g.name)
+            for g in self.user.groups])
+
+    def clean_old_password(self):
+        old_password = self.cleaned_data["old_password"]
+        if not self.user.check_password(old_password):
+            raise forms.ValidationError('password_incorrect')
+        return old_password
+
+    def clean_new_password2(self):
+        password1 = self.cleaned_data.get('new_password1')
+        password2 = self.cleaned_data.get('new_password2')
+        if password1 and password2:
+            if password1 != password2:
+                raise forms.ValidationError(
+                    self.error_messages['password_mismatch'])
+        return password2
+
+    def save(self, commit=True):
+        self.user.set_password(self.cleaned_data['new_password1'])
+        if commit:
+            self.user.save()
+        return self.user

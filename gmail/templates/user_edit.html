@@ -65,11 +65,11 @@
 					<!-- End Box Head -->
 					
                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                    <tr><td>用户名: {{ user.username }}</td></tr>
-                    <tr><td><a href="{% url 'user_password_reset' %}">更改密码</a></td></tr>
-                    <tr><td>是否管理员: {{ user.is_superuser| yesno:"是,否" }}</td></tr>
-                    <tr><td>设备号: {{ user.device_ids| join:", "| default:"暂无" }}</td></tr>
-                    <tr><td>所属组: {{ user.groups| default:"暂无" }}</td></tr>
+                    <tr><td>用户名: {{ form.username.value }}</td></tr>
+                    <tr><td><a href="{% url 'user_password_reset' form.user.id %}">更改密码</a></td></tr>
+                    <tr><td>是否管理员: {{ form.is_superuser }}</td></tr>
+                    <tr><td>设备号: {{ form.device_ids| join:", "| default:"暂无" }}</td></tr>
+                    <tr><td>所属组: {{ form.group| default:"暂无" }}</td></tr>
 						  </table>
 
 				</div>
