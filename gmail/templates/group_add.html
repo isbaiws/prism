@@ -26,7 +26,7 @@
 		<!-- Main Nav -->
 		<div id="navigation">
 			<ul>
-			    <li><a href="{% url 'email_list' %}"><span>邮件管理</span></a></li>
+			    <li><a href="{% if current_folder %}{% url 'email_list' current_folder %}{% else %}{% url 'email_list' %}{% endif %}"><span>邮件管理</span></a></li>
 			                       {% if user.is_superuser %}
 				 <li><a href="{% url 'group_list' %}" class="active"><span>组管理</span></a></li>
                                 {% endif %}
@@ -35,9 +35,9 @@
 			    						  {% else %}
 			    <li><a href="{% url 'user_edit' %}"><span>用户信息</span></a></li>
 			                       {% endif %}
-             <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
+             <li><a href="{% if current_folder %}{% url 'email_timeline' current_folder %}{% else %}{% url 'email_timeline' %}{% endif %}"><span>事件时间轴</span></a></li>
              <li><a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}"><span>邮件统计图</span></a></li>
-             <li><a href="{% url 'email_relation' %}"><span>邮件关系图</span></a></li>
+             <li><a href="{% if current_folder %}{% url 'email_relation' current_folder %}{% else %}{% url 'email_relation' %}{% endif %}"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>
 		<!-- End Main Nav -->
@@ -54,8 +54,8 @@
 			<div class="cl">&nbsp;</div>
 			
 
-			<!-- Content -->
-			<div id="content">			
+			<!-- Content_add -->
+			<div id="content_add">			
 				<!-- Box -->
 				<div class="box">		
 					<!-- Box Head -->
@@ -64,11 +64,29 @@
 					</div>
 					<!-- End Box Head -->	
 					
-					<form method="post">
-   				 {{ form.as_p }}
-    				<input type="submit" value="提交" />
-    				<input type="reset" value="重置" />
+			    <form action="" method="get">{% csrf_token %}
+                        <!-- Form --> 
+						<div class="form">
+								 <p align="left" >
+                          <label>组名：</label>
+					           {{ form.group_name }}
+								</p>		
+								 <p align="left">
+									<label>组长：</label>
+   				           {{ form.manager }}
+								</p>	
+							
+						</div>
+						<!-- End Form -->
+						
+						<!-- Form Buttons -->
+						<div class="buttons" >
+							<input type="submit" class="button" value="提交" />
+                            <input type="reset" class="button" value="重置"  />
+						</div>
+						<!-- End Form Buttons -->
 					</form>
+
 			
 						
 						<!-- Pagging -->
@@ -99,7 +117,7 @@
 				<!-- End Box -->
 
 			</div>
-			<!-- End Content -->
+			<!-- End Content_add -->
 					
 			<div class="cl">&nbsp;</div>			
 		</div>

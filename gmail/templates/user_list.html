@@ -26,7 +26,7 @@
 		<!-- Main Nav -->
 		<div id="navigation">
 			<ul>
-			    <li><a href="{% url 'email_list' %}"><span>邮件管理</span></a></li>
+			    <li><a href="{% if current_folder %}{% url 'email_list' current_folder %}{% else %}{% url 'email_list' %}{% endif %}"><span>邮件管理</span></a></li>
 			                       {% if user.is_superuser %}
 				 <li><a href="{% url 'group_list' %}"><span>组管理</span></a></li>
                                 {% endif %}
@@ -35,9 +35,9 @@
 			    						  {% else %}
 			    <li><a href="{% url 'user_edit' %}" class="active"><span>用户信息</span></a></li>
 			                       {% endif %}
-             <li><a href="{% url 'email_timeline'  %}"><span>事件时间轴</span></a></li>
+             <li><a href="{% if current_folder %}{% url 'email_timeline' current_folder %}{% else %}{% url 'email_timeline' %}{% endif %}"><span>事件时间轴</span></a></li>
              <li><a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}"><span>邮件统计图</span></a></li>
-             <li><a href="{% url 'email_relation'  %}"><span>邮件关系图</span></a></li>
+             <li><a href="{% if current_folder %}{% url 'email_relation' current_folder %}{% else %}{% url 'email_relation' %}{% endif %}"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>
 		<!-- End Main Nav -->
@@ -61,6 +61,12 @@
 					<!-- Box Head -->
 					<div class="box-head">
 						<h2 class="left">用户信息管理</h2>
+						<div class="right">
+						<form id="form" action="{% url 'user_add' %}" method="get">	
+							<label>用户管理操作</label>
+							<input type="submit" class="button" value="添加用户"/>
+						</form>
+						</div>
 					</div>
 					<!-- End Box Head -->	
 					
@@ -79,7 +85,7 @@
                             {% for usr in users %}
                         <tr>
 								<td align="center">{{ usr }}</td>
-								<td align="center">{{ usr.groups }}</td>
+								<td align="center">{% if usr.groups %}{{ usr.groups }}{% else %}{% endif %}</td>
 								<td align="center">{{ usr.device_ids| join:", " }}</td>
 								<td align="center">{{ usr.groups_in_charge| join:", " }}</td>
 								<td align="center"><a href="{% url 'user_edit' %}" class="ico edit">Edit</a></td>

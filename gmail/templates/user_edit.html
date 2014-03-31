@@ -23,18 +23,18 @@
 		<!-- Main Nav -->
 		<div id="navigation">
 			<ul>
-			    <li><a href="{% url 'email_list' %}"><span>邮件管理</span></a></li>
+			    <li><a href="{% if current_folder %}{% url 'email_list' current_folder %}{% else %}{% url 'email_list' %}{% endif %}"><span>邮件管理</span></a></li>
 			    			    			           {% if user.is_superuser %}
-				 <li><a href="#"><span>组管理</span></a></li>
+				 <li><a href="{% url 'group_list' %}"><span>组管理</span></a></li>
                                 {% endif %}
                                 {% if user.is_superuser %}
 			    <li><a href="{% url 'user_list' %}" class="active"><span>用户管理</span></a></li>
 			    						  {% else %}
 			    <li><a href="{% url 'user_edit' %}" class="active"><span>用户信息</span></a></li>
 			                       {% endif %}
-                <li><a href="{% url 'email_timeline' %}"><span>事件时间轴</span></a></li>
+                <li><a href="{% if current_folder %}{% url 'email_timeline' current_folder %}{% else %}{% url 'email_timeline' %}{% endif %}"><span>事件时间轴</span></a></li>
                 <li><a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}"><span>邮件统计图</span></a></li>
-                <li><a href="{% url 'email_relation' %}"><span>邮件关系图</span></a></li>
+                <li><a href="{% if current_folder %}{% url 'email_relation' current_folder %}{% else %}{% url 'email_relation' %}{% endif %}"><span>邮件关系图</span></a></li>
 			</ul>
 		</div>
 		<!-- End Main Nav -->
@@ -54,7 +54,7 @@
 			<div class="cl">&nbsp;</div>
 			
 			<!-- Content -->
-			<div id="content">
+			<div id="content_add">
 				
 				<!-- Box -->
 				<div class="box">
@@ -63,20 +63,35 @@
 						<h2>当前用户信息</h2>
 					</div>
 					<!-- End Box Head -->
-					
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                    <tr><td>用户名: {{ user.username }}</td></tr>
-                    <tr><td><a href="{% url 'user_password_reset' %}">更改密码</a></td></tr>
-                    <tr><td>是否管理员: {{ user.is_superuser| yesno:"是,否" }}</td></tr>
-                    <tr><td>设备号: {{ user.device_ids| join:", "| default:"暂无" }}</td></tr>
-                    <tr><td>所属组: {{ user.groups| default:"暂无" }}</td></tr>
-						  </table>
+				
+						<div class="form">
+								 <p align="left" >
+                           <label>用户名:</label>
+                           {{ user.username }}
+								 <p align="left">
+								   <a href="{% url 'user_password_reset' %}"><label>更改密码</label></a>
+								</p>	
+                         <p align="left">
+									<label>是否管理员: </label>
+									{{ user.is_superuser| yesno:"是,否" }}
+								</p>
+                         <p align="left">
+									<label>设备号: </label>
+									{{ user.device_ids| join:", "| default:"暂无" }}
+								</p>	
+                         <p align="left">
+									<label>所属组: </label>
+									{{ user.groups| default:"暂无" }}
+								</p>	
+						</div>
+						
+	
 
 				</div>
 				<!-- End Box -->
 
 			</div>
-			<!-- End Content -->
+			<!-- End Content_add -->
             
 			<div class="cl">&nbsp;</div>			
 		</div>

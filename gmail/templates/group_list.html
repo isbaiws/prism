@@ -85,9 +85,9 @@
                             {% for group in groups %}
                         <tr>
 								<td>{{ group.name }}</td>
-								<td>{{ group.managers| join:", " }}</td>
-								<td>{{ group.members }}</td>
-								<td>need to edit</td>/////////need to change
+								<td>{% if group.managers %}{{ group.managers| join:", " }}{% else %}{% endif %}</td>
+								<td>{% if group.members %}{{ group.members }}{% else %}{% endif %}</td>
+								<td>need to edit</td>
 								<td align="center"><a href="#" class="ico edit">Edit</a></td>
 								<td align="center"><a href="#" class="ico del">Delete</a></td>	
 							   </tr>
