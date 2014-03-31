@@ -179,8 +179,8 @@
                             {% for e in emails %}
                         <tr>
 								<td><input id="{{e.id}}" name="eid" type="checkbox" class="checkbox" value="{{e.id}}"/></td>
-								<td>{{e.from_ | slice:":5" | join:","}}</td>
-								<td>{{e.to | slice:":5" | join:","}}</td>
+								<td>{{e.from_ | slice:":5" | join:"<br/>"}}</td>
+								<td>{{e.to | slice:":5" | join:"<br/>"}}</td>
 								<td>{{e.cc}}</td>
 								<td>{{e.bcc}}</td>
 								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
