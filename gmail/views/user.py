@@ -71,7 +71,7 @@ class UserEdit(LoginRequiredMixin, EditingUser, FormView):
 class UserDelete(LoginRequiredMixin, EditingUser, AdminRequired, View):
     def get(self, *args, **kwargs):
         self.editing_user.delete()
-        return reverse('user_list')
+        return HttpResponseRedirect(reverse('user_list'))
 
 class PasswordEdit(LoginRequiredMixin, EditingUser, FormView):
     template_name = 'user_passwd_edit.html'
