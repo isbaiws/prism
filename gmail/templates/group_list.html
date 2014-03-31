@@ -88,8 +88,8 @@
 								<td>{% if group.managers %}{{ group.managers| join:", " }}{% else %}{% endif %}</td>
 								<td>{% if group.members %}{{ group.members }}{% else %}{% endif %}</td>
 								<td>need to edit</td>
-								<td align="center"><a href="#" class="ico edit">Edit</a></td>
-								<td align="center"><a href="#" class="ico del">Delete</a></td>	
+								<td align="center"><a href="{% url 'group_edit' group.id %}" class="ico edit">Edit</a></td>
+								<td align="center"><a href="{% url 'group_delete' group.id %}" class="ico del">Delete</a></td>	
 							   </tr>
                             {% endfor %}
                             

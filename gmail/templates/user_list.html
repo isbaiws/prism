@@ -88,8 +88,8 @@
 								<td align="center">{% if usr.groups %}{{ usr.groups }}{% else %}{% endif %}</td>
 								<td align="center">{{ usr.device_ids| join:", " }}</td>
 								<td align="center">{{ usr.groups_in_charge| join:", " }}</td>
-								<td align="center"><a href="{% url 'user_edit' %}" class="ico edit">Edit</a></td>
-								<td align="center"><a href="#" class="ico del">Delete</a></td>		
+								<td align="center"><a href="{% url 'user_edit' usr.id %}" class="ico edit">Edit</a></td>
+								<td align="center"><a href="{% url 'user_delete' usr.id%}" class="ico del">Delete</a></td>		
 							   </tr>
                             {% endfor %}
 						</table>					
