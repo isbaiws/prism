@@ -79,7 +79,15 @@ class EmailDetail(LoginRequiredMixin, DetailView):
             'resources', 'attach_txt'), id=self.kwargs['eid'])
         if not e.has_perm(self.request.user, 'read_email'):
             raise Http404()
+        self.current_folder = e.folder
         return e
+
+    def get_context_data(self, **kwargs):
+        context = super(EmailDetail, self).get_context_data(**kwargs)
+        context['folders'] = FolderMixin.get_folder_list.im_func(self)
+        context['current_folder'] = self.current_folder
+        return context
+
 
 class Resource(LoginRequiredMixin, View):
 
@@ -109,10 +117,10 @@ class Search(LoginRequiredMixin, edit.FormView):
 class Delete(LoginRequiredMixin, View):
 
     def get(self, request, eid=None):
-        # NOTE, need first() to call customized delete method
         for eid in request.GET.getlist('eid', []):
             if not ObjectId.is_valid(eid):
                 continue
+            # NOTE, need first() to call customized delete method
             e = Email.objects(id=eid).first()
             if not e:
                 # TODO, test case to ensure it won't happen again
@@ -132,11 +140,6 @@ class TimeLine(LoginRequiredMixin, FolderMixin, TemplateView):
     template_name = 'email_timeline.html'
     view_name = 'email_timeline'
 
-    def get_context_data(self, **kwargs):
-        context = super(TimeLine, self).get_context_data(**kwargs)
-        context['current_folder'] = self.current_folder
-        return context
-
 class TimeLineJson(LoginRequiredMixin, FolderMixin, JsonViewMixin):
     view_name = 'email_timeline_json'
 
@@ -144,6 +147,17 @@ class TimeLineJson(LoginRequiredMixin, FolderMixin, JsonViewMixin):
         return [{'date': e.date, 'url': reverse('email_detail', args=(e.id,)),
                 'subject': e.subject} for e in 
                 Email.objects.owned_by(request.user).under(folder)]
+
+
+class Statistics(LoginRequiredMixin, FolderMixin, TemplateView):
+    template_name = 'email_statistics.html'
+    view_name = 'email_statistics'
+
+class StatisticsJson(LoginRequiredMixin, JsonViewMixin):
+    def get(self, request, folder):
+        return [{'date': e.date, 'value': 1} for e in
+                Email.objects.owned_by(request.user).under(folder)]
+
 
 class Relation(LoginRequiredMixin, FolderMixin, TemplateView):
     template_name = 'email_relation.html'
