@@ -60,12 +60,11 @@ class UserEdit(LoginRequiredMixin, EditingUser, FormView):
 
     def get_form_kwargs(self):
         kwargs = super(UserEdit, self).get_form_kwargs()
-        # self.editing_user = User.get_by_id(self.kwargs.get('uid')) or self.request.user
         kwargs['user'] = self.editing_user
         return kwargs
 
     def get_success_url(self):
-        return reverse('user_edit')
+        return reverse('user_list')
 
 class UserDelete(LoginRequiredMixin, EditingUser, AdminRequired, View):
     def get(self, *args, **kwargs):

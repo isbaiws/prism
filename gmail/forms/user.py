@@ -33,8 +33,8 @@ class UserAddForm(forms.Form):
             return None
         if not ObjectId.is_valid(self.cleaned_data['group']):
             raise forms.ValidationError("Group %s is not found" % self.cleaned_data['group'])
-        if not User.objects(id=self.cleaned_data['group']).first():
-            raise forms.ValidationError("group %s is not found" % self.cleaned_data['group'])
+        if not Group.objects(id=self.cleaned_data['group']).first():
+            raise forms.ValidationError("Group %s is not found" % self.cleaned_data['group'])
         return ObjectId(self.cleaned_data['group'])
 
 class PasswordResetForm(forms.Form):
