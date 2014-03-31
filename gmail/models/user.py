@@ -79,6 +79,16 @@ class User(Document):
         user.save()
         return user
 
+    def delete(self):
+        # In case of circular import
+        from .email import Email
+        # Remove all emails belonging to me
+        for e in Email.objects(owner=self.id):
+            e.delete()
+        from .group import Group
+        Group.objects.update(pull__managers=self.id)
+        super(User, self).delete()
+
     def groups_in_charge(self):
         from .group import Group
         return Group.objects(managers=self.id)

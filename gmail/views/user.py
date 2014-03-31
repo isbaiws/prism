@@ -6,7 +6,7 @@ from django.views.generic.edit import FormView
 from django.core.urlresolvers import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from bson.objectid import ObjectId
 
 from gmail.forms import UserAddForm, PasswordResetForm, UserEditForm
@@ -14,6 +14,19 @@ from gmail.models import User
 from .mixins import LoginRequiredMixin, AdminRequired
 
 logger = logging.getLogger(__name__)
+
+class EditingUser(object):
+    def dispatch(self, request, *args, **kwargs):
+        if not self.kwargs.get('uid'):
+            self.editing_user = request.user
+        else:
+            u = User.get_by_id(self.kwargs.get('uid'))
+            if not u:
+                raise Http404('No user found')
+            if not request.user.is_superuser and u.id != request.user.id:
+                raise Http404('How dare you!')
+            self.editing_user = u
+        return super(EditingUser, self).dispatch(request, *args, **kwargs)
 
 class AddUser(LoginRequiredMixin, AdminRequired, FormView):
     template_name = 'user_add.html'
@@ -35,12 +48,11 @@ class AddUser(LoginRequiredMixin, AdminRequired, FormView):
 class UserDetail(LoginRequiredMixin, TemplateView):
     template_name = 'user_detail.html'
 
-class UserEdit(LoginRequiredMixin, FormView):
+class UserEdit(LoginRequiredMixin, EditingUser, FormView):
     template_name = 'user_edit.html'
     form_class = UserEditForm
 
     def get_initial(self):
-        self.editing_user = User.get_by_id(self.kwargs.get('uid')) or self.request.user
         return {
             'username': self.editing_user.username,
             'is_superuser': self.editing_user.is_superuser,
@@ -56,7 +68,12 @@ class UserEdit(LoginRequiredMixin, FormView):
     def get_success_url(self):
         return reverse('user_edit')
 
-class PasswordEdit(LoginRequiredMixin, FormView):
+class UserDelete(LoginRequiredMixin, EditingUser, AdminRequired, View):
+    def get(self, *args, **kwargs):
+        self.editing_user.delete()
+        return reverse('user_list')
+
+class PasswordEdit(LoginRequiredMixin, EditingUser, FormView):
     template_name = 'user_passwd_edit.html'
     form_class = PasswordResetForm
 

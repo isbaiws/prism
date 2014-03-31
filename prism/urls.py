@@ -18,6 +18,8 @@ urlpatterns = patterns('',
     url(r'^user/password/edit/$', views.PasswordEdit.as_view(), name='user_password_reset', kwargs={'uid': None}),
     url(r'^user/password/edit/(?P<uid>\w{24})$', views.PasswordEdit.as_view(), name='user_password_reset'),
     url(r'^user/add/$', views.AddUser.as_view(), name='user_add'),
+    url(r'^user/delete/$', views.UserDelete.as_view(), name='user_delete', kwargs={'uid': None}),
+    url(r'^user/delete/(?P<uid>\w{24})$', views.UserDelete.as_view(), name='user_delete'),
 
     url(r'^group/$', views.GroupList.as_view(), name='group_list'),
     url(r'^group/add/$', views.GroupAdd.as_view(), name='group_add'),

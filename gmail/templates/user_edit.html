@@ -62,32 +62,6 @@
 					<div class="box-head">
 						<h2>当前用户信息</h2>
 					</div>
-<<<<<<< HEAD
-					<!-- End Box Head -->
-				
-						<div class="form">
-								 <p align="left" >
-                           <label>用户名:</label>
-                           {{ user.username }}
-								 <p align="left">
-								   <a href="{% url 'user_password_reset' %}"><label>更改密码</label></a>
-								</p>	
-                         <p align="left">
-									<label>是否管理员: </label>
-									{{ user.is_superuser| yesno:"是,否" }}
-								</p>
-                         <p align="left">
-									<label>设备号: </label>
-									{{ user.device_ids| join:", "| default:"暂无" }}
-								</p>	
-                         <p align="left">
-									<label>所属组: </label>
-									{{ user.groups| default:"暂无" }}
-								</p>	
-						</div>
-						
-	
-=======
 					<!-- End Box Head -->
 					
                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -97,8 +71,6 @@
                     <tr><td>设备号: {{ form.device_ids| join:", "| default:"暂无" }}</td></tr>
                     <tr><td>所属组: {{ form.group| default:"暂无" }}</td></tr>
 						  </table>
->>>>>>> dab5acb22d40a69cd8b8d3071418f89c22bebfb0
-
 				</div>
 				<!-- End Box -->
 

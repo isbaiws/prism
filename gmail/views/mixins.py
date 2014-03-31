@@ -12,7 +12,7 @@ from bson.objectid import ObjectId
 
 from gmail.models import Email
 
-class LoginRequiredMixin(View):
+class LoginRequiredMixin(object):
     """ from http://stackoverflow.com/a/6455140 """
 
     @method_decorator(login_required)
