@@ -1,4 +1,5 @@
 # coding: utf-8
+import ipdb
 from django import forms
 from bson.objectid import ObjectId
 
@@ -9,14 +10,14 @@ class UserAddForm(forms.Form):
     password1 = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(widget=forms.PasswordInput)
     is_superuser = forms.BooleanField(initial=False, required=False)
-    group = forms.ChoiceField(choices=[('--', '--')]+[(g.id, g.name)
-        for g in Group.objects], required=False)
+    group = forms.MultipleChoiceField(choices=[(g.id, g.name)
+        for g in Group.objects], required=False, widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, **kwargs):
         super(UserAddForm, self).__init__(*args, **kwargs)
         # For dynamic choices
-        self.fields['group'] = forms.ChoiceField(choices=[('--', '--')]+[(g.id, g.name)
-            for g in Group.objects], required=False)
+        self.fields['group'] = forms.MultipleChoiceField(choices=[(g.id, g.name)
+            for g in Group.objects], required=False, widget=forms.CheckboxSelectMultiple)
 
     def clean_username(self):
         if User.exist(username=self.cleaned_data['username']):
@@ -29,13 +30,12 @@ class UserAddForm(forms.Form):
         return self.cleaned_data['password1']
 
     def clean_group(self):
-        if self.cleaned_data['group'] == '--':
-            return None
-        if not ObjectId.is_valid(self.cleaned_data['group']):
-            raise forms.ValidationError("Group %s is not found" % self.cleaned_data['group'])
-        if not Group.objects(id=self.cleaned_data['group']).first():
-            raise forms.ValidationError("Group %s is not found" % self.cleaned_data['group'])
-        return ObjectId(self.cleaned_data['group'])
+        for gid in self.cleaned_data['group']:
+            if not ObjectId.is_valid(gid):
+                raise forms.ValidationError("Group %s is not found" % gid)
+            if not Group.objects(id=gid).first():
+                raise forms.ValidationError("Group %s is not found" % gid)
+        return map(ObjectId, self.cleaned_data['group'])
 
 class PasswordResetForm(forms.Form):
     old_password = forms.CharField(label="当前密码", widget=forms.PasswordInput)

@@ -36,12 +36,11 @@ class GroupAdd(LoginRequiredMixin, AdminRequired, FormView):
     form_class = GroupAddForm
 
     def form_valid(self, form):
-        group_name, manager = form.cleaned_data['group_name'], form.cleaned_data['manager']
-        managers = [manager.id] if manager else []
+        group_name, managers = form.cleaned_data['group_name'], form.cleaned_data['manager']
         g = Group(name=group_name, managers=managers)
         g.save()
-        if manager:
-            manager.update(add_to_set__groups=g.id)
+        for m in managers:  # A team leader should belong to the team also
+            User.objects(id=m).update(add_to_set__groups=g.id)
         logger.info('%s created a group: %s', self.request.user.username, group_name)
         return super(GroupAdd, self).form_valid(form)
 
