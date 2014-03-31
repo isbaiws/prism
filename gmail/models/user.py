@@ -6,7 +6,7 @@ from django.contrib.auth import hashers
 from mongoengine import (
         Document, StringField, BooleanField, ListField, UUIDField, ReferenceField
     )
-
+from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +86,11 @@ class User(Document):
     @classmethod
     def exist(cls, **kwargs):
         return cls.objects(**kwargs).first()
+
+    @classmethod
+    def get_by_id(cls, uid):
+        if not uid:  # None is a valid objectid?
+            return False
+        if ObjectId.is_valid(uid):
+            return cls.objects(id=uid).first()
+        return False

@@ -7,8 +7,9 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.http import HttpResponseRedirect
+from bson.objectid import ObjectId
 
-from gmail.forms import UserAddForm, PasswordResetForm
+from gmail.forms import UserAddForm, PasswordResetForm, UserEditForm
 from gmail.models import User
 from .mixins import LoginRequiredMixin, AdminRequired
 
@@ -36,14 +37,21 @@ class UserDetail(LoginRequiredMixin, TemplateView):
 
 class UserEdit(LoginRequiredMixin, FormView):
     template_name = 'user_edit.html'
-    form_class = UserAddForm
+    form_class = UserEditForm
 
     def get_initial(self):
-        u = self.request.user
+        self.editing_user = User.get_by_id(self.kwargs.get('uid')) or self.request.user
         return {
-            'username': u.username,
-            # 'auth_tokens': u.auth_tokens,
+            'username': self.editing_user.username,
+            'is_superuser': self.editing_user.is_superuser,
+            # 'group': self.editing_user.groups,
         }
+
+    def get_form_kwargs(self):
+        kwargs = super(UserEdit, self).get_form_kwargs()
+        # self.editing_user = User.get_by_id(self.kwargs.get('uid')) or self.request.user
+        kwargs['user'] = self.editing_user
+        return kwargs
 
     def get_success_url(self):
         return reverse('user_edit')
@@ -58,11 +66,12 @@ class PasswordEdit(LoginRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super(PasswordEdit, self).get_form_kwargs()
-        kwargs['user'] = self.request.user
+        self.editing_user = User.get_by_id(self.kwargs.get('uid')) or self.request.user
+        kwargs['user'] = self.editing_user
         return kwargs
 
     def get_success_url(self):
-        return reverse('user_edit')
+        return reverse('user_edit', args=(self.editing_user.id,))
 
 
 class UserList(LoginRequiredMixin, AdminRequired, ListView):
