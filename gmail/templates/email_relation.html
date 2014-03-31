@@ -16,10 +16,7 @@
             var options = {
                 'width': '100%',
                 'height': '100%',
-                'links': {
-                    'length': 300
-                },
-                'stabilize': true
+                'stabilize': false
             };
 
             $.getJSON('{% if current_folder %}{% url "email_relation_json" current_folder %}{% else %}{% url "email_relation_json" %}{% endif %}', function(data){
