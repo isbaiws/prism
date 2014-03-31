@@ -26,6 +26,7 @@ class GroupAddForm(forms.Form):
             return None
         if not ObjectId.is_valid(self.cleaned_data['manager']):
             raise forms.ValidationError("User %s is not found" % self.cleaned_data['manager'])
-        if not User.objects(id=self.cleaned_data['manager']).first():
+        m = User.objects(id=self.cleaned_data['manager']).first()
+        if not m:
             raise forms.ValidationError("User %s is not found" % self.cleaned_data['manager'])
-        return ObjectId(self.cleaned_data['manager'])
+        return m
