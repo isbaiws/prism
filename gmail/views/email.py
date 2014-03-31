@@ -190,11 +190,11 @@ function() {
     var relation = {};
     // Email address is in the form of
     // "name <account@example.com>"
-    var email_patt = /\w+@\w+\.\w+/;
+    var email_patt = /[\w+-]+@[\w+-]+\.\w+/;
     db[collection].find(query).forEach(function(doc) {
-        // Ensure array
-        var from = [].concat(doc.from_);
-        var to = [].concat(doc.to);
+        // Ensure array, and in case of nonexist
+        var from = [].concat(doc.from_ || []);
+        var to = [].concat(doc.to || []);
 
         // Clean up data
         var from_id = [];
