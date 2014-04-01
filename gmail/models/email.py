@@ -267,6 +267,8 @@ class Email(Document):
     subject = StringField(default='')
     from_ = ListField(StringField(), default=list)
     to = ListField(StringField(), default=list)
+    cc = StringField(default='')
+    bcc = StringField(default='')
     ip = ListField(StringField(), default=list)
     content_type = StringField(default='')
     filename = StringField(default='')
