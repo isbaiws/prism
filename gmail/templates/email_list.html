@@ -7,11 +7,6 @@
    <script type="text/javascript" src="/static/js/search.js"></script>
 </head>
 
-<style>
-  body {font-size:12px}
-  td {text-align:center}
-  em {color:#999; margin:0 10px; font-size:11px; display:block}
-</style>
 	
 <body>
 <!-- Header -->
@@ -52,54 +47,54 @@
 
 <!-- Container -->
 <div id="container">
-	<div class="shell">
-			
+	<div class="shell">	
 <table border="0" width="40%">
 <tr>
-<td><a href="javascript:displaylist()"><span id=advtext>邮件搜索查询</span></a></td>
+<td><a href="javascript:displaylist()"><span id=advtext >邮件搜索查询</span></a></td>
 </tr>
 </table>
-<table id=adv border="1" width="40%" style="display:none">
-<tr height=60>
+<table id=adv border="1" width="37%" style="display:none">
+<tr height="60">
 <td align="left">
 <form id="form1" name="input" action="" method="get">
-<p>
+
+<style type="text/css">
+p.small {line-height: 90%}
+p.big {line-height: 200% }
+</style>
+
+<p class="big" align="left">
 {{ form.q.label_tag }}{{ form.q }}
 </p>
-<p>
+<p class="big" align="left">
 {{ form.from_.label_tag }}{{ form.from_ }}
 {{ form.to.label_tag }}{{ form.to }}	
 {{ form.subject.label_tag }}{{ form.subject }}
 {{ form.body_txt.label_tag }}{{ form.body_txt }}
 {{ form.attach_filename.label_tag }}{{ form.attach_filename }}
-</p>
-<p>
 {{ form.attach_txt.label_tag }}{{ form.attach_txt }}
 {{ form.ip.label_tag }}{{ form.ip }}
 {{ form.bcc.label_tag }}{{ form.bcc }}
 {{ form.cc.label_tag }}{{ form.cc }}		
 </p>
-<p>
+<p class="big" align="left">
 {{ form.folder.label_tag }}{{ form.folder }}
-</p>
-<p>
 查询时间：
 <input type="text" name="{{ form.start.html_name }}" style="width:70px" onfocus="HS_setDate(this)">
 到
-<input type="text" name="{{ form.to.html_name }}" style="width:70px" onfocus="HS_setDate(this)">
+<input type="text" name="{{ form.end.html_name }}" style="width:70px" onfocus="HS_setDate(this)">
 </p>
-<p>
+<p class="big" align="left">
 <input type="checkbox" name="all" id="all" onclick="checkall()" value="全选"/>全选
 <input type="checkbox" name="none" id="none" onclick="uncheckall()" value="取消全选" />取消全选
-<input type="reset"	name="reset" value="重置"/>
-<input type="submit" name="submit" onclick="check()" value="查询" />
+<input type="reset"	class="button" name="reset" value="重置"/>
+<input type="submit" class="button" name="submit" onclick="check()" value="查询" />
 </p>
+
 </form>
 </td>
 </tr>
 </table>
-	
-			
 		<!-- Main -->
 		<div id="main">
 			<div class="cl">&nbsp;</div>
@@ -123,10 +118,10 @@
                     {% for folder in folders%}
                     {% if folder = current_folder %} 
                     <label>
-                    <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>
+                    <li><a href="{% url 'email_list' folder %}">{{ folder |  truncatechars:30 }}</a></li>
                     </label>
                     {% else %}
-                    <li><a href="{% url 'email_list' folder %}">{{ folder }}</a></li>
+                    <li><a href="{% url 'email_list' folder %}">{{ folder |  truncatechars:30 }}</a></li>
                     {% endif %}
                     {% endfor %}  
                    
@@ -168,13 +163,13 @@
 								<th>收件人</th>
 								<th>抄送</th>
 								<th>密送</th>
-								<th>标题</th>
+								<th>主题</th>
 								<th>正文摘要</th>
 								<th>时间</th>
                                 {% if user.is_superuser %}
 								<th>邮件管理人</th>
                                 {% endif %}
-                        <th>附件名字</th>
+                        <th>附件名</th>
 							</tr>
                             {% for e in emails %}
                         <tr>
@@ -212,7 +207,7 @@
                             <a href="?page={{ page_obj.next_page_number }}">next</a>
                             {% endif %}
                             </span>
-						</div>
+						       </div>
                         {% endif %}
 						<!-- End Pagging -->
 						

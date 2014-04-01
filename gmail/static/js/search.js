@@ -205,16 +205,18 @@ for (i=0;i<objarray;i++)
 　　 chestr+=str[i].value+",";
 　 }
 }
-if(chestr == "")
-{
-　 alert("请先选择复选框！");
-}
 	var time_from=document.getElementsByName("time_from");
 	var time_to=document.getElementsByName("time_to");
 	if(Date.parse(time_from[0].value)>Date.parse(time_to[0].value))
 	{
 		alert("开始时间不能晚于结束时间！");
 	}
+	chestr+=time_from;
+	chestr+=time_to;
+	if(chestr == "")
+   {
+　 alert("查询选项为空，无法查询！");
+   }
 }
 
 

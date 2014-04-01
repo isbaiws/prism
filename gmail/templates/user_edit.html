@@ -64,15 +64,40 @@
 					</div>
 					<!-- End Box Head -->
 					
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0"><form method='POST'>
-                            {{ form.errors }}
-                            <tr><td>用户名: {{ form.username.value }}</td></tr>
-                            <tr><td><a href="{% url 'user_password_reset' form.user.id %}">更改密码</a></td></tr>
-                            <tr><td>是否管理员: {{ form.is_superuser }}</td></tr>
-                            <tr><td>设备号: {{ form.user.device_ids| join:", "| default:"暂无" }}</td></tr>
-                            <tr><td>所属组: {{ form.groups| default:"暂无" }}</td></tr>
-                            <input type="submit">确定</input>
-                    </form></table>
+					
+					 <form action="{% url 'user_add'%}" method="post">{{ form.errors }}
+                        <!-- Form --> 
+						<div class="form">
+								 <p align="left" >
+                           <label>用户名: </label>
+                           {{ form.username.value }}
+								</p>		
+								 <p align="left">
+									<label><a href="{% url 'user_password_reset' form.user.id %}">更改密码</a></label>
+								</p>	
+                         <p align="left">
+									<label>是否管理员: </label>
+									{{ form.is_superuser }}
+								</p>
+                         <p align="left">
+									<label>设备号: </label>
+									{{ form.user.device_ids| join:", "| default:"暂无" }}
+								</p>	
+                         <p align="left">
+									<label>所属组: </label>
+									{{ form.groups| default:"暂无" }}
+								</p>	
+							
+						</div>
+						<!-- End Form -->
+						
+						<!-- Form Buttons -->
+						<div class="buttons" >
+							<input type="submit" class="button" value="提交" />
+                            <input type="reset" class="button" value="重置"  />
+						</div>
+						<!-- End Form Buttons -->
+                                      
 				</div>
 				<!-- End Box -->
 
