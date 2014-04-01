@@ -336,7 +336,6 @@ class Email(Document):
 
     @classmethod
     def find(cls, query_dict):
-        logger.info('Query dict: %s', query_dict)
         equal_queries = ('ip',)
         string_queries = ('from_', 'to', 'subject', 'body_txt', 'attach_txt', 'bcc', 'cc')
         query = Q()
@@ -360,6 +359,7 @@ class Email(Document):
             query &= Q(date__gte=query_dict['start'])
         if query_dict.get('end'):
             query &= Q(date__lte=query_dict['end'])
+        logger.info('Query: %s', query.to_query(cls))
         return cls.objects(query)
 
     def delete(self):
