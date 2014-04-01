@@ -1,7 +1,8 @@
 #coding: utf-8
 from __future__ import absolute_import
-import logging
 import ipdb
+import logging
+from bson.objectid import ObjectId
 
 from mongoengine import (
         Document, StringField, ListField, ReferenceField
@@ -28,3 +29,11 @@ class Group(Document):
     def members(self):
         from .user import User
         return User.objects(groups=self.id)
+
+    @classmethod
+    def get_by_id(cls, gid):
+        if not gid:  # None is a valid objectid?
+            return False
+        if ObjectId.is_valid(gid):
+            return cls.objects(id=gid).first()
+        return False

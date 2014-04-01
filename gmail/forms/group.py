@@ -25,9 +25,6 @@ class GroupAddForm(forms.Form):
 
     def clean_manager(self):
         for uid in self.cleaned_data['manager']:
-            if not ObjectId.is_valid(uid):
-                raise forms.ValidationError("User %s is not found" % uid)
-            m = User.objects(id=uid).first()
-            if not m:
+            if not User.get_by_id(uid):
                 raise forms.ValidationError("User %s is not found" % uid)
         return map(ObjectId, self.cleaned_data['manager'])

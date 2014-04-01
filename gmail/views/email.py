@@ -103,7 +103,7 @@ class Resource(LoginRequiredMixin, View):
         return response
 
     def get_resource_or_404(self, id_str):
-        if not ObjectId.is_valid(id_str):
+        if not id_str or not ObjectId.is_valid(id_str):
             raise Http404()
         resc = GridFSProxy().get(ObjectId(id_str))
         if not resc:
@@ -118,10 +118,8 @@ class Delete(LoginRequiredMixin, View):
 
     def get(self, request, eid=None):
         for eid in request.GET.getlist('eid', []):
-            if not ObjectId.is_valid(eid):
-                continue
             # NOTE, need first() to call customized delete method
-            e = Email.objects(id=eid).first()
+            e = Email.get_by_id(eid)
             if not e:
                 # TODO, test case to ensure it won't happen again
                 continue

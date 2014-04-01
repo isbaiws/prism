@@ -5,7 +5,6 @@ from django.views.generic import ListView, View
 from django.views.generic.edit import FormView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
-from bson.objectid import ObjectId
 
 from gmail.forms import GroupAddForm
 from gmail.models import Group, User
@@ -66,7 +65,8 @@ class GroupEdit(LoginRequiredMixin, AdminRequired, FormView):
 
 class GroupDelete(LoginRequiredMixin, AdminRequired, View):
     def get(self, request, gid):
-        if ObjectId.is_valid(gid):
-            Group.objects(id=gid).delete()
+        g = Group.get_by_id(gid)
+        if g:
+            g.delete()
         return HttpResponseRedirect(reverse('group_list'))
 

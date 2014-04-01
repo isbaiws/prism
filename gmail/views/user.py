@@ -46,6 +46,7 @@ class UserAdd(LoginRequiredMixin, AdminRequired, FormView):
 class UserDetail(LoginRequiredMixin, TemplateView):
     template_name = 'user_detail.html'
 
+# TODO, only admin can edit its group
 class UserEdit(LoginRequiredMixin, EditingUser, FormView):
     template_name = 'user_edit.html'
     form_class = UserEditForm
@@ -54,7 +55,8 @@ class UserEdit(LoginRequiredMixin, EditingUser, FormView):
         return {
             'username': self.editing_user.username,
             'is_superuser': self.editing_user.is_superuser,
-            # 'group': self.editing_user.groups,
+            # MultipleChoiceField takes a list of IDs not choices
+            'groups': [g.id for g in self.editing_user.groups],
         }
 
     def get_form_kwargs(self):
@@ -64,6 +66,12 @@ class UserEdit(LoginRequiredMixin, EditingUser, FormView):
 
     def get_success_url(self):
         return reverse('user_list')
+        # Do redirect to other url, in case of resubmit
+        # return reverse('user_edit', args=(self.editing_user.id,))
+
+    def form_valid(self, form):
+        form.save()
+        return super(UserEdit, self).form_valid(form)
 
 class UserDelete(LoginRequiredMixin, EditingUser, AdminRequired, View):
     def get(self, *args, **kwargs):

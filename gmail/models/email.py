@@ -11,6 +11,7 @@ from email import message_from_file, message, message_from_string
 from email.header import decode_header
 from email.utils import mktime_tz, parsedate
 from email import _parseaddr
+from bson.objectid import ObjectId
 
 from django.core.urlresolvers import reverse
 from mongoengine import (
@@ -380,3 +381,10 @@ class Email(Document):
                 return True
         return False
 
+    @classmethod
+    def get_by_id(cls, eid):
+        if not eid:  # None is a valid objectid?
+            return False
+        if ObjectId.is_valid(eid):
+            return cls.objects(id=eid).first()
+        return False
