@@ -74,7 +74,7 @@ AmCharts.ready(function(){
             });
         });
         // Ensure ordered, otherwise it won't show, SHIT!!!
-        data_provider.sort(function(a, b){return a.date > b.date;})
+        data_provider.sort(function(a, b){return AmCharts.stringToDate(a.date, 'YYYY-MM-DD') < AmCharts.stringToDate(b.date, 'YYYY-MM-DD');})
         chart.validateData();
     })
 
