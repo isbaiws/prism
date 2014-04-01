@@ -37,3 +37,13 @@ class Group(Document):
         if ObjectId.is_valid(gid):
             return cls.objects(id=gid).first()
         return False
+
+    def set_managers(self, managers):
+        from .user import User
+        self.managers = managers
+        # ipdb.set_trace()
+        for uid in self.managers:
+            u = User.get_by_id(uid)
+            if u:
+                u.update(add_to_set__groups=self.id)
+        self.save()

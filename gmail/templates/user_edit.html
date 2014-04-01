@@ -64,13 +64,15 @@
 					</div>
 					<!-- End Box Head -->
 					
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                    <tr><td>用户名: {{ form.username.value }}</td></tr>
-                    <tr><td><a href="{% url 'user_password_reset' form.user.id %}">更改密码</a></td></tr>
-                    <tr><td>是否管理员: {{ form.is_superuser }}</td></tr>
-                    <tr><td>设备号: {{ form.device_ids| join:", "| default:"暂无" }}</td></tr>
-                    <tr><td>所属组: {{ form.group| default:"暂无" }}</td></tr>
-						  </table>
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0"><form method='POST'>
+                            {{ form.errors }}
+                            <tr><td>用户名: {{ form.username.value }}</td></tr>
+                            <tr><td><a href="{% url 'user_password_reset' form.user.id %}">更改密码</a></td></tr>
+                            <tr><td>是否管理员: {{ form.is_superuser }}</td></tr>
+                            <tr><td>设备号: {{ form.user.device_ids| join:", "| default:"暂无" }}</td></tr>
+                            <tr><td>所属组: {{ form.groups| default:"暂无" }}</td></tr>
+                            <input type="submit">确定</input>
+                    </form></table>
 				</div>
 				<!-- End Box -->
 

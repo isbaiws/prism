@@ -6,7 +6,7 @@ from django.views.generic.edit import FormView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
 
-from gmail.forms import GroupAddForm
+from gmail.forms import GroupAddForm, GroupEditForm
 from gmail.models import Group, User
 from .mixins import LoginRequiredMixin, AdminRequired
 
@@ -18,17 +18,6 @@ class GroupList(LoginRequiredMixin, AdminRequired, ListView):
 
     def get_queryset(self):
         return Group.objects
-        groups = []
-        for g in Group.objects:
-            manager_names = []
-            for uid in g.managers:
-                u = User.objects(id=uid).only('username').first()
-                if u:
-                    manager_names.append(u.username)
-                else:
-                    manager_names.append(uid)
-            groups.append({'name': g.name, 'manager_names': manager_names})
-        return groups
 
 class GroupAdd(LoginRequiredMixin, AdminRequired, FormView):
     template_name = 'group_add.html'
@@ -47,19 +36,32 @@ class GroupAdd(LoginRequiredMixin, AdminRequired, FormView):
         return reverse('group_list')
 
 class GroupEdit(LoginRequiredMixin, AdminRequired, FormView):
-    template_name = 'group_add.html'
-    form_class = GroupAddForm
+    template_name = 'group_edit.html'
+    form_class = GroupEditForm
+
+    def dispatch(self, *args, **kwargs):
+        group = Group.get_by_id(self.kwargs.get('gid'))
+        if not group:
+            raise Http404('No group found')
+        self.group = group
+        return super(GroupEdit, self).dispatch(*args, **kwargs)
+
+    def get_initial(self):
+        return {
+            'groupname': self.group.name,
+            # MultipleChoiceField takes a list of IDs not choices
+            'managers': [u.id for u in self.group.managers],
+        }
+
+    def get_form_kwargs(self):
+        kwargs = super(GroupEdit, self).get_form_kwargs()
+        kwargs['group'] = self.group
+        return kwargs
 
     def form_valid(self, form):
-        group_name, manager = form.cleaned_data['group_name'], form.cleaned_data['manager']
-        managers = [manager.id] if manager else []
-        g = Group(name=group_name, managers=managers)
-        g.save()
-        if manager:
-            manager.update(add_to_set__groups=g.id)
-        logger.info('%s created a group: %s', self.request.user.username, group_name)
-        return super(GroupAdd, self).form_valid(form)
-
+        form.save()
+        return super(GroupEdit, self).form_valid(form)
+    
     def get_success_url(self):
         return reverse('group_list')
 

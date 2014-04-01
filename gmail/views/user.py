@@ -88,7 +88,6 @@ class PasswordEdit(LoginRequiredMixin, EditingUser, FormView):
 
     def get_form_kwargs(self):
         kwargs = super(PasswordEdit, self).get_form_kwargs()
-        self.editing_user = User.get_by_id(self.kwargs.get('uid')) or self.request.user
         kwargs['user'] = self.editing_user
         return kwargs
 

@@ -106,8 +106,9 @@ class User(Document):
 
         for g in already_in-new_coming:  # Deleted ones
             self.update(pull__groups=g)
-            if self.id in g.managers:
-                g.update(pull__managers=self.id)
+            from .group import Group
+            if self in Group.get_by_id(g).managers:
+                Group.get_by_id(g).update(pull__managers=self.id)
 
     @classmethod
     def exist(cls, **kwargs):

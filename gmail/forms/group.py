@@ -28,3 +28,25 @@ class GroupAddForm(forms.Form):
             if not User.get_by_id(uid):
                 raise forms.ValidationError("User %s is not found" % uid)
         return map(ObjectId, self.cleaned_data['manager'])
+
+class GroupEditForm(forms.Form):
+    groupname = forms.CharField(label="组名", required=False)
+    managers = forms.MultipleChoiceField(required=False, widget=forms.CheckboxSelectMultiple)
+
+    def __init__(self, group, *args, **kwargs):
+        self.group = group
+        super(GroupEditForm, self).__init__(*args, **kwargs)
+        self.fields['managers'] = forms.MultipleChoiceField(label='组长', choices=[(u.id, u.username)
+            for u in User.objects if not u.is_superuser], required=False, widget=forms.CheckboxSelectMultiple)
+
+    def clean_managers(self):
+        for uid in self.cleaned_data.get('managers', []):
+            if not User.get_by_id(uid):
+                raise forms.ValidationError("User %s is not found" % uid)
+        return map(ObjectId, self.cleaned_data['managers'])
+
+    def save(self, commit=True):
+        self.group.set_managers(self.cleaned_data['managers'])
+        # if commit:
+        #     self.user.save()
+
