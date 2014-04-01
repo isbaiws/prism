@@ -150,10 +150,10 @@ AmCharts.ready(function(){
                     {% for folder in folders%}
                     {% if folder = current_folder %} 
                     <label>
-                    <li><a href="{% url 'email_statistics' folder %}">{{ folder }}</a></li>
+                    <li><a href="{% url 'email_statistics' folder %}">{{ folder |  truncatechars:30}}</a></li>
                     </label>
                     {% else %}
-                    <li><a href="{% url 'email_statistics' folder %}">{{ folder }}</a></li>
+                    <li><a href="{% url 'email_statistics' folder %}">{{ folder |  truncatechars:30}}</a></li>
                     {% endif %}
                     {% endfor %}  
                    

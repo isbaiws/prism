@@ -78,7 +78,6 @@
 								<th>名字</th>
 								<th>组长</th>
 								<th>组员</th>
-								<th>管理</th>
 								<th>修改</th>
 								<th>删除</th>
 							</tr>
@@ -87,7 +86,6 @@
 								<td>{{ group.name }}</td>
 								<td>{% if group.managers %}{{ group.managers| join:", " }}{% else %}{% endif %}</td>
 								<td>{% if group.members %}{{ group.members }}{% else %}{% endif %}</td>
-								<td>need to edit</td>
 								<td align="center"><a href="{% url 'group_edit' group.id %}" class="ico edit">Edit</a></td>
 								<td align="center"><a href="{% url 'group_delete' group.id %}" class="ico del">Delete</a></td>	
 							   </tr>
