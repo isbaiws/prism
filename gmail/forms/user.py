@@ -4,6 +4,7 @@ from django import forms
 from bson.objectid import ObjectId
 
 from gmail.models import User, Group
+from .group import CheckboxSelectMultipleP
 
 class UserAddForm(forms.Form):
     username = forms.CharField()
@@ -11,13 +12,13 @@ class UserAddForm(forms.Form):
     password2 = forms.CharField(widget=forms.PasswordInput)
     is_superuser = forms.BooleanField(initial=False, required=False)
     group = forms.MultipleChoiceField(choices=[(g.id, g.name)
-        for g in Group.objects], required=False, widget=forms.CheckboxSelectMultiple)
+        for g in Group.objects], required=False, widget=CheckboxSelectMultipleP)
 
     def __init__(self, *args, **kwargs):
         super(UserAddForm, self).__init__(*args, **kwargs)
         # For dynamic choices
         self.fields['group'] = forms.MultipleChoiceField(choices=[(g.id, g.name)
-            for g in Group.objects], required=False, widget=forms.CheckboxSelectMultiple)
+            for g in Group.objects], required=False, widget=CheckboxSelectMultipleP)
 
     def clean_username(self):
         if User.exist(username=self.cleaned_data['username']):
@@ -68,13 +69,13 @@ class PasswordResetForm(forms.Form):
 class UserEditForm(forms.Form):
     username = forms.CharField(label="用户名", required=False)
     is_superuser = forms.BooleanField(required=False)
-    groups = forms.MultipleChoiceField(required=False, widget=forms.CheckboxSelectMultiple)
+    groups = forms.MultipleChoiceField(required=False, widget=CheckboxSelectMultipleP)
 
     def __init__(self, user, *args, **kwargs):
         self.user = user
         super(UserEditForm, self).__init__(*args, **kwargs)
         self.fields['groups'] = forms.MultipleChoiceField(label='所属组', choices=[(g.id, g.name)
-            for g in Group.objects], required=False, widget=forms.CheckboxSelectMultiple)
+            for g in Group.objects], required=False, widget=CheckboxSelectMultipleP)
 
     def clean_groups(self):
         for gid in self.cleaned_data.get('groups', []):
