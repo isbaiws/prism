@@ -1,0 +1,6 @@
+<form method='POST'>
+        {{ form.errors }}
+        <p>组名: {{ form.groupname.value }}</p>
+        <p>组长: {{ form.managers| default:"暂无" }}</p>
+        <input type="submit"></input>
+</form>

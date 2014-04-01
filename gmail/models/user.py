@@ -93,6 +93,23 @@ class User(Document):
         from .group import Group
         return Group.objects(managers=self.id)
 
+    def set_groups(self, groups):
+        def get_gid(g):
+            if isinstance(g, Document):
+                return g.id
+            return ObjectId(g)
+        already_in = set(g.id for g in self.groups)
+        new_coming = set(map(get_gid, groups))
+
+        for g in new_coming-already_in:  # New ones
+            self.update(add_to_set__groups=g)
+
+        for g in already_in-new_coming:  # Deleted ones
+            self.update(pull__groups=g)
+            from .group import Group
+            if self in Group.get_by_id(g).managers:
+                Group.get_by_id(g).update(pull__managers=self.id)
+
     @classmethod
     def exist(cls, **kwargs):
         return cls.objects(**kwargs).first()

@@ -1,4 +1,5 @@
 # coding: utf-8
+import ipdb
 from django import forms
 from bson.objectid import ObjectId
 
@@ -9,14 +10,14 @@ class UserAddForm(forms.Form):
     password1 = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(widget=forms.PasswordInput)
     is_superuser = forms.BooleanField(initial=False, required=False)
-    group = forms.ChoiceField(choices=[('--', '--')]+[(g.id, g.name)
-        for g in Group.objects], required=False)
+    group = forms.MultipleChoiceField(choices=[(g.id, g.name)
+        for g in Group.objects], required=False, widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, **kwargs):
         super(UserAddForm, self).__init__(*args, **kwargs)
         # For dynamic choices
-        self.fields['group'] = forms.ChoiceField(choices=[('--', '--')]+[(g.id, g.name)
-            for g in Group.objects], required=False)
+        self.fields['group'] = forms.MultipleChoiceField(choices=[(g.id, g.name)
+            for g in Group.objects], required=False, widget=forms.CheckboxSelectMultiple)
 
     def clean_username(self):
         if User.exist(username=self.cleaned_data['username']):
@@ -29,13 +30,10 @@ class UserAddForm(forms.Form):
         return self.cleaned_data['password1']
 
     def clean_group(self):
-        if self.cleaned_data['group'] == '--':
-            return None
-        if not ObjectId.is_valid(self.cleaned_data['group']):
-            raise forms.ValidationError("Group %s is not found" % self.cleaned_data['group'])
-        if not User.objects(id=self.cleaned_data['group']).first():
-            raise forms.ValidationError("group %s is not found" % self.cleaned_data['group'])
-        return ObjectId(self.cleaned_data['group'])
+        for gid in self.cleaned_data['group']:
+            if not Group.get_by_id(gid):
+                raise forms.ValidationError("Group %s is not found" % gid)
+        return map(ObjectId, self.cleaned_data['group'])
 
 class PasswordResetForm(forms.Form):
     old_password = forms.CharField(label="当前密码", widget=forms.PasswordInput)
@@ -68,33 +66,26 @@ class PasswordResetForm(forms.Form):
         return self.user
 
 class UserEditForm(forms.Form):
-    username = forms.CharField(label="用户名")
+    username = forms.CharField(label="用户名", required=False)
     is_superuser = forms.BooleanField(required=False)
-    group = forms.ChoiceField(required=False)
+    groups = forms.MultipleChoiceField(required=False, widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, user, *args, **kwargs):
         self.user = user
         super(UserEditForm, self).__init__(*args, **kwargs)
-        self.fields['group'] = forms.ChoiceField(label='所属组', choices=[(g.id, g.name)
-            for g in self.user.groups])
+        self.fields['groups'] = forms.MultipleChoiceField(label='所属组', choices=[(g.id, g.name)
+            for g in Group.objects], required=False, widget=forms.CheckboxSelectMultiple)
 
-    def clean_old_password(self):
-        old_password = self.cleaned_data["old_password"]
-        if not self.user.check_password(old_password):
-            raise forms.ValidationError('password_incorrect')
-        return old_password
-
-    def clean_new_password2(self):
-        password1 = self.cleaned_data.get('new_password1')
-        password2 = self.cleaned_data.get('new_password2')
-        if password1 and password2:
-            if password1 != password2:
-                raise forms.ValidationError(
-                    self.error_messages['password_mismatch'])
-        return password2
+    def clean_groups(self):
+        for gid in self.cleaned_data.get('groups', []):
+            if not Group.get_by_id(gid):
+                raise forms.ValidationError("Group %s is not found" % gid)
+        return map(ObjectId, self.cleaned_data['groups'])
 
     def save(self, commit=True):
-        self.user.set_password(self.cleaned_data['new_password1'])
+        self.user.is_superuser = self.cleaned_data['is_superuser']
+        self.user.set_groups(self.cleaned_data['groups'])
         if commit:
             self.user.save()
         return self.user
+

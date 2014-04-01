@@ -27,18 +27,17 @@ class EditingUser(object):
             self.editing_user = u
         return super(EditingUser, self).dispatch(request, *args, **kwargs)
 
-class AddUser(LoginRequiredMixin, AdminRequired, FormView):
+class UserAdd(LoginRequiredMixin, AdminRequired, FormView):
     template_name = 'user_add.html'
     form_class = UserAddForm
 
     def form_valid(self, form):
         d = form.cleaned_data
-        groups = [d['group']] if d['group'] else []
-        User.create_user(d['username'], d['password1'], d['is_superuser'], groups)
+        User.create_user(d['username'], d['password1'], d['is_superuser'], d['group'])
         logger.info('%s created a %suser: %s', self.request.user.username, 
                 ['', 'super '][form.cleaned_data['is_superuser']], form.cleaned_data['username'],
                 extra=self.request.__dict__)
-        return super(AddUser, self).form_valid(form)
+        return super(UserAdd, self).form_valid(form)
 
     def get_success_url(self):
         referer = self.request.META.get('HTTP_REFERER') or reverse('user_list')
@@ -47,6 +46,7 @@ class AddUser(LoginRequiredMixin, AdminRequired, FormView):
 class UserDetail(LoginRequiredMixin, TemplateView):
     template_name = 'user_detail.html'
 
+# TODO, only admin can edit its group
 class UserEdit(LoginRequiredMixin, EditingUser, FormView):
     template_name = 'user_edit.html'
     form_class = UserEditForm
@@ -55,17 +55,23 @@ class UserEdit(LoginRequiredMixin, EditingUser, FormView):
         return {
             'username': self.editing_user.username,
             'is_superuser': self.editing_user.is_superuser,
-            # 'group': self.editing_user.groups,
+            # MultipleChoiceField takes a list of IDs not choices
+            'groups': [g.id for g in self.editing_user.groups],
         }
 
     def get_form_kwargs(self):
         kwargs = super(UserEdit, self).get_form_kwargs()
-        # self.editing_user = User.get_by_id(self.kwargs.get('uid')) or self.request.user
         kwargs['user'] = self.editing_user
         return kwargs
 
     def get_success_url(self):
-        return reverse('user_edit')
+        return reverse('user_list')
+        # Do redirect to other url, in case of resubmit
+        # return reverse('user_edit', args=(self.editing_user.id,))
+
+    def form_valid(self, form):
+        form.save()
+        return super(UserEdit, self).form_valid(form)
 
 class UserDelete(LoginRequiredMixin, EditingUser, AdminRequired, View):
     def get(self, *args, **kwargs):
@@ -82,7 +88,6 @@ class PasswordEdit(LoginRequiredMixin, EditingUser, FormView):
 
     def get_form_kwargs(self):
         kwargs = super(PasswordEdit, self).get_form_kwargs()
-        self.editing_user = User.get_by_id(self.kwargs.get('uid')) or self.request.user
         kwargs['user'] = self.editing_user
         return kwargs
 
