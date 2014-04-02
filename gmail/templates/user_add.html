@@ -80,6 +80,9 @@
                          <p align="left">
 									<label>群组</label>{{ form.group.errors }}
 									{{ form.group }}
+                                    <!--{% for choice in form.group.field.choices %}-->
+                                    <!--{{ choice}} - -->
+                                    <!--{% endfor %}-->
 								</p>	
                          <p align="left">
 									<label>超级用户</label>{{ form.is_superuser.errors }}

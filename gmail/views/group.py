@@ -29,7 +29,7 @@ class GroupAdd(LoginRequiredMixin, AdminRequired, FormView):
         g.save()
         for m in managers:  # A team leader should belong to the team also
             User.objects(id=m).update(add_to_set__groups=g.id)
-        logger.info('%s created a group: %s', self.request.user.username, group_name)
+        logger.info('%s created a group: %s', self.request.user.username, group_name, extra=self.request.__dict__)
         return super(GroupAdd, self).form_valid(form)
 
     def get_success_url(self):
