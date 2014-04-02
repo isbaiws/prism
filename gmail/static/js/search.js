@@ -228,6 +228,7 @@ function checkall()
 	{
 		str[i].checked=true;
 	}
+	document.getElementById("all").checked=true;
 	document.getElementById("none").checked=false;
 }
 
@@ -240,6 +241,7 @@ function uncheckall()
 	{
 		str[i].checked=false;
 	}
+	document.getElementById("none").checked=true;
 	document.getElementById("all").checked=false;
 }
 
@@ -259,4 +261,19 @@ function selectall()
 	{
 		str[i].checked=false;
 	}
+}
+
+//邮件批量删除之前判定
+function deletecheck()
+{
+	var str=document.getElementById("form2").elements;
+	var objarray=str.length;
+	var j=0;
+	for(i=0;i<objarray;i++)
+	{
+		if(str[i].checked==true)
+		j++;
+	}
+	if(j==0)
+	alert("请选择要删除的邮件！");
 }
