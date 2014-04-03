@@ -1,16 +1,12 @@
-from json import dumps, JSONEncoder
+from json import dumps
 import ipdb
-import datetime
-from time import mktime
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http.response import HttpResponse
 from django.views.generic import View
-from django.http import Http404, HttpResponseRedirect
-from django.core.urlresolvers import reverse
-from bson.objectid import ObjectId
+from django.http import Http404
 
-from gmail.models import Email
+from gmail.utils import MyJsonEncoder
 
 class LoginRequiredMixin(object):
     """ from http://stackoverflow.com/a/6455140 """
@@ -25,14 +21,6 @@ class AdminRequired(object):
             raise Http404('Only admin can view this page, remind me to remove it in production.')
         return super(AdminRequired, self).dispatch(request, *args, **kwargs)
 
-class MyJsonEncoder(JSONEncoder):
-
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return int(mktime(obj.timetuple()))*1000
-        elif isinstance(obj, ObjectId):
-            return str(obj)
-        return super(MyJsonEncoder, self).default(obj)
 
 class JsonViewMixin(View):
     content_type = 'application/json'
