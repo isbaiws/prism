@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import logging
 import ipdb
 import re
+from json import dumps
 from datetime import datetime
 from time import mktime
 from itertools import ifilter
@@ -16,7 +17,7 @@ from bson.objectid import ObjectId
 from django.core.urlresolvers import reverse
 from mongoengine import (
         Document, StringField, ListField, FileField, DateTimeField,
-        GridFSProxy, ReferenceField, NULLIFY, QuerySet, DictField, Q,
+        GridFSProxy, ReferenceField, NULLIFY, QuerySet, Q,
         EmbeddedDocument, EmbeddedDocumentField,
     )
 # from jieba import cut_for_search
@@ -25,6 +26,7 @@ from gmail.errors import MessageParseError
 from gmail.HTMLtoText import html2text
 from gmail.utils import decode_str, parse_input_datetime, build_content_disposition
 from gmail import attachreader
+from gmail.utils import MyJsonEncoder
 from .user import User
 from .group import Group
 
@@ -345,7 +347,8 @@ class Email(Document):
 
         for k in string_queries:
             if query_dict.get(k):
-                query |= Q(**{'%s__contains' % k: re.escape(q_str)})
+                # No need to re.escape, mongoengine escape it for us
+                query |= Q(**{'%s__contains' % k: q_str})
 
         for k in equal_queries:
             if query_dict.get(k):
@@ -355,13 +358,13 @@ class Email(Document):
             query &= Q(folder=query_dict['folder'])
 
         if query_dict.get('attach_filename'):
-            query |= Q(attachments__filename__contains=re.escape(q_str))
+            query |= Q(attachments__filename__contains=q_str)
 
         if query_dict.get('start'):
             query &= Q(date__gte=query_dict['start'])
         if query_dict.get('end'):
             query &= Q(date__lte=query_dict['end'])
-        logger.info('Query: %s', query.to_query(cls))
+        logger.info('Query: %s', dumps(query.to_query(cls), cls=MyJsonEncoder))
         return cls.objects(query)
 
     def delete(self):

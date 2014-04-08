@@ -1,7 +1,11 @@
 #coding: utf-8
+import re
 from datetime import datetime
 from urllib import quote
+from json import JSONEncoder
+from time import mktime
 
+from bson.objectid import ObjectId
 from django.utils.formats import ISO_INPUT_FORMATS
 
 def decode_str(s, encodings=('utf-8', 'gbk'), E=UnicodeDecodeError):
@@ -46,3 +50,16 @@ def build_content_disposition(filename):
     filename = filename.replace('\r', '').replace('\n', '')
     return u"""attachment; filename="{fn}"; filename*=utf-8''{fn}"""\
             .format(fn=quote(filename))
+
+
+class MyJsonEncoder(JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return int(mktime(obj.timetuple()))*1000
+        elif isinstance(obj, ObjectId):
+            return str(obj)
+        elif isinstance(obj, re._pattern_type):
+            return obj.pattern
+        return super(MyJsonEncoder, self).default(obj)
+
