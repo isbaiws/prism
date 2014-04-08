@@ -64,15 +64,15 @@ p.big {line-height: 250% }
 
 <p class="big" align="center">
 {{ form.q.label_tag }} : {{ form.q }}
-{{ form.from_.label_tag }}{{ form.from_ }}
-{{ form.to.label_tag }}{{ form.to }}	
-{{ form.subject.label_tag }}{{ form.subject }}
-{{ form.body_txt.label_tag }}{{ form.body_txt }}
-{{ form.attach_filename.label_tag }}{{ form.attach_filename }}
-{{ form.attach_txt.label_tag }}{{ form.attach_txt }}
-{{ form.ip.label_tag }}{{ form.ip }}
-{{ form.bcc.label_tag }}{{ form.bcc }}
-{{ form.cc.label_tag }}{{ form.cc }}		
+{{ form.from_ }}{{ form.from_.label_tag }}
+{{ form.to }}{{ form.to.label_tag }}	
+{{ form.subject }}{{ form.subject.label_tag }}
+{{ form.body_txt }}{{ form.body_txt.label_tag }}
+{{ form.attach_filename }}{{ form.attach_filename.label_tag }}
+{{ form.attach_txt }}{{ form.attach_txt.label_tag }}
+{{ form.ip }}{{ form.ip.label_tag }}
+{{ form.bcc }}{{ form.bcc.label_tag }}
+{{ form.cc }}{{ form.cc.label_tag }}
 </p>
 <p class="big" align="center">
 {{ form.folder.label_tag }} : {{ form.folder }}
@@ -191,16 +191,20 @@ p.big {line-height: 250% }
                         <div class="pagination">
                             <span class="step-links">
                             {% if page_obj.has_previous %}
-                            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                            <div class="buttons">
+                            <a href="?page={{ page_obj.previous_page_number }}"><input type="button" class="button" value="上一页"/></a>
+                            </div>
                             {% endif %}
 
                             <span class="current">
                             {% if page_obj.page_obj.num_pages > 1%}
-                            Page {{ page_obj.number }} of {{ page_obj.page_obj.num_pages }}.
+                            第 {{ page_obj.number }} / {{ page_obj.page_obj.num_pages }} 页
                             {% endif %}
                             </span>
                             {% if page_obj.has_next %}
-                            <a href="?page={{ page_obj.next_page_number }}">next</a>
+                            <div class="buttons">
+                            <a href="?page={{ page_obj.next_page_number }}"><input type="button" class="button" value="下一页"/></a>
+                            </div>
                             {% endif %}
                             </span>
 						       </div>
