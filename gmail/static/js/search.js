@@ -277,3 +277,9 @@ function deletecheck()
 	if(j==0)
 	alert("请选择要删除的邮件！");
 }
+
+function add_group()
+{
+	var trang=document.getElementById("TANGRAM");
+	trang.style.display = "block";
+}

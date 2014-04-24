@@ -25,7 +25,8 @@ class FolderMixin(object):
         self.current_folder = kwargs.get('folder', None)
         if self.current_folder:
             if self.current_folder not in self.folders:
-                raise Http404('No folder found')
+                #raise Http404('No folder found')
+                return HttpResponseRedirect(reverse(self.view_name, args=(self.folders[0],)))
         elif self.folders:
             return HttpResponseRedirect(reverse(self.view_name, args=(self.folders[0],)))
         else:  # current_folder: None, folders: []

@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>邮件后台管理</title>
+	<link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all" />
+   <script type="text/javascript" src="/static/js/search.js"></script>
+</head>
+
+	
+<body>
+<!-- Header -->
+<div id="header">
+	<div class="shell">
+		<!-- Logo + Top Nav -->
+		<div id="top">
+			<h1>后台邮件管理</h1>
+			<div id="top-navigation">
+				欢迎 <a href="{% url 'user_edit' %}"><strong>{{ user.username }}</strong></a>
+				<span>|</span>
+				<a href="{% url 'logout' %}">退出</a>
+			</div>
+		</div>
+		<!-- End Logo + Top Nav -->
+		
+		<!-- Main Nav -->
+		<div id="navigation">
+			<ul>
+			    <li><a href="{% if current_folder %}{% url 'email_list' current_folder %}{% else %}{% url 'email_list' %}{% endif %}" class="active"><span>邮件管理</span></a></li>
+			                       {% if user.is_superuser %}
+				 <li><a href="{% url 'group_list' %}"><span>组管理</span></a></li>
+                                {% endif %}
+                                {% if user.is_superuser %}
+			    <li><a href="{% url 'user_list' %}"><span>用户管理</span></a></li>
+			    						  {% else %}
+			    <li><a href="{% url 'user_edit' %}"><span>用户信息</span></a></li>
+			                       {% endif %}
+             <li><a href="{% if current_folder %}{% url 'email_timeline' current_folder %}{% else %}{% url 'email_timeline' %}{% endif %}"><span>事件时间轴</span></a></li>
+             <li><a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}"><span>邮件统计图</span></a></li>
+             <li><a href="{% if current_folder %}{% url 'email_relation' current_folder %}{% else %}{% url 'email_relation' %}{% endif %}"><span>邮件关系图</span></a></li>
+			</ul>
+		</div>
+		<!-- End Main Nav -->
+	</div>
+</div>
+<!-- End Header -->
+
+<!-- Container -->
+<div id="container">
+	<div class="shell">	
+<table border="0" width="40%">
+<tr>
+<td><a href="javascript:displaylist()"><span id=advtext >邮件搜索查询</span></a></td>
+</tr>
+</table>
+<table id=adv border="1" width="60%" style="display:none">
+<tr height="60">
+<td align="center">
+<form id="form1" name="input" action="" method="get">
+
+<style type="text/css">
+p.big {line-height: 250% }
+</style>
+
+<p class="big" align="center">
+{{ form.q.label_tag }} : {{ form.q }}
+{{ form.from_ }}{{ form.from_.label_tag }}
+{{ form.to }}{{ form.to.label_tag }}	
+{{ form.subject }}{{ form.subject.label_tag }}
+{{ form.body_txt }}{{ form.body_txt.label_tag }}
+{{ form.attach_filename }}{{ form.attach_filename.label_tag }}
+{{ form.attach_txt }}{{ form.attach_txt.label_tag }}
+{{ form.ip }}{{ form.ip.label_tag }}
+{{ form.bcc }}{{ form.bcc.label_tag }}
+{{ form.cc }}{{ form.cc.label_tag }}
+</p>
+<p class="big" align="center">
+{{ form.folder.label_tag }} : {{ form.folder }}
+查询时间:
+<input type="text" name="{{ form.start.html_name }}" style="width:70px" onfocus="HS_setDate(this)">
+到
+<input type="text" name="{{ form.end.html_name }}" style="width:70px" onfocus="HS_setDate(this)">
+
+<input type="checkbox" name="all" id="all" onclick="checkall()" value="全选"/>全选
+<input type="checkbox" name="none" id="none" onclick="uncheckall()" value="取消全选" />取消全选
+<input type="submit" class="button" name="submit" onclick="check()" value="查询" />
+<input type="reset"	class="button" name="reset" value="重置"/>
+</p>
+
+</form>
+</td>
+</tr>
+</table>
+		<!-- Main -->
+		<div id="main">
+			<div class="cl">&nbsp;</div>
+			
+			
+		<!-- leftbar_list -->
+			<div id="leftbar_list">
+				
+				<!-- Box -->
+				<div class="box">
+					
+					<!-- Box Head -->
+					<div class="box-head">
+						<h2>邮箱用户</h2>
+					</div>
+					<!-- End Box Head-->
+						
+						<!-- Sort -->
+						<div class="sort">
+						 
+                    {% for folder in folders%}
+                    {% if folder = current_folder %} 
+                    <label>
+                    <li><a href="{% url 'email_list' folder %}">{{ folder |  truncatechars:30 }}</a></li>
+                    </label>
+                    {% else %}
+                    <li><a href="{% url 'email_list' folder %}">{{ folder |  truncatechars:30 }}</a></li>
+                    {% endif %}
+                    {% endfor %}  
+                   
+						<div class="cl">&nbsp;</div>
+						</div>
+						<!-- End Sort -->
+						
+					</div>
+				</div>
+				<!-- End Box -->
+			</div>
+			<!-- End leftbar_list -->
+			
+			
+
+			<form id="form2" action="{% url 'email_delete' %}" method="get">		
+			<!-- Content_list -->
+			<div id="content_list">			
+				<!-- Box -->
+				<div class="box">		
+					<!-- Box Head -->
+					<div class="box-head">
+						<h2 class="left">当前邮件</h2>
+						<div class="right">
+							<label>邮件操作</label>
+							<input type="submit" class="button" value="批量删除" onclick="deletecheck()"/>
+						</div>
+					</div>
+					<!-- End Box Head -->	
+					
+
+					<!-- Table -->
+					<div class="table">
+						<table width="100%" border="0" cellspacing="0" cellpadding="0">
+						  
+							<tr>
+								<th width="13"><input id="allemail" type="checkbox" class="checkbox" onclick="selectall()"/></th>
+								<th>发信人</th>
+								<th>收件人</th>
+								<th>抄送</th>
+								<th>密送</th>
+								<th>主题</th>
+								<th>正文摘要</th>
+								<th>时间</th>
+                                {% if user.is_superuser %}
+								<th>邮件管理人</th>
+                                {% endif %}
+                        <th>附件名</th>
+							</tr>
+                            {% for e in emails %}
+                        <tr>
+								<td><input id="{{e.id}}" name="eid" type="checkbox" class="checkbox" value="{{e.id}}"/></td>
+								<td>{{e.from_ | slice:":5" | join:"<br/>"}}</td>
+								<td>{{e.to | slice:":5" | join:"<br/>"}}</td>
+								<td>{{e.cc}}</td>
+								<td>{{e.bcc}}</td>
+								<td><h3><a href="{% url 'email_detail' e.id %}">{{e.subject |default:e.id}}</a></h3></td>
+								<td>{{e.body_txt | truncatechars:10}}</td>
+								<td>{% if e.date %}{{ e.date | date:"d/m/Y G:i"  }}{% else %}&nbsp;&nbsp;{% endif %}</td>
+                                {% if user.is_superuser %}
+                                <td>{{ e.owner.username }}</td>
+                        		  {% endif %}
+                                  <td>{{ e.attachments |slice:":5"|join:", "| truncatechars:10}}</td>
+							   </tr>
+                            {% endfor %}
+                     
+						</table>					
+						</form>
+						<!-- Pagging -->
+                        {% if is_paginated %}
+                        <div class="pagination">
+                            <span class="step-links">
+                            {% if page_obj.has_previous %}
+                            <div class="buttons">
+                            <a href="?page={{ page_obj.previous_page_number }}"><input type="button" class="button" value="上一页"/></a>
+                            </div>
+                            {% endif %}
+
+                            <span class="current">
+                            {% if page_obj.page_obj.num_pages > 1%}
+                            第 {{ page_obj.number }} / {{ page_obj.page_obj.num_pages }} 页
+                            {% endif %}
+                            </span>
+                            {% if page_obj.has_next %}
+                            <div class="buttons">
+                            <a href="?page={{ page_obj.next_page_number }}"><input type="button" class="button" value="下一页"/></a>
+                            </div>
+                            {% endif %}
+                            </span>
+						       </div>
+                        {% endif %}
+						<!-- End Pagging -->
+						
+					</div>
+					<!-- Table -->
+					
+				</div>
+				<!-- End Box -->
+
+			</div>
+			<!-- End Content_list -->
+
+					
+			<div class="cl">&nbsp;</div>			
+		</div>
+		<!-- Main -->
+	</div>
+</div>
+<!-- End Container -->
+
+<!-- Footer -->
+<div id="footer">
+	<div class="shell">
+	</div>
+</div>
+<!-- End Footer -->
+	
+</body>
+</html>

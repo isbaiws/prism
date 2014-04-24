@@ -1,159 +1,168 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-	<title>邮件后台管理</title>
-	<link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all" />
-</head>
-<body>
-<!-- Header -->
-<div id="header">
-	<div class="shell">
-		<!-- Logo + Top Nav -->
-		<div id="top">
-			<h1>后台邮件管理</h1>
-			<div id="top-navigation">
-				欢迎 <a href="{% url 'user_edit' %}"><strong>{{ user.username }}</strong></a>
-				<span>|</span>
-				<a href="{% url 'logout' %}">退出</a>
-			</div>
-		</div>
-		<!-- End Logo + Top Nav -->
-		
-		<!-- Main Nav -->
-		<div id="navigation">
-			<ul>
-			    <li><a href="{% if current_folder %}{% url 'email_list' current_folder %}{% else %}{% url 'email_list' %}{% endif %}"><span>邮件管理</span></a></li>
-			    			           {% if user.is_superuser %}
-				 <li><a href="{% url 'group_list' %}"><span>组管理</span></a></li>
-                                {% endif %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <title>Email Analysis System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="/static/style2/css/style.css">
+    <link rel="stylesheet" href="/static/style2/css/general_elements.css">
+    <link rel="stylesheet" href="/static/style2/css/prism.css">
+    <script type="text/javascript" src="/static/js/search.js"></script>
+
+  </head>
+
+  <body>
+
+  <div class="container-header">
+    <div class="row">
+        <div class="span5">
+          <h2 >邮件分析系统</h2>
+        </div>
+        <div class="span5 pull-right">
+            <nav id="nav">
+                
+
+                <nav class="nav-util">
+
+                    <a href="{% url 'user_edit' %}">{{ user.username }}</a>
+                    <a href="{% url 'logout' %}">logout</a>
+                </nav>
+
+
+            </nav>
+        </div>
+    </div>
+  </div>
+
+    <div id="content">
+        
+
+    <div class="nav-sub-nav-wrap">
+
+        <nav class="nav-sub-nav">
+            <div >
+
+                <div class="span2">
+                  <a href="{% if current_folder %}{% url 'email_list' current_folder %}{% else %}{% url 'email_list' %}{% endif %}" class="active">
+                      <span>邮件管理</span>
+                  </a>
+                </div>
+
+ {% if user.is_superuser %}
+                <div class="span2">
+                  <a href="{% url 'group_list' %}" >
+                      <span>组管理</span>
+                  </a>
+                </div>
+ {% endif %}
                                 {% if user.is_superuser %}
-			    <li><a href="{% url 'user_list' %}"><span>用户管理</span></a></li>
-			    						  {% else %}
-			    <li><a href="{% url 'user_edit' %}"><span>用户信息</span></a></li>
-			                       {% endif %}
-                <li><a href="{% if current_folder %}{% url 'email_timeline' current_folder %}{% else %}{% url 'email_timeline' %}{% endif %}"><span>事件时间轴</span></a></li>
-                <li><a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}"><span>邮件统计图</span></a></li>
-                <li><a href="{% if current_folder %}{% url 'email_relation' current_folder %}{% else %}{% url 'email_relation' %}{% endif %}"><span>邮件关系图</span></a></li>
-			</ul>
-		</div>
-		<!-- End Main Nav -->
-	</div>
-</div>
-<!-- End Header -->
+                <div class="span2">
+                  <a href="{% url 'user_list' %}" >
+                      <span>用户管理</span>
+                  </a>
+                </div>
+ {% else %}
+                <div class="span2">
+                  <a href="{% url 'user_edit' %}" >
+                      <span>用户信息</span>
+                  </a>
+                </div>
+ {% endif %}
 
-<!-- Container -->
-<div id="container_list">
-	<div class="shell">
-    	
-		<br />
-		<!-- Main -->
-		<div id="main">
-			<div class="cl">&nbsp;</div>
-			
-					<!-- leftbar_list -->
-			<div id="leftbar_list">
-				
-				<!-- Box -->
-				<div class="box">
-					
-					<!-- Box Head -->
-					<div class="box-head">
-						<h2>邮箱用户</h2>
-					</div>
-					<!-- End Box Head-->
-						
-						<!-- Sort -->
-						<div class="sort">
-						 
-                    {% for folder in folders%}
-                    {% if folder = current_folder %} 
-                    <label>
-                    <li><a href="{% url 'email_list' folder %}">{{ folder |  truncatechars:30}}</a></li>
-                    </label>
-                    {% else %}
-                    <li><a href="{% url 'email_list' folder %}">{{ folder |  truncatechars:30}}</a></li>
-                    {% endif %}
-                    {% endfor %}  
-                   
-						<div class="cl">&nbsp;</div>
-						</div>
-						<!-- End Sort -->
-						
-					</div>
-				</div>
-				<!-- End Box -->
-			</div>
-			<!-- End leftbar_list -->
-			
-			<!-- Content_list -->
-			<div id="content_list">
-				
-				<!-- Box -->
-				<div class="box">
-					<!-- Box Head -->
-					<div class="box-head">
-						<h2>邮件详细信息</h2>
-					</div>
-					<!-- End Box Head -->
-					
-					<form action="" method="post">
-						
-						<!-- Form -->
-						<div class="form">
-								<p>
-									<label>邮件主题 </label>
-                                    {{ email.subject }}
-								</p>	
-								<p>
-									<label>发件人</label>
-                                    <td>{{ email.from_ }}</td>
-                                </p>
-                                <p>
-                                    <label>收件人</label>
-                                    <td>{{ email.to }}</td>
-								</p>
-                                
-                                <p>
-                                	{% if email.attachments %}
-                                    <label>附件</label>
-                                	{% for attach in email.attachments %}
-    								<td><a href={{ attach.url }}>{{ attach.filename }}</a></td>
-									{% endfor %}
-									{% endif %}
-                                </p>
-                                <p>
-                                <a href="{{ email.source.url }}"> source </a>
-                                </p>
-								<p>
-									<label>邮件内容</label>
-								    {%if email.body%}{{ email.body |safe }}{%endif%}
-								</p>	
-							
-						</div>
-						<!-- End Form -->
-						
-					</form>
-				</div>
-				<!-- End Box -->
+                <div class="span2">
+                  <a href="{% if current_folder %}{% url 'email_timeline' current_folder %}{% else %}{% url 'email_timeline' %}{% endif %}" >
+                      <span>邮件时间轴</span>
+                  </a>
+                </div>
 
-			</div>
-			<!-- End Content_list -->
-			
-			
-			<div class="cl">&nbsp;</div>			
-		</div>
-		<!-- Main -->
-	</div>
-</div>
-<!-- End Container -->
+                <div class="span2">
+                  <a href="{% if current_folder %}{% url 'email_statistics' current_folder %}{% else %}{% url 'email_statistics' %}{% endif %}" >
+                      <span>邮件统计图</span>
+                  </a>
+                </div>
 
-<!-- Footer -->
-<div id="footer">
-	<div class="shell">
-	</div>
+                <div class="span2">
+                  <a href="{% if current_folder %}{% url 'email_relation' current_folder %}{% else %}{% url 'email_relation' %}{% endif %}" >
+                      <span>邮件关系图</span>
+                  </a>
+                </div>
+                
+            </div>
+        </nav>
+    </div>
+ 
+
+<div class="container-main">
+  <div class="span3">
+      <div class="container-sidebar-header">
+          用户邮箱  
+      </div>
+      <div class="container-sidebar-content">
+          <ul>
+
+            {% for folder in folders%}
+              {% if folder = current_folder %} 
+                <li class="active"><a href="{% url 'email_list' folder %}">{{ folder |  truncatechars:30 }}</a></li>
+
+              {% else %}
+                <li><a href="{% url 'email_list' folder %}">{{ folder |  truncatechars:30 }}</a></li>
+              {% endif %}
+            {% endfor %} 
+          </ul>
+      </div>
+  </div>
+
+  <div class="offset3 rightoffset1">
+    
+      <div class="container-main-header">
+              邮件详细信息 
+      </div>
+      <div class="container-main-content">
+        <table class="table-striped">
+          <tbody>
+           
+            <tr>
+              <td width="100px">邮件主题 </td>   
+              <td>{{ email.subject }}</td>
+            </tr>   
+            <tr>
+              <td width="100px">发件人 </td>   
+              <td>{{ email.from_ }}</td>
+            </tr>   
+            <tr>
+              <td width="100px">收件人 </td>   
+              <td>{{ email.to }}</td>
+            </tr>   
+            {% if email.attachments %}
+            <tr>
+              <td width="100px">附件</td>   
+              <td>{% for attach in email.attachments %}<a href={{ attach.url }}>{{ attach.filename }}</a>{% endfor %}</td>
+            </tr>               
+            {% endif %} 
+
+            <tr>
+              <td width="100px">源文件</td>   
+              <td> <a href="{{ email.source.url }}"> 下载 </a></td>
+            </tr>  
+
+            <tr>
+              <td width="100px">邮件内容</td>   
+              <td>{%if email.body%}{{ email.body |safe }}{%endif%}</td>
+            </tr>                         
+                              
+          </tbody>
+        </table>
+       
+      </div>
+   
+  </div>       
 </div>
-<!-- End Footer -->
-	
-</body>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="/static/style2/js/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="/static/style2/js/bootstrap.min.js"></script>
+  </body>
 </html>
+
